@@ -1,0 +1,1560 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087f5b">
+  <meta name="description" content="SurveyKE — Share your opinions on everyday products and services in Kenya.">
+  <title>SurveyKE | Your Opinion Matters</title>
+
+  <style>
+    :root {
+      --green: #087f5b;
+      --green-dark: #07543e;
+      --green-light: #e5f7ed;
+      --ink: #172c24;
+      --muted: #728078;
+      --bg: #f7f9f7;
+      --white: #ffffff;
+      --border: #e4ebe6;
+      --purple: #7453c7;
+      --shadow: 0 12px 35px rgba(22, 53, 39, .07);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 95px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid #78c9a4;
+      outline-offset: 3px;
+    }
+
+    button:disabled { cursor: default; opacity: .6; }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(1160px, 90%);
+      margin: auto;
+    }
+
+    /* HEADER */
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,.96);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(15px);
+    }
+
+    .header-inner {
+      width: min(1300px, 92%);
+      min-height: 76px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: var(--ink);
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: -.8px;
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      width: 41px;
+      height: 41px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: linear-gradient(145deg, #12b77b, #056344);
+      color: white;
+      font-size: 23px;
+      box-shadow: 0 5px 15px #087f5b30;
+    }
+
+    .brand span:last-child span { color: var(--green); }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 27px;
+    }
+
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: #64736b;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 0;
+    }
+
+    .nav button:hover,
+    .nav button.active { color: var(--green); }
+
+    .header-action {
+      border: 1px solid #b9e4ce;
+      border-radius: 11px;
+      padding: 11px 16px;
+      background: var(--green-light);
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    /* HERO BANNER */
+
+    .hero {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      margin-top: 26px;
+      min-height: 385px;
+      border-radius: 27px;
+      padding: 55px 6%;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(118deg, #064d37, #087f5b 58%, #13a775);
+      color: white;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: 360px;
+      height: 360px;
+      border: 1px solid #ffffff30;
+      border-radius: 50%;
+      right: 8%;
+      top: 30px;
+      box-shadow: 0 0 0 36px #ffffff08, 0 0 0 75px #ffffff06;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: #ffffff0a;
+      left: -130px;
+      bottom: -170px;
+    }
+
+    .hero-copy {
+      max-width: 660px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border: 1px solid #ffffff42;
+      background: #ffffff12;
+      border-radius: 40px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    .hero h1 {
+      font-size: clamp(37px, 5.5vw, 64px);
+      line-height: 1.1;
+      letter-spacing: -2.5px;
+      margin: 24px 0 17px;
+      font-weight: 850;
+    }
+
+    .hero h1 span { color: #b7f2d5; }
+
+    .hero-description {
+      max-width: 530px;
+      color: #e0f4e9;
+      line-height: 1.9;
+      font-size: 14px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 17px;
+      margin-top: 27px;
+    }
+
+    .primary-button {
+      border: 0;
+      border-radius: 11px;
+      background: white;
+      color: var(--green-dark);
+      font-weight: 800;
+      padding: 15px 19px;
+      transition: transform .2s;
+    }
+
+    .primary-button:hover { transform: translateY(-2px); }
+
+    .hero-note {
+      color: #d8f2e5;
+      font-size: 11px;
+    }
+
+    .hero-art {
+      position: absolute;
+      right: 7%;
+      top: 0;
+      width: 290px;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .floating-card {
+      position: absolute;
+      top: 150px;
+      right: 0;
+      width: 255px;
+      padding: 21px;
+      background: white;
+      color: var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 20px 50px #003e2b40;
+      transform: rotate(-4deg);
+    }
+
+    .floating-card .check {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      background: var(--green-light);
+      border-radius: 13px;
+      color: var(--green);
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .floating-card strong,
+    .floating-card small { display: block; }
+
+    .floating-card strong { font-size: 14px; }
+
+    .floating-card small {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .floating-emoji {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: white;
+      font-size: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .emoji-one { right: 180px; top: 80px; transform: rotate(-8deg); }
+    .emoji-two { right: -5px; top: 72px; transform: rotate(9deg); }
+    .emoji-three { right: 5px; bottom: 47px; transform: rotate(-7deg); }
+
+    /* GENERAL SECTIONS */
+
+    .welcome {
+      padding: 53px 0 27px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 25px;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: 1.6px;
+    }
+
+    .welcome h2,
+    .section-heading h2,
+    .page-title {
+      font-size: clamp(25px, 3vw, 35px);
+      letter-spacing: -.9px;
+      line-height: 1.3;
+      margin: 10px 0;
+    }
+
+    .welcome p,
+    .section-heading p,
+    .page-description {
+      font-size: 13px;
+      line-height: 1.9;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .kenya-tag {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 15px 18px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+
+    .kenya-tag .flag { font-size: 26px; }
+    .kenya-tag strong { display: block; font-size: 13px; }
+    .kenya-tag small { color: var(--muted); font-size: 10px; }
+
+    .section { padding: 29px 0 53px; }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .section-heading h2 { margin-bottom: 5px; }
+
+    .section-pill {
+      background: #def5e8;
+      color: #08754f;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .7px;
+      white-space: nowrap;
+    }
+
+    /* SEARCH */
+
+    .search-box {
+      max-width: 560px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 52px;
+      padding: 0 16px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: white;
+      margin-bottom: 23px;
+    }
+
+    .search-icon { font-size: 24px; color: var(--muted); }
+
+    .search-box input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+      font-size: 13px;
+    }
+
+    .search-box input:focus-visible { outline: none; }
+
+    .clear-search {
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* SURVEY CARDS */
+
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .topic-card {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      text-align: left;
+      padding: 19px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      color: var(--ink);
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+
+    .topic-card:hover {
+      border-color: #8dd1ad;
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    .topic-icon {
+      flex-shrink: 0;
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      font-size: 25px;
+    }
+
+    .gold { background: #fff0d4; }
+    .blue { background: #e0efff; }
+    .purple { background: #eee5ff; }
+    .green { background: #ddf5e6; }
+    .orange { background: #ffeadb; }
+    .pink { background: #ffe5ec; }
+    .teal { background: #d9f5f1; }
+
+    .topic-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .topic-copy strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .topic-copy small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .topic-arrow {
+      flex-shrink: 0;
+      font-size: 22px;
+      color: var(--green);
+    }
+
+    .empty-state {
+      padding: 35px 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 15px;
+    }
+
+    /* MORE SURVEYS BANNER */
+
+    .more-banner {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 28px;
+      border-radius: 21px;
+      background: linear-gradient(110deg, #e9e3ff, #f5f1ff 70%, #e4f7eb);
+      margin-top: 31px;
+    }
+
+    .more-symbol {
+      flex-shrink: 0;
+      width: 55px;
+      height: 55px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: var(--purple);
+      color: white;
+      font-size: 28px;
+    }
+
+    .more-copy { flex: 1; }
+
+    .more-copy h3 {
+      margin: 7px 0;
+      font-size: 20px;
+      letter-spacing: -.4px;
+    }
+
+    .more-copy p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.8;
+      color: #706980;
+    }
+
+    .dark-button {
+      flex-shrink: 0;
+      border: 0;
+      border-radius: 11px;
+      padding: 14px 18px;
+      background: #19382b;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* TESTIMONIALS */
+
+    .testimonials { padding: 34px 0 76px; }
+
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .testimonial-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 22px;
+    }
+
+    .quote-mark {
+      color: var(--green);
+      font: 800 43px Georgia, serif;
+      height: 37px;
+    }
+
+    .testimonial-card > p {
+      color: #536259;
+      font-size: 13px;
+      line-height: 1.9;
+      min-height: 75px;
+    }
+
+    .testimonial-person {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      border-top: 1px solid var(--border);
+      padding-top: 15px;
+    }
+
+    .avatar {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green-light);
+      color: var(--green);
+      font-weight: 850;
+    }
+
+    .testimonial-person strong {
+      display: block;
+      font-size: 12px;
+    }
+
+    .testimonial-person small {
+      display: block;
+      color: var(--muted);
+      margin-top: 5px;
+      font-size: 10px;
+    }
+
+    .sample-note {
+      color: #89948d;
+      font-size: 10px;
+      line-height: 1.8;
+      margin-top: 17px;
+    }
+
+    /* INNER PAGES */
+
+    .page { padding: 43px 0 85px; min-height: 65vh; }
+
+    .back-button {
+      display: inline-block;
+      margin-bottom: 34px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .page-title { font-size: clamp(31px, 4vw, 43px); }
+
+    .page-description {
+      max-width: 700px;
+      margin-bottom: 28px;
+    }
+
+    .premium-notice {
+      display: flex;
+      gap: 15px;
+      padding: 20px;
+      margin: 25px 0;
+      border: 1px solid #dfd3ff;
+      border-radius: 16px;
+      background: #f0eaff;
+    }
+
+    .premium-notice > span {
+      font-size: 26px;
+      color: var(--purple);
+    }
+
+    .premium-notice strong { font-size: 13px; }
+
+    .premium-notice p {
+      color: #706980;
+      font-size: 12px;
+      line-height: 1.8;
+      margin-bottom: 0;
+    }
+
+    .premium-tag {
+      display: inline-block;
+      color: var(--purple);
+      font-size: 10px;
+      font-weight: 850;
+      margin-top: 8px;
+    }
+
+    .question-panel {
+      max-width: 700px;
+      padding: 32px;
+      border: 1px solid var(--border);
+      border-radius: 21px;
+      background: white;
+      margin-top: 28px;
+    }
+
+    .question-symbol {
+      width: 57px;
+      height: 57px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: var(--green-light);
+      font-size: 27px;
+    }
+
+    .question-panel h2 { font-size: 22px; }
+
+    .question-panel p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.9;
+    }
+
+    .green-button {
+      border: 0;
+      border-radius: 11px;
+      background: var(--green);
+      color: white;
+      padding: 14px 18px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .support-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+      margin-top: 28px;
+    }
+
+    .support-card {
+      padding: 22px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .support-card > span { font-size: 26px; }
+    .support-card strong { display: block; margin: 12px 0 7px; }
+    .support-card p { color: var(--muted); font-size: 12px; line-height: 1.8; }
+
+    /* FOOTER */
+
+    .footer {
+      background: #102e23;
+      color: white;
+      padding: 48px 0 0;
+    }
+
+    .footer-main {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1.1fr;
+      gap: 35px;
+      padding-bottom: 39px;
+    }
+
+    .footer-brand .brand { color: white; }
+
+    .footer-brand > p {
+      max-width: 290px;
+      color: #b8cbbf;
+      font-size: 12px;
+      line-height: 2;
+    }
+
+    .footer-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .footer-column > strong {
+      font-size: 13px;
+      margin: 7px 0;
+    }
+
+    .footer-column > button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: #b8cbbf;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .footer-column > button:hover { color: white; }
+
+    .social-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .social-icon {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #ffffff20;
+      border-radius: 11px;
+      background: #234b39;
+      color: white;
+      font-size: 16px;
+      font-weight: 850;
+      transition: background .2s, transform .2s;
+    }
+
+    .social-icon:hover {
+      background: var(--green);
+      transform: translateY(-2px);
+    }
+
+    .social-caption {
+      color: #b8cbbf;
+      font-size: 10px;
+      line-height: 1.8;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+      border-top: 1px solid #ffffff20;
+      padding: 21px 0;
+      color: #b8cbbf;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    /* FIXED SUPPORT BUTTON */
+
+    .support-float {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 14px 19px;
+      border: 0;
+      border-radius: 50px;
+      background: var(--green);
+      color: white;
+      font-size: 12px;
+      font-weight: 850;
+      box-shadow: 0 8px 25px #075c4135;
+    }
+
+    .support-float:hover { background: var(--green-dark); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      z-index: 200;
+      transform: translate(-50%, 20px);
+      width: max-content;
+      max-width: 90%;
+      padding: 13px 19px;
+      background: #18382b;
+      color: white;
+      border-radius: 12px;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .hidden { display: none !important; }
+
+    /* RESPONSIVE DESIGN */
+
+    @media (max-width: 950px) {
+      .hero-art { right: -70px; opacity: .55; }
+      .hero-copy { max-width: 650px; }
+      .footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 650px) {
+      .header-inner { min-height: 66px; gap: 9px; }
+      .brand { font-size: 19px; gap: 7px; }
+      .brand-icon { width: 34px; height: 34px; border-radius: 10px; }
+      .nav { gap: 12px; }
+      .nav button { font-size: 10px; }
+      .nav button[data-page="support"] { display: none; }
+      .header-action { padding: 9px; font-size: 10px; }
+      .hero { min-height: 370px; padding: 34px 25px; margin-top: 15px; border-radius: 21px; }
+      .hero h1 { font-size: 40px; letter-spacing: -1.7px; }
+      .hero-description { font-size: 13px; }
+      .hero-art { right: -180px; opacity: .23; }
+      .hero-note { width: 100%; line-height: 1.8; }
+      .welcome { flex-direction: column; align-items: flex-start; padding-top: 38px; }
+      .kenya-tag { width: 100%; }
+      .section { padding-top: 20px; }
+      .section-heading h2 { font-size: 27px; }
+      .topic-grid { grid-template-columns: 1fr; gap: 11px; }
+      .topic-card { padding: 15px; }
+      .topic-icon { width: 46px; height: 46px; }
+      .more-banner { flex-wrap: wrap; padding: 22px; }
+      .more-copy { min-width: calc(100% - 75px); }
+      .dark-button { width: 100%; }
+      .testimonial-grid { grid-template-columns: 1fr; }
+      .testimonial-card > p { min-height: 0; }
+      .support-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .footer-main { gap: 28px 18px; }
+      .footer-brand { grid-column: 1 / -1; }
+      .footer-bottom { font-size: 10px; }
+      .support-float { right: 13px; bottom: 13px; }
+      .question-panel { padding: 23px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <button class="brand" data-action="home" aria-label="SurveyKE home">
+        <span class="brand-icon">S</span>
+        <span>Survey<span>KE</span></span>
+      </button>
+
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active" data-page="home">Home</button>
+        <button data-page="premium">More Surveys</button>
+        <button data-page="support">Support</button>
+      </nav>
+
+      <button class="header-action" data-page="profile">
+        My Account ↗
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HOMEPAGE -->
+    <div id="homePage">
+      <div class="container">
+        <section class="hero">
+          <div class="hero-copy">
+            <span class="hero-label">🇰🇪 MADE FOR KENYA</span>
+
+            <h1>
+              Your voice.<br>
+              <span>Your opinion matters.</span>
+            </h1>
+
+            <p class="hero-description">
+              Every opinion tells a story. Share your experiences with
+              everyday products and services and help shape a better
+              understanding of what Kenyans really think.
+            </p>
+
+            <div class="hero-actions">
+              <button class="primary-button" id="exploreButton">
+                Explore Surveys &nbsp; →
+              </button>
+              <span class="hero-note">
+                Everyday topics. Meaningful opinions.
+              </span>
+            </div>
+          </div>
+
+          <div class="hero-art" aria-hidden="true">
+            <div class="floating-emoji emoji-one">⚡</div>
+            <div class="floating-emoji emoji-two">💧</div>
+            <div class="floating-emoji emoji-three">📊</div>
+            <div class="floating-card">
+              <div class="check">✓</div>
+              <strong>Your opinion counts</strong>
+              <small>One voice can make a difference.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="welcome">
+          <div>
+            <span class="eyebrow">WELCOME TO SURVEYKE</span>
+            <h2>What matters to you?</h2>
+            <p>
+              Explore everyday topics and share your point of view.
+              Start with the basic surveys or discover more categories.
+            </p>
+          </div>
+
+          <div class="kenya-tag">
+            <span class="flag">🇰🇪</span>
+            <div>
+              <strong>Built around Kenya</strong>
+              <small>Local topics. Everyday experiences.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="basicSurveys">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">START EXPLORING</span>
+              <h2>Basic Surveys</h2>
+              <p>Five everyday topics to start with.</p>
+            </div>
+            <span class="section-pill">BASIC ACCESS</span>
+          </div>
+
+          <div class="search-box">
+            <span class="search-icon">⌕</span>
+            <input id="basicSearch" type="search"
+              placeholder="Search basic survey topics..."
+              aria-label="Search basic survey topics">
+            <button class="clear-search hidden" id="clearBasic">Clear</button>
+          </div>
+
+          <div class="topic-grid" id="basicGrid"></div>
+
+          <div class="empty-state hidden" id="basicEmpty">
+            No basic survey topics match your search.
+          </div>
+
+          <div class="more-banner">
+            <div class="more-symbol">✦</div>
+            <div class="more-copy">
+              <span class="eyebrow">EXPLORE MORE</span>
+              <h3>There's more to discover</h3>
+              <p>
+                Browse additional topics covering health, shopping,
+                transport, education, finance, and everyday life.
+              </p>
+            </div>
+            <button class="dark-button" data-page="premium">
+              More Surveys &nbsp; →
+            </button>
+          </div>
+        </section>
+
+        <section class="testimonials">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">OUR VISION</span>
+              <h2>Every voice has value</h2>
+              <p>
+                A place for people to share opinions on the services
+                and products they encounter every day.
+              </p>
+            </div>
+          </div>
+
+          <div class="testimonial-grid">
+            <article class="testimonial-card">
+              <div class="quote-mark">“</div>
+              <p>
+                Everyday experiences can provide valuable insights
+                into the services people use.
+              </p>
+              <div class="testimonial-person">
+                <div class="avatar">S</div>
+                <div>
+                  <strong>The SurveyKE vision</strong>
+                  <small>Our mission</small>
+                </div>
+              </div>
+            </article>
+
+            <article class="testimonial-card">
+              <div class="quote-mark">“</div>
+              <p>
+                Your perspective matters. Different experiences
+                help create a fuller picture of life in Kenya.
+              </p>
+              <div class="testimonial-person">
+                <div class="avatar">S</div>
+                <div>
+                  <strong>The SurveyKE vision</strong>
+                  <small>Our community</small>
+                </div>
+              </div>
+            </article>
+
+            <article class="testimonial-card">
+              <div class="quote-mark">“</div>
+              <p>
+                Our goal is to make sharing your opinion simple,
+                clear, and accessible.
+              </p>
+              <div class="testimonial-person">
+                <div class="avatar">S</div>
+                <div>
+                  <strong>The SurveyKE vision</strong>
+                  <small>Our commitment</small>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <p class="sample-note">
+            These are introductory statements about the SurveyKE concept,
+            not customer testimonials or claims of existing users.
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <!-- MORE SURVEYS PAGE -->
+    <section class="page hidden" id="premiumPage">
+      <div class="container">
+        <button class="back-button" data-page="home">
+          ← Back to Home
+        </button>
+
+        <span class="eyebrow">DISCOVER MORE</span>
+        <h1 class="page-title">More Survey Topics</h1>
+        <p class="page-description">
+          Explore additional topics covering everyday life in Kenya.
+          These categories are previews; premium access rules and
+          survey questions have not yet been activated.
+        </p>
+
+        <div class="premium-notice">
+          <span>✦</span>
+          <div>
+            <strong>Premium survey categories</strong>
+            <p>
+              This section is reserved for additional survey categories.
+              Premium membership, payment, and access controls will be
+              implemented in a later version.
+            </p>
+          </div>
+        </div>
+
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input id="premiumSearch" type="search"
+            placeholder="Search more survey topics..."
+            aria-label="Search more survey topics">
+          <button class="clear-search hidden" id="clearPremium">Clear</button>
+        </div>
+
+        <div class="topic-grid" id="premiumGrid"></div>
+        <div class="empty-state hidden" id="premiumEmpty">
+          No topics match your search.
+        </div>
+      </div>
+    </section>
+
+    <!-- TOPIC PREVIEW PAGE -->
+    <section class="page hidden" id="topicPage">
+      <div class="container">
+        <button class="back-button" id="topicBack">← Back to Surveys</button>
+
+        <span class="eyebrow" id="topicType">BASIC SURVEY TOPIC</span>
+        <h1 class="page-title" id="topicTitle">Survey Topic</h1>
+        <p class="page-description" id="topicDescription">
+          This is a preview of the selected survey category.
+        </p>
+
+        <div class="question-panel">
+          <div class="question-symbol">📝</div>
+          <h2>Survey questions coming later</h2>
+          <p>
+            This category will contain its own questions when the survey
+            system is added. The current version is only the outer
+            interface; no questionnaire or earning functionality is active.
+          </p>
+          <button class="green-button" data-page="home">
+            Browse Basic Surveys
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUPPORT PAGE -->
+    <section class="page hidden" id="supportPage">
+      <div class="container">
+        <button class="back-button" data-page="home">← Back to Home</button>
+
+        <span class="eyebrow">HELP & INFORMATION</span>
+        <h1 class="page-title">SurveyKE Support</h1>
+        <p class="page-description">
+          We're preparing our official support channels. The social
+          buttons are visual placeholders until the official links
+          and contact details are added.
+        </p>
+
+        <div class="support-grid">
+          <div class="support-card">
+            <span>✉</span>
+            <strong>Email Support</strong>
+            <p>Our official support email will be added here.</p>
+          </div>
+          <div class="support-card">
+            <span>◉</span>
+            <strong>WhatsApp</strong>
+            <p>Our official WhatsApp contact will be added here.</p>
+          </div>
+          <div class="support-card">
+            <span>◈</span>
+            <strong>Discord Community</strong>
+            <p>Our official Discord invite will be added here.</p>
+          </div>
+          <div class="support-card">
+            <span>𝕏</span>
+            <strong>X</strong>
+            <p>Our official X profile will be added here.</p>
+          </div>
+          <div class="support-card">
+            <span>➤</span>
+            <strong>Telegram</strong>
+            <p>Our official Telegram channel will be added here.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACCOUNT PLACEHOLDER -->
+    <section class="page hidden" id="profilePage">
+      <div class="container">
+        <button class="back-button" data-page="home">← Back to Home</button>
+
+        <span class="eyebrow">YOUR ACCOUNT</span>
+        <h1 class="page-title">My Account</h1>
+        <p class="page-description">
+          Account registration, sign-in, profile management, and
+          personal settings will be introduced in a later version.
+        </p>
+
+        <div class="question-panel">
+          <div class="question-symbol">👤</div>
+          <h2>Account features coming later</h2>
+          <p>
+            This prototype does not collect or store personal information.
+            User accounts will require a secure backend.
+          </p>
+          <button class="green-button" data-page="home">Return Home</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER: ALWAYS AVAILABLE AT THE END OF EACH PAGE -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-main">
+        <div class="footer-brand">
+          <button class="brand" data-page="home">
+            <span class="brand-icon">S</span>
+            <span>Survey<span style="color:#72d5a4">KE</span></span>
+          </button>
+          <p>
+            Your opinion matters. SurveyKE is a survey platform concept
+            designed around Kenyan consumers, their experiences, and
+            the everyday topics that matter to them.
+          </p>
+        </div>
+
+        <div class="footer-column">
+          <strong>Explore</strong>
+          <button data-page="home">Home</button>
+          <button data-page="premium">More Surveys</button>
+          <button data-page="profile">My Account</button>
+        </div>
+
+        <div class="footer-column">
+          <strong>Help & Information</strong>
+          <button data-page="support">Contact Support</button>
+          <button data-action="privacy">Privacy Policy</button>
+          <button data-action="terms">Terms & Conditions</button>
+        </div>
+
+        <div class="footer-column">
+          <strong>Connect With Us</strong>
+          <div class="social-list">
+            <button class="social-icon" data-social="WhatsApp"
+              aria-label="WhatsApp" title="WhatsApp">◉</button>
+            <button class="social-icon" data-social="Email"
+              aria-label="Email" title="Email">✉</button>
+            <button class="social-icon" data-social="Discord"
+              aria-label="Discord" title="Discord">◈</button>
+            <button class="social-icon" data-social="X"
+              aria-label="X" title="X">𝕏</button>
+            <button class="social-icon" data-social="Telegram"
+              aria-label="Telegram" title="Telegram">➤</button>
+          </div>
+          <span class="social-caption">
+            Official contact links will be added soon.
+          </span>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> SurveyKE. All rights reserved.</span>
+        <span>Made for Kenya 🇰🇪</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- FIXED SUPPORT SHORTCUT -->
+  <button class="support-float" data-page="support">
+    <span>✉</span>
+    <span>Support</span>
+  </button>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const basicTopics = [
+      { name: "Electricity Bills", icon: "⚡", color: "gold" },
+      { name: "Water Bills", icon: "💧", color: "blue" },
+      { name: "Internet Service Providers", icon: "📶", color: "purple" },
+      { name: "Mobile Network Providers", icon: "📱", color: "green" },
+      { name: "M-Pesa Services", icon: "💸", color: "orange" }
+    ];
+
+    const premiumTopics = [
+      ["Healthcare Services", "🏥"],
+      ["Health Insurance", "🛡️"],
+      ["Food Prices", "🛒"],
+      ["Fuel Prices", "⛽"],
+      ["Public Transport Fares", "🚌"],
+      ["Matatu Services", "🚐"],
+      ["Boda Boda Services", "🏍️"],
+      ["House Rent", "🏠"],
+      ["Grocery Shopping", "🥬"],
+      ["Supermarket Services", "🛍️"],
+      ["Online Shopping", "📦"],
+      ["Banking Services", "🏦"],
+      ["Mobile Banking", "📲"],
+      ["Loan Services", "💳"],
+      ["SACCO Services", "🤝"],
+      ["Employment Opportunities", "💼"],
+      ["Online Jobs", "💻"],
+      ["University Education", "🎓"],
+      ["School Fees", "📚"],
+      ["Student Loans", "📝"],
+      ["Smartphone Brands", "📱"],
+      ["Television Services", "📺"],
+      ["Social Media Platforms", "💬"],
+      ["Online Streaming Services", "🎬"],
+      ["Restaurant Services", "🍽️"],
+      ["Fast-Food Restaurants", "🍔"],
+      ["Drinking Water Brands", "🚰"],
+      ["Cooking Gas Prices", "🔥"],
+      ["Household Cleaning Products", "🧹"],
+      ["Laundry Services", "🧺"],
+      ["Waste Collection Services", "♻️"],
+      ["Security Services", "🔒"],
+      ["Real Estate Services", "🏘️"],
+      ["Building Materials Prices", "🧱"],
+      ["Agricultural Products", "🌾"],
+      ["Fertilizer Prices", "🌱"],
+      ["Farm Equipment", "🚜"],
+      ["Insurance Companies", "📋"],
+      ["Retirement Savings Plans", "🏦"],
+      ["Digital Payment Services", "💳"],
+      ["E-commerce Platforms", "🛒"],
+      ["Beauty and Personal Care Products", "🧴"],
+      ["Clothing and Footwear Brands", "👟"],
+      ["Customer Service Satisfaction", "🎧"],
+      ["Electricity Bills", "⚡"]
+    ].map(([name, icon]) => ({ name, icon }));
+
+    const topicColors = ["blue", "purple", "green", "orange", "pink", "teal"];
+
+    const basicGrid = document.getElementById("basicGrid");
+    const premiumGrid = document.getElementById("premiumGrid");
+    const basicSearch = document.getElementById("basicSearch");
+    const premiumSearch = document.getElementById("premiumSearch");
+    const toast = document.getElementById("toast");
+
+    let previousPage = "home";
+    let toastTimer;
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    function topicCard(topic, index, premium = false) {
+      const name = escapeHTML(topic.name);
+      const icon = escapeHTML(topic.icon);
+      const color = topic.color || topicColors[index % topicColors.length];
+
+      return `
+        <button class="topic-card"
+          data-topic="${name}"
+          data-premium="${premium ? "true" : "false"}">
+          <span class="topic-icon ${color}">${icon}</span>
+          <span class="topic-copy">
+            <strong>${name}</strong>
+            <small>${premium
+              ? "Premium category preview"
+              : "Explore this survey topic"}</small>
+            ${premium ? '<span class="premium-tag">✦ PREMIUM PREVIEW</span>' : ""}
+          </span>
+          <span class="topic-arrow" aria-hidden="true">→</span>
+        </button>
+      `;
+    }
+
+    function renderBasicTopics() {
+      const query = basicSearch.value.trim().toLowerCase();
+      const matches = basicTopics.filter(topic =>
+        topic.name.toLowerCase().includes(query)
+      );
+
+      basicGrid.innerHTML = matches
+        .map((topic, index) => topicCard(topic, index))
+        .join("");
+
+      document.getElementById("basicEmpty")
+        .classList.toggle("hidden", matches.length !== 0);
+
+      document.getElementById("clearBasic")
+        .classList.toggle("hidden", !query);
+    }
+
+    function renderPremiumTopics() {
+      const query = premiumSearch.value.trim().toLowerCase();
+      const matches = premiumTopics.filter(topic =>
+        topic.name.toLowerCase().includes(query)
+      );
+
+      premiumGrid.innerHTML = matches
+        .map((topic, index) => topicCard(topic, index, true))
+        .join("");
+
+      document.getElementById("premiumEmpty")
+        .classList.toggle("hidden", matches.length !== 0);
+
+      document.getElementById("clearPremium")
+        .classList.toggle("hidden", !query);
+    }
+
+    function showPage(pageId) {
+      const pages = {
+        home: document.getElementById("homePage"),
+        premium: document.getElementById("premiumPage"),
+        topic: document.getElementById("topicPage"),
+        support: document.getElementById("supportPage"),
+        profile: document.getElementById("profilePage")
+      };
+
+      if (!pages[pageId]) return;
+
+      Object.entries(pages).forEach(([name, element]) => {
+        element.classList.toggle("hidden", name !== pageId);
+      });
+
+      document.querySelectorAll(".nav button[data-page]").forEach(button => {
+        button.classList.toggle(
+          "active",
+          button.dataset.page === pageId ||
+          (pageId === "topic" && button.dataset.page === previousPage)
+        );
+      });
+
+      if (pageId === "premium") renderPremiumTopics();
+
+      if (pageId !== "topic") previousPage = pageId;
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openTopic(name, isPremium) {
+      document.getElementById("topicTitle").textContent = name;
+
+      if (isPremium) {
+        document.getElementById("topicType").textContent = "PREMIUM TOPIC PREVIEW";
+        document.getElementById("topicDescription").textContent =
+          "This additional topic is reserved for the future premium survey area. Its questions and access rules have not been activated.";
+        document.getElementById("topicBack").dataset.page = "premium";
+        previousPage = "premium";
+      } else {
+        document.getElementById("topicType").textContent = "BASIC SURVEY TOPIC";
+        document.getElementById("topicDescription").textContent =
+          "Explore the " + name + " category. Its individual survey questions will be added in a later development stage.";
+        document.getElementById("topicBack").dataset.page = "home";
+        previousPage = "home";
+      }
+
+      showPage("topic");
+    }
+
+    basicSearch.addEventListener("input", renderBasicTopics);
+    premiumSearch.addEventListener("input", renderPremiumTopics);
+
+    document.getElementById("clearBasic").addEventListener("click", () => {
+      basicSearch.value = "";
+      renderBasicTopics();
+      basicSearch.focus();
+    });
+
+    document.getElementById("clearPremium").addEventListener("click", () => {
+      premiumSearch.value = "";
+      renderPremiumTopics();
+      premiumSearch.focus();
+    });
+
+    document.getElementById("exploreButton").addEventListener("click", () => {
+      document.getElementById("basicSurveys").scrollIntoView({
+        behavior: "smooth"
+      });
+    });
+
+    document.addEventListener("click", event => {
+      const topicButton = event.target.closest("[data-topic]");
+
+      if (topicButton) {
+        openTopic(
+          topicButton.dataset.topic,
+          topicButton.dataset.premium === "true"
+        );
+        return;
+      }
+
+      const pageButton = event.target.closest("[data-page]");
+
+      if (pageButton) {
+        const destination = pageButton.dataset.page;
+
+        if (destination === "home") {
+          basicSearch.value = "";
+          renderBasicTopics();
+        }
+
+        showPage(destination);
+        return;
+      }
+
+      const actionButton = event.target.closest("[data-action]");
+
+      if (actionButton) {
+        const action = actionButton.dataset.action;
+
+        if (action === "privacy") {
+          showToast("The Privacy Policy will be added before launch.");
+        } else if (action === "terms") {
+          showToast("Terms and Conditions will be added before launch.");
+        } else if (action === "home") {
+          showPage("home");
+        }
+        return;
+      }
+
+      const socialButton = event.target.closest("[data-social]");
+
+      if (socialButton) {
+        showToast(
+          socialButton.dataset.social +
+          " support link will be added before launch."
+        );
+      }
+    });
+
+    renderBasicTopics();
+    renderPremiumTopics();
+  </script>
+</body>
+</html>
