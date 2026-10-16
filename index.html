@@ -2,603 +2,1823 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#087653">
-  <meta name="description" content="SurveyKE — Kenyan voices, better services.">
-  <title>SurveyKE | Your Voice Matters</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#087f5b" />
+  <meta name="description" content="SurveyKE — Share your opinions, help shape better services, and discover upcoming survey opportunities in Kenya." />
+  <title>SurveyKE — Your Voice Matters</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --green:#087653; --dark:#07583f; --light:#e8f6ef;
-      --ink:#17251f; --muted:#68766f; --border:#e3eae5;
-      --bg:#f7faf8; --white:#fff;
+      --green: #087f5b;
+      --green-dark: #056447;
+      --green-light: #e7f7ef;
+      --green-soft: #f2fbf6;
+      --ink: #172b24;
+      --muted: #718078;
+      --line: #e5ece8;
+      --white: #ffffff;
+      --surface: #f8faf9;
+      --orange: #f59e0b;
+      --shadow: 0 12px 36px rgba(20, 60, 42, .07);
+      --radius: 20px;
     }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
-    button,input{font:inherit}
-    button,a{touch-action:manipulation}
-    a{color:inherit;text-decoration:none}
-    button{cursor:pointer}
-    .container{width:min(1120px,92%);margin:auto}
-    .hidden{display:none!important}
-    header{background:#ffffffed;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
-    .nav{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-    .brand{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:800;letter-spacing:-.8px}
-    .brand-mark{width:42px;height:42px;background:var(--green);color:white;display:grid;place-items:center;border-radius:13px;font-size:21px}
-    .brand-name span{color:var(--green)}
-    .nav-links{display:flex;align-items:center;gap:22px}
-    .nav-links>a:not(.btn){font-size:14px;color:var(--muted);font-weight:700}
-    .nav-links>a:hover{color:var(--green)}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:11px;padding:11px 18px;font-weight:700;transition:.2s}
-    .primary{background:var(--green);color:white}
-    .primary:hover{background:var(--dark);transform:translateY(-1px)}
-    .outline{background:white;border-color:var(--border);color:var(--ink)}
-    .outline:hover{border-color:var(--green)}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .hero{padding:74px 0 65px;background:radial-gradient(ellipse at 90% 10%,#d9f3e5 0,transparent 38%),linear-gradient(130deg,#f4fbf6,#fff)}
-    .hero-grid{display:grid;grid-template-columns:1.2fr .8fr;align-items:center;gap:48px}
-    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;background:var(--light);color:var(--dark);border-radius:30px;font-size:12px;font-weight:800;letter-spacing:.5px}
-    h1{font-size:clamp(38px,5.4vw,62px);line-height:1.1;letter-spacing:-2.5px;margin:22px 0}
-    h1 span{color:var(--green)}
-    .hero p{color:var(--muted);max-width:570px;font-size:17px}
-    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
-    .hero-card,.card,.account-card,.profile-panel{background:white;border:1px solid var(--border);border-radius:20px}
-    .hero-card{padding:26px;box-shadow:0 18px 55px #114c2f10}
-    .hero-card h3{margin:0 0 5px}
-    .hero-card>p{font-size:14px;margin:0 0 16px}
-    .preview{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--border)}
-    .preview:last-child{border:0}
-    .icon-box{width:45px;height:45px;flex-shrink:0;border-radius:13px;background:var(--light);display:grid;place-items:center;font-size:23px}
-    .preview strong{display:block;font-size:14px}
-    .preview small{color:var(--muted)}
-    .section{padding:65px 0}
-    .white-section{background:white}
-    .section-heading{margin-bottom:28px}
-    .section-heading h2{font-size:clamp(27px,4vw,36px);line-height:1.2;letter-spacing:-1px;margin:10px 0}
-    .section-heading p{color:var(--muted);margin:0;max-width:650px}
-    .survey-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-    .card{padding:23px;transition:.2s}
-    .card:hover{border-color:#a8d6bd;transform:translateY(-3px);box-shadow:0 12px 28px #114c2f0a}
-    .card h3{margin:13px 0 7px;font-size:18px}
-    .card p{color:var(--muted);font-size:14px;margin:0 0 17px}
-    .status{display:inline-block;padding:5px 10px;border-radius:20px;background:#fff4d9;color:#805b0a;font-size:11px;font-weight:800}
-    .card .btn{width:100%;margin-top:14px}
-    .more-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-    .more-card{background:var(--bg);border:1px solid var(--border);border-radius:15px;padding:18px}
-    .more-card .emoji{font-size:25px}
-    .more-card strong{display:block;margin:8px 0 4px}
-    .more-card small{color:var(--muted)}
-    .vision{background:var(--dark);color:white;border-radius:24px;padding:38px;display:grid;grid-template-columns:1fr 1fr;gap:30px}
-    .vision h2{font-size:32px;line-height:1.2;margin:12px 0}
-    .vision p{color:#d0e7da}
-    .vision-points{display:grid;gap:15px;align-content:center}
-    .vision-point{display:flex;gap:12px}
-    .vision-point b{color:#9be0b6}
-    .account-section{padding:60px 0}
-    .account-wrap{width:min(500px,100%);margin:auto}
-    .account-card,.profile-panel{padding:29px;box-shadow:0 12px 35px #00000006}
-    .account-card h2,.profile-panel h2{margin:0 0 5px;font-size:27px}
-    .subtext{color:var(--muted);font-size:14px;margin:0 0 22px}
-    .field{margin-bottom:16px}
-    .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
-    .field input{width:100%;padding:13px;border:1px solid #d9e2dc;border-radius:10px;outline:none}
-    .field input:focus{border-color:var(--green);box-shadow:0 0 0 3px #08765315}
-    form .btn{width:100%}
-    .notice{display:none;border-radius:11px;padding:13px 14px;font-size:14px;margin:0 0 18px;overflow-wrap:anywhere}
-    .notice.show{display:block}
-    .success{background:#e8f6ef;color:#07583f;border:1px solid #bde5ce}
-    .error{background:#fff0ef;color:#a02c26;border:1px solid #f0cbc8}
-    .info{background:#eef5ff;color:#204d89;border:1px solid #cddffb}
-    .switch{text-align:center;color:var(--muted);font-size:13px;margin-top:17px}
-    .text-btn{border:0;background:none;color:var(--green);font-weight:800;padding:0}
-    .profile-avatar{width:57px;height:57px;display:grid;place-items:center;background:var(--light);border-radius:18px;font-size:28px;margin-bottom:14px}
-    .profile-email{color:var(--muted);overflow-wrap:anywhere}
-    .info-panel{background:#f4f8f5;border:1px solid var(--border);border-radius:12px;padding:14px;margin:18px 0;color:var(--muted);font-size:13px}
-    .info-panel strong{color:var(--ink)}
-    .profile-actions{display:flex;gap:10px;flex-wrap:wrap}
-    .support-box{text-align:center;background:var(--light);padding:35px 20px;border-radius:20px}
-    .support-box h2{margin-top:0}
-    .support-box p{color:var(--muted)}
-    .contact-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:25px}
-    .contact-card{background:white;border:1px solid var(--border);border-radius:15px;padding:18px;text-align:center;transition:.2s}
-    .contact-card:hover{border-color:#a8d6bd;transform:translateY(-2px)}
-    .contact-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;margin:0 auto 10px;background:var(--light);font-size:25px}
-    .contact-card strong{display:block}
-    .contact-card small{display:block;color:var(--muted);overflow-wrap:anywhere;margin:3px 0 12px}
-    .contact-card .btn{width:100%;font-size:13px;padding:9px}
-    footer{background:#102d22;color:white;padding:40px 0 20px}
-    .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:30px;padding-bottom:27px}
-    footer p,footer a{color:#c0d2c8;font-size:13px}
-    footer h4{margin:0 0 12px}
-    .footer-links{display:grid;gap:8px}
-    .footer-links a:hover{color:white}
-    .footer-bottom{border-top:1px solid #315244;padding-top:17px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:#c0d2c8;font-size:12px}
-    @media(max-width:850px){
-      .hero-grid{grid-template-columns:1fr}.hero{padding:50px 0}.hero-card{max-width:560px}
-      .survey-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .more-grid,.contact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .vision{grid-template-columns:1fr}
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: #fff;
+      color: var(--ink);
+      font-family: "DM Sans", sans-serif;
+      line-height: 1.6;
     }
-    @media(max-width:600px){
-      .nav{min-height:65px}.brand{font-size:20px}.brand-mark{width:36px;height:36px}
-      .nav-links{gap:10px}.nav-links>a:not(.btn){display:none}.nav-links .btn{padding:9px 12px;font-size:12px}
-      h1{letter-spacing:-1.5px}.section{padding:46px 0}
-      .survey-grid{grid-template-columns:1fr}.more-grid,.contact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .vision{padding:24px}.account-card,.profile-panel{padding:22px}
-      .footer-grid{grid-template-columns:1fr;gap:22px}
+
+    body, button, input { font-family: "DM Sans", sans-serif; }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    button { cursor: pointer; }
+
+    a { color: inherit; text-decoration: none; }
+
+    svg {
+      width: 22px;
+      height: 22px;
+      display: inline-block;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .container {
+      width: min(1160px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .announcement {
+      background: #07583f;
+      color: #e8fff2;
+      text-align: center;
+      font-size: 12px;
+      padding: 9px 15px;
+      letter-spacing: .15px;
+    }
+
+    .announcement strong { color: white; }
+
+    header {
+      height: 78px;
+      border-bottom: 1px solid #edf1ee;
+      background: rgba(255,255,255,.96);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-family: "Manrope", sans-serif;
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      background: var(--green);
+      color: white;
+      border-radius: 13px;
+      box-shadow: 0 5px 13px rgba(8,127,91,.2);
+    }
+
+    .brand-mark svg { width: 24px; height: 24px; }
+
+    .brand span span { color: var(--green); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 13px;
+      color: #53635b;
+      font-weight: 600;
+    }
+
+    .nav-links a:hover { color: var(--green); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 12px 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: .2s ease;
+      min-height: 44px;
+    }
+
+    .btn svg { width: 17px; height: 17px; }
+
+    .btn-primary {
+      background: var(--green);
+      color: white;
+      box-shadow: 0 5px 12px rgba(8,127,91,.12);
+    }
+
+    .btn-primary:hover {
+      background: var(--green-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--ink);
+      border-color: #dce6e0;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .btn-light {
+      background: white;
+      color: var(--green-dark);
+    }
+
+    .btn-light:hover { background: #f1fff7; }
+
+    .btn-block { width: 100%; }
+
+    .hero {
+      padding: 78px 0 70px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 82% 20%, rgba(181,238,207,.34), transparent 32%),
+        linear-gradient(180deg, #f6fcf8 0%, #fff 95%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.06fr .94fr;
+      align-items: center;
+      gap: 65px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green);
+      background: #e5f6eb;
+      border: 1px solid #d5eedf;
+      border-radius: 30px;
+      padding: 7px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .eyebrow svg { width: 15px; height: 15px; }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      font-family: "Manrope", sans-serif;
+      font-size: clamp(38px, 5vw, 59px);
+      letter-spacing: -2.9px;
+      line-height: 1.12;
+      margin: 23px 0 20px;
+      max-width: 650px;
+    }
+
+    h1 .accent { color: var(--green); }
+
+    .hero-copy {
+      color: #64736b;
+      font-size: 16px;
+      max-width: 505px;
+      line-height: 1.85;
+      margin-bottom: 28px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .hero-buttons .btn { min-height: 50px; padding: 14px 21px; }
+
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      color: #65766d;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .trust-item { display: flex; align-items: center; gap: 6px; }
+    .trust-item svg { color: var(--green); width: 16px; height: 16px; }
+
+    .hero-art {
+      position: relative;
+      min-height: 390px;
+      display: grid;
+      place-items: center;
+    }
+
+    .art-card {
+      width: min(100%, 440px);
+      min-height: 350px;
+      background: white;
+      border: 1px solid #e2eee6;
+      border-radius: 28px;
+      box-shadow: 0 30px 75px rgba(20,76,47,.10);
+      padding: 26px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .art-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .art-top strong { font-size: 14px; }
+    .art-top small { display: block; color: var(--muted); font-size: 11px; }
+
+    .live-pill {
+      background: #e6f8ee;
+      color: #087f5b;
+      padding: 6px 10px;
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .survey-preview {
+      padding: 16px;
+      border: 1px solid #e7eee9;
+      border-radius: 15px;
+      margin-bottom: 12px;
+    }
+
+    .survey-preview-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .mini-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--green-light);
+      color: var(--green);
+      display: grid;
+      place-items: center;
+    }
+
+    .mini-icon svg { width: 21px; height: 21px; }
+
+    .survey-preview-head strong { display: block; font-size: 12px; }
+    .survey-preview-head small { display: block; color: var(--muted); font-size: 10px; }
+
+    .fake-line {
+      height: 7px;
+      border-radius: 20px;
+      background: #edf2ee;
+      margin-top: 8px;
+    }
+
+    .fake-line.short { width: 62%; }
+    .fake-line.medium { width: 82%; }
+
+    .art-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 19px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .art-bottom strong { color: var(--green); }
+
+    .float-note {
+      position: absolute;
+      z-index: 3;
+      background: white;
+      border: 1px solid #e6eee8;
+      box-shadow: var(--shadow);
+      padding: 13px 16px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .float-note svg { color: var(--green); width: 22px; height: 22px; }
+    .float-note small { display: block; color: var(--muted); font-weight: 500; font-size: 10px; }
+    .note-one { left: -18px; top: 44px; }
+    .note-two { right: -14px; bottom: 35px; }
+
+    .stats-band {
+      border-top: 1px solid #eaf0ec;
+      border-bottom: 1px solid #eaf0ec;
+      padding: 25px 0;
+      background: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 13px;
+      text-align: left;
+    }
+
+    .stat-icon {
+      width: 43px;
+      height: 43px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: var(--green);
+      background: var(--green-light);
+    }
+
+    .stat-icon svg { width: 21px; height: 21px; }
+
+    .stat strong { display: block; font-size: 13px; }
+    .stat small { color: var(--muted); font-size: 11px; }
+
+    section { scroll-margin-top: 95px; }
+
+    .section { padding: 83px 0; }
+
+    .section-soft { background: #f8fbf9; }
+
+    .section-heading {
+      text-align: center;
+      max-width: 620px;
+      margin: 0 auto 39px;
+    }
+
+    .section-heading .eyebrow { margin-bottom: 13px; }
+
+    h2 {
+      font-family: "Manrope", sans-serif;
+      font-size: clamp(27px, 3vw, 37px);
+      letter-spacing: -1.3px;
+      line-height: 1.25;
+      margin-bottom: 13px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 0;
+    }
+
+    .survey-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 18px;
+    }
+
+    .survey-card {
+      background: white;
+      border: 1px solid #e6ede8;
+      border-radius: var(--radius);
+      padding: 23px;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+
+    .survey-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+      border-color: #cde8d7;
+    }
+
+    .survey-card .mini-icon { margin-bottom: 17px; }
+
+    .survey-card h3 {
+      font-family: "Manrope", sans-serif;
+      font-size: 15px;
+      margin-bottom: 8px;
+      letter-spacing: -.25px;
+    }
+
+    .survey-card p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+      margin-bottom: 17px;
+    }
+
+    .card-bottom {
+      border-top: 1px solid #edf1ee;
+      padding-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .coming {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8b691b;
+      background: #fff6db;
+      border-radius: 20px;
+      padding: 6px 9px;
+      white-space: nowrap;
+    }
+
+    .card-link {
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 0;
+    }
+
+    .card-link:hover { color: var(--green-dark); }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+    }
+
+    .step {
+      text-align: center;
+      padding: 20px 15px;
+    }
+
+    .step-number {
+      margin: 0 auto 19px;
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: var(--green-light);
+      color: var(--green);
+      font-family: "Manrope", sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .step h3 { font-size: 15px; margin-bottom: 9px; }
+    .step p { color: var(--muted); font-size: 12px; line-height: 1.9; }
+
+    .vision-panel {
+      background: #07583f;
+      color: white;
+      border-radius: 26px;
+      padding: 45px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 35px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vision-panel::after {
+      content: "";
+      width: 250px;
+      height: 250px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 50%;
+      position: absolute;
+      right: 120px;
+      top: -130px;
+      box-shadow: 0 0 0 30px rgba(255,255,255,.03), 0 0 0 60px rgba(255,255,255,.025);
+    }
+
+    .vision-panel h2 { max-width: 550px; position: relative; z-index: 1; }
+    .vision-panel p { color: #c4e3d4; max-width: 570px; font-size: 13px; line-height: 1.9; margin-bottom: 0; position: relative; z-index: 1; }
+    .vision-panel .btn { position: relative; z-index: 2; white-space: nowrap; }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 16px;
+    }
+
+    .contact-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 22px;
+      background: white;
+      border: 1px solid #e4ece7;
+      border-radius: 17px;
+      transition: .2s ease;
+      min-width: 0;
+    }
+
+    a.contact-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+      border-color: #bfe3ce;
+    }
+
+    .contact-icon {
+      width: 45px;
+      height: 45px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      margin-bottom: 17px;
+    }
+
+    .contact-icon svg { width: 23px; height: 23px; }
+    .email-icon { background: #e9f6ed; color: #087f5b; }
+    .whatsapp-icon { background: #e2f8e9; color: #168546; }
+    .telegram-icon { background: #e5f3ff; color: #1687c9; }
+    .discord-icon { background: #eeebff; color: #635bce; }
+
+    .contact-card strong { font-size: 13px; margin-bottom: 5px; }
+    .contact-card .contact-detail {
+      font-size: 11px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+      margin-bottom: 13px;
+    }
+
+    .contact-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--green);
+      margin-top: auto;
+    }
+
+    .contact-action svg { width: 14px; height: 14px; }
+
+    .contact-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 20px;
+    }
+
+    footer {
+      background: #102b21;
+      color: white;
+      padding: 47px 0 22px;
+    }
+
+    .footer-main {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 45px;
+      padding-bottom: 35px;
+    }
+
+    footer .brand { margin-bottom: 16px; }
+    footer .brand span { color: white; }
+    footer .brand span span { color: #75d9a9; }
+
+    .footer-about {
+      max-width: 320px;
+      color: #b7ccc0;
+      font-size: 12px;
+      line-height: 1.9;
+    }
+
+    .footer-title {
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .footer-links { display: grid; gap: 10px; }
+    .footer-links a, .footer-links button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      text-align: left;
+      color: #b7ccc0;
+      font-size: 12px;
+      width: fit-content;
+    }
+
+    .footer-links a:hover, .footer-links button:hover { color: white; }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,.13);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+      color: #9eb6a8;
+      font-size: 10px;
+    }
+
+    .auth-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      padding: 22px;
+      background: rgba(10,31,22,.63);
+      backdrop-filter: blur(7px);
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .auth-overlay.open { display: flex; }
+
+    .auth-box {
+      background: white;
+      width: min(100%, 440px);
+      border-radius: 23px;
+      padding: 32px;
+      position: relative;
+      box-shadow: 0 25px 90px rgba(0,0,0,.22);
+      margin: auto;
+    }
+
+    .auth-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      border: 1px solid #e6ece8;
+      background: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: #65756b;
+    }
+
+    .auth-close:hover { background: #f3f8f5; }
+    .auth-close svg { width: 18px; height: 18px; }
+
+    .auth-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 23px;
+    }
+
+    .auth-brand .brand-mark { width: 39px; height: 39px; border-radius: 12px; }
+    .auth-brand strong { font-family: "Manrope", sans-serif; font-size: 19px; letter-spacing: -.6px; }
+
+    .auth-box h2 { font-size: 26px; margin-bottom: 8px; letter-spacing: -.9px; }
+    .auth-description { color: var(--muted); font-size: 12px; margin-bottom: 22px; line-height: 1.8; }
+
+    .notice {
+      display: none;
+      border-radius: 11px;
+      padding: 12px 13px;
+      font-size: 12px;
+      line-height: 1.65;
+      margin-bottom: 17px;
+      overflow-wrap: anywhere;
+    }
+
+    .notice.show { display: block; }
+    .notice.success { background: #e9f9ef; color: #146c43; border: 1px solid #ccefd9; }
+    .notice.error { background: #fff0ef; color: #a52b26; border: 1px solid #f6d4d1; }
+    .notice.info { background: #edf6ff; color: #205d91; border: 1px solid #d5e8fb; }
+
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      color: #30483b;
+    }
+
+    .input-wrap { position: relative; }
+
+    .input-wrap > svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: #8a9b90;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 47px;
+      border: 1px solid #dfe8e2;
+      background: #fbfdfb;
+      border-radius: 11px;
+      padding: 12px 13px 12px 42px;
+      outline: none;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .field input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(8,127,91,.09);
+      background: white;
+    }
+
+    .auth-options {
+      display: flex;
+      justify-content: flex-end;
+      margin: -3px 0 19px;
+    }
+
+    .text-button {
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 0;
+    }
+
+    .text-button:hover { text-decoration: underline; }
+
+    .auth-switch {
+      margin-top: 19px;
+      padding-top: 17px;
+      border-top: 1px solid #edf1ee;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .auth-switch button { margin-left: 4px; }
+
+    .fine-print {
+      color: #8a9890;
+      font-size: 10px;
+      line-height: 1.7;
+      margin: 15px 0 0;
+    }
+
+    .hidden { display: none !important; }
+
+    .toast {
+      position: fixed;
+      z-index: 150;
+      right: 22px;
+      bottom: 22px;
+      max-width: min(390px, calc(100% - 44px));
+      background: #123e2c;
+      color: white;
+      border-radius: 13px;
+      padding: 14px 18px;
+      box-shadow: 0 12px 35px rgba(0,0,0,.18);
+      font-size: 12px;
+      display: none;
+    }
+
+    .toast.show { display: block; }
+
+    .loading { opacity: .65; pointer-events: none; }
+
+    @media (max-width: 900px) {
+      .nav-links { gap: 16px; }
+      .hero-grid { gap: 30px; }
+      .hero-art { min-height: 350px; }
+      .note-one { left: -5px; }
+      .note-two { right: -5px; }
+      .contact-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .survey-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .container { width: min(100% - 30px, 540px); }
+      header { height: 68px; }
+      .brand { font-size: 21px; }
+      .brand-mark { width: 38px; height: 38px; }
+      .nav-links { display: none; }
+      .nav-actions { gap: 7px; }
+      .nav-actions .btn { padding: 10px 12px; min-height: 39px; font-size: 11px; }
+      .hero { padding: 50px 0 43px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 15px; }
+      h1 { font-size: clamp(37px, 10vw, 49px); letter-spacing: -2px; margin-top: 18px; }
+      .hero-copy { font-size: 14px; }
+      .hero-art { min-height: 350px; margin: 0 4px; }
+      .art-card { padding: 20px; min-height: 320px; }
+      .note-one { left: -4px; top: 12px; }
+      .note-two { right: -4px; bottom: 4px; }
+      .float-note { padding: 10px 12px; }
+      .stats-grid { gap: 17px 8px; grid-template-columns: 1fr; }
+      .stat { justify-content: flex-start; max-width: 260px; margin: 0 auto; width: 100%; }
+      .section { padding: 60px 0; }
+      .survey-grid { grid-template-columns: 1fr; gap: 13px; }
+      .survey-card { padding: 20px; }
+      .steps-grid { grid-template-columns: 1fr; gap: 4px; }
+      .step { padding: 15px 12px; }
+      .vision-panel { grid-template-columns: 1fr; padding: 29px 23px; gap: 24px; }
+      .vision-panel .btn { width: fit-content; }
+      .contact-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .contact-card { padding: 15px; }
+      .contact-card .contact-detail { font-size: 10px; }
+      .footer-main { grid-template-columns: 1fr 1fr; gap: 30px 20px; }
+      .footer-main > div:first-child { grid-column: 1 / -1; }
+      .footer-bottom { flex-direction: column; }
+      .auth-box { padding: 26px 21px; }
+    }
+
+    @media (max-width: 380px) {
+      .contact-grid { grid-template-columns: 1fr; }
+      .hero-buttons .btn { width: 100%; }
+      .nav-actions .btn-outline { display: none; }
+      .trust-row { gap: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+        animation: none !important;
+      }
     }
   </style>
 </head>
 
 <body>
-<header>
-  <div class="container nav">
-    <a href="#home" class="brand" aria-label="SurveyKE home">
-      <span class="brand-mark">S</span>
-      <span class="brand-name">Survey<span>KE</span></span>
-    </a>
-    <nav class="nav-links">
-      <a href="#surveys">Surveys</a>
-      <a href="#about">About</a>
-      <a href="#support">Support</a>
-      <button class="btn primary" id="navAccount" type="button">👤 My Account</button>
-    </nav>
-  </div>
-</header>
+  <!-- Inline SVG icon library -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <symbol id="i-leaf" viewBox="0 0 24 24">
+      <path d="M20 4c-8 0-14 3-14 10a6 6 0 0 0 6 6c7 0 8-8 8-16Z"/>
+      <path d="M4 21c2-5 6-9 12-12"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12 4 4L19 6"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/>
+      <path d="m9 12 2 2 4-4"/>
+    </symbol>
+    <symbol id="i-users" viewBox="0 0 24 24">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+    </symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24">
+      <path d="M3 3v18h18"/>
+      <path d="m8 14 4-4 4 3 5-7"/>
+    </symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24">
+      <path d="m13 2-3 8h7L8 22l3-9H4l9-11Z"/>
+    </symbol>
+    <symbol id="i-droplet" viewBox="0 0 24 24">
+      <path d="M12 22a8 8 0 0 0 8-8c0-5-8-13-8-13S4 9 4 14a8 8 0 0 0 8 8Z"/>
+    </symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24">
+      <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+      <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+      <circle cx="12" cy="20" r="1"/>
+    </symbol>
+    <symbol id="i-smartphone" viewBox="0 0 24 24">
+      <rect x="5" y="2" width="14" height="20" rx="2"/>
+      <path d="M11 18h2"/>
+    </symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24">
+      <path d="M20 8V5a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v11H5a3 3 0 0 1-3-3V6"/>
+      <path d="M20 12h-4a2 2 0 0 0 0 4h4"/>
+      <path d="M16 14h.01"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24">
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/>
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 24 24">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>
+    </symbol>
+    <symbol id="i-bus" viewBox="0 0 24 24">
+      <path d="M8 6v6m8-6v6M3 12h18"/>
+      <path d="M5 18h14a2 2 0 0 0 2-2V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v10a2 2 0 0 0 2 2Z"/>
+      <path d="M7 18v3m10-3v3M6 15h.01M18 15h.01"/>
+    </symbol>
+    <symbol id="i-building" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <path d="M9 21V9h6v12M7 7h.01M12 7h.01M17 7h.01M7 12h.01M17 12h.01"/>
+    </symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24">
+      <rect x="3" y="7" width="18" height="14" rx="2"/>
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"/>
+    </symbol>
+    <symbol id="i-home" viewBox="0 0 24 24">
+      <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/>
+      <path d="M9 21v-8h6v8"/>
+    </symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
+    </symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="m22 7-10 6L2 7"/>
+    </symbol>
+    <symbol id="i-message" viewBox="0 0 24 24">
+      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8Z"/>
+    </symbol>
+    <symbol id="i-send" viewBox="0 0 24 24">
+      <path d="m22 2-7 20-4-9-9-4Z"/>
+      <path d="M22 2 11 13"/>
+    </symbol>
+    <symbol id="i-discord" viewBox="0 0 24 24">
+      <path d="M8.5 7.5a13 13 0 0 1 7 0M7 5.5a16 16 0 0 1 10 0c2 3 3 6 3 10-2 2-4 3-6 3l-1-2m-2 0-1 2c-2 0-4-1-6-3 0-4 1-7 3-10Z"/>
+      <circle cx="9" cy="12" r="1"/>
+      <circle cx="15" cy="12" r="1"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+      <rect x="3" y="11" width="18" height="11" rx="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4m-5 5v2"/>
+    </symbol>
+    <symbol id="i-user" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="5"/>
+      <path d="M20 21a8 8 0 0 0-16 0"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m18 6-12 12M6 6l12 12"/>
+    </symbol>
+    <symbol id="i-external" viewBox="0 0 24 24">
+      <path d="M14 3h7v7m0-7L10 14"/>
+      <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/>
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24">
+      <path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-2-5.8L4 11l6-2.2Z"/>
+      <path d="m19 14 1.2 2.8L23 18l-2.8 1.2L19 22l-1.2-2.8L15 18l2.8-1.2Z"/>
+    </symbol>
+  </svg>
 
-<main>
-  <div id="homeView">
+  <div class="announcement">
+    Welcome to <strong>SurveyKE</strong> — a growing platform for Kenyan voices.
+    <strong> Survey opportunities are coming soon.</strong>
+  </div>
+
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#home" aria-label="SurveyKE home">
+        <span class="brand-mark"><svg><use href="#i-leaf"/></svg></span>
+        <span>Survey<span>KE</span></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#home">Home</a>
+        <a href="#surveys">Explore surveys</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#about">About us</a>
+        <a href="#support">Support</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="navLogin" type="button">Log in</button>
+        <button class="btn btn-primary" id="navSignup" type="button">Get started <svg><use href="#i-arrow"/></svg></button>
+        <button class="btn btn-outline hidden" id="navLogout" type="button">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
     <section class="hero" id="home">
       <div class="container hero-grid">
         <div>
-          <span class="eyebrow">🇰🇪 BUILT AROUND KENYAN VOICES</span>
-          <h1>Your voice.<br>Your experience.<br><span>A better Kenya.</span></h1>
-          <p>SurveyKE is a community-focused platform designed to gather people's experiences and opinions about everyday services across Kenya. Your perspective matters.</p>
-          <div class="actions">
-            <button class="btn primary" id="heroAccount" type="button">✨ Create an Account</button>
-            <a class="btn outline" href="#surveys">Explore Topics ↓</a>
+          <div class="eyebrow"><svg><use href="#i-sparkle"/></svg> Built for Kenyan voices</div>
+          <h1>Your opinion.<br>Your community.<br><span class="accent">Your impact.</span></h1>
+          <p class="hero-copy">
+            SurveyKE is being built to connect people in Kenya with opportunities to share their opinions on everyday services. Your experiences can help businesses and organisations understand what matters to the people they serve.
+          </p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary" id="heroSignup" type="button">Create your account <svg><use href="#i-arrow"/></svg></button>
+            <a class="btn btn-outline" href="#how-it-works">Discover how it works</a>
+          </div>
+          <div class="trust-row">
+            <span class="trust-item"><svg><use href="#i-shield"/></svg> Account security</span>
+            <span class="trust-item"><svg><use href="#i-check"/></svg> Free registration</span>
+            <span class="trust-item"><svg><use href="#i-users"/></svg> Made for Kenya</span>
           </div>
         </div>
-        <div class="hero-card">
-          <h3>💚 Everyday experiences matter</h3>
-          <p>Explore the areas where your feedback can help shape better services.</p>
-          <div class="preview"><span class="icon-box">⚡</span><div><strong>Electricity</strong><small>Bills and reliability</small></div></div>
-          <div class="preview"><span class="icon-box">💧</span><div><strong>Water services</strong><small>Access and supply</small></div></div>
-          <div class="preview"><span class="icon-box">📶</span><div><strong>Internet and mobile</strong><small>Connectivity and value</small></div></div>
-          <div class="preview"><span class="icon-box">📱</span><div><strong>Digital payments</strong><small>Everyday payment experiences</small></div></div>
+
+        <div class="hero-art" aria-label="Illustration of a survey dashboard">
+          <div class="float-note note-one">
+            <svg><use href="#i-check"/></svg>
+            <div>Share your voice<small>Real-world experiences matter</small></div>
+          </div>
+
+          <div class="art-card">
+            <div class="art-top">
+              <div><strong>Your SurveyKE overview</strong><small>A preview of the platform</small></div>
+              <span class="live-pill">IN DEVELOPMENT</span>
+            </div>
+
+            <div class="survey-preview">
+              <div class="survey-preview-head">
+                <div class="mini-icon"><svg><use href="#i-zap"/></svg></div>
+                <div><strong>Electricity services</strong><small>Tell us about your experience</small></div>
+              </div>
+              <div class="fake-line medium"></div>
+              <div class="fake-line short"></div>
+            </div>
+
+            <div class="survey-preview">
+              <div class="survey-preview-head">
+                <div class="mini-icon"><svg><use href="#i-smartphone"/></svg></div>
+                <div><strong>Mobile network services</strong><small>Help improve everyday connections</small></div>
+              </div>
+              <div class="fake-line medium"></div>
+              <div class="fake-line short"></div>
+            </div>
+
+            <div class="art-bottom">
+              <span>Survey participation</span>
+              <strong>Coming soon</strong>
+            </div>
+          </div>
+
+          <div class="float-note note-two">
+            <svg><use href="#i-heart"/></svg>
+            <div>Every voice counts<small>Help shape better services</small></div>
+          </div>
         </div>
       </div>
     </section>
+
+    <div class="stats-band">
+      <div class="container stats-grid">
+        <div class="stat">
+          <div class="stat-icon"><svg><use href="#i-users"/></svg></div>
+          <div><strong>A community-first approach</strong><small>Designed around local experiences</small></div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon"><svg><use href="#i-shield"/></svg></div>
+          <div><strong>Account access you control</strong><small>Secure sign-in through Supabase</small></div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon"><svg><use href="#i-chart"/></svg></div>
+          <div><strong>Insights that matter</strong><small>Survey participation is in development</small></div>
+        </div>
+      </div>
+    </div>
 
     <section class="section" id="surveys">
       <div class="container">
         <div class="section-heading">
-          <span class="eyebrow">🔎 EXPLORE THE PLATFORM</span>
-          <h2>Survey topics</h2>
-          <p>These are the topics planned for SurveyKE. Surveys are not yet open for participation.</p>
+          <div class="eyebrow">Explore topics</div>
+          <h2>Everyday experiences deserve a voice.</h2>
+          <p>These are the areas SurveyKE plans to explore. The cards introduce our intended survey topics; they do not represent currently available surveys.</p>
         </div>
+
         <div class="survey-grid">
-          <article class="card"><span class="icon-box">⚡</span><h3>Electricity Bills</h3><p>Share experiences with electricity costs, billing and reliability.</p><span class="status">COMING SOON</span><button class="btn outline surveyAction" type="button">Explore topic</button></article>
-          <article class="card"><span class="icon-box">💧</span><h3>Water Bills</h3><p>Explore water pricing, supply interruptions and service quality.</p><span class="status">COMING SOON</span><button class="btn outline surveyAction" type="button">Explore topic</button></article>
-          <article class="card"><span class="icon-box">🌐</span><h3>Internet Providers</h3><p>Share experiences with internet speed, reliability and prices.</p><span class="status">COMING SOON</span><button class="btn outline surveyAction" type="button">Explore topic</button></article>
-          <article class="card"><span class="icon-box">📶</span><h3>Mobile Networks</h3><p>Tell us about network coverage, call quality and data bundles.</p><span class="status">COMING SOON</span><button class="btn outline surveyAction" type="button">Explore topic</button></article>
-          <article class="card"><span class="icon-box">💸</span><h3>M-Pesa Services</h3><p>Explore digital payments, transaction experiences and charges.</p><span class="status">COMING SOON</span><button class="btn outline surveyAction" type="button">Explore topic</button></article>
-          <article class="card"><span class="icon-box">🗳️</span><h3>More Surveys</h3><p>Discover additional subjects planned for future community surveys.</p><span class="status">IN DEVELOPMENT</span><button class="btn primary" id="moreTopics" type="button">More topics →</button></article>
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-zap"/></svg></div>
+            <h3>Electricity services</h3>
+            <p>Experiences with electricity reliability, billing, outages and customer service.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-droplet"/></svg></div>
+            <h3>Water services</h3>
+            <p>Availability, water quality, supply interruptions and service delivery.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-wifi"/></svg></div>
+            <h3>Internet services</h3>
+            <p>Connectivity, affordability, speed and internet service experiences.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-smartphone"/></svg></div>
+            <h3>Mobile networks</h3>
+            <p>Network coverage, call quality, mobile data and customer support.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-wallet"/></svg></div>
+            <h3>Digital payments</h3>
+            <p>Experiences with mobile money, transaction reliability and payment services.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-heart"/></svg></div>
+            <h3>Healthcare</h3>
+            <p>Access to healthcare, patient experiences and the quality of services.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
+            <h3>Education</h3>
+            <p>Learning environments, educational access and student experiences.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-bus"/></svg></div>
+            <h3>Transport</h3>
+            <p>Public transport, commuting costs, road experiences and accessibility.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-building"/></svg></div>
+            <h3>Cost of living</h3>
+            <p>Household expenses, shopping, essential goods and daily living costs.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-wallet"/></svg></div>
+            <h3>Banking and finance</h3>
+            <p>Banking experiences, financial services, access and customer satisfaction.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-briefcase"/></svg></div>
+            <h3>Employment</h3>
+            <p>Workplace experiences, employment opportunities and working conditions.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
+
+          <article class="survey-card">
+            <div class="mini-icon"><svg><use href="#i-home"/></svg></div>
+            <h3>Housing and environment</h3>
+            <p>Housing, neighbourhood services, waste management and the environment.</p>
+            <div class="card-bottom"><span class="coming">Coming soon</span><button class="card-link" data-auth="signup" type="button">Join SurveyKE →</button></div>
+          </article>
         </div>
       </div>
     </section>
 
-    <section class="section white-section hidden" id="moreSurveys">
+    <section class="section section-soft" id="how-it-works">
       <div class="container">
-        <div class="section-heading"><span class="eyebrow">📚 MORE AREAS OF INTEREST</span><h2>More survey topics</h2><p>These categories are planned for future development.</p></div>
-        <div class="more-grid">
-          <div class="more-card"><span class="emoji">🏥</span><strong>Healthcare</strong><small>Access and experiences</small></div>
-          <div class="more-card"><span class="emoji">🎓</span><strong>Education</strong><small>Learning and school services</small></div>
-          <div class="more-card"><span class="emoji">🚌</span><strong>Transport</strong><small>Commuting and fares</small></div>
-          <div class="more-card"><span class="emoji">🛒</span><strong>Cost of Living</strong><small>Everyday expenses</small></div>
-          <div class="more-card"><span class="emoji">🏦</span><strong>Banking</strong><small>Financial services</small></div>
-          <div class="more-card"><span class="emoji">💼</span><strong>Employment</strong><small>Workplace experiences</small></div>
-          <div class="more-card"><span class="emoji">🏘️</span><strong>Housing</strong><small>Rent and accommodation</small></div>
-          <div class="more-card"><span class="emoji">🌱</span><strong>Environment</strong><small>Waste and sustainability</small></div>
+        <div class="section-heading">
+          <div class="eyebrow">Getting started</div>
+          <h2>A simple path to participation.</h2>
+          <p>SurveyKE is being developed in stages. Account registration is connected to Supabase; the survey participation workflow is still being built.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step">
+            <div class="step-number">01</div>
+            <h3>Create an account</h3>
+            <p>Register with your email address and choose a secure password. Confirm your email if required.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">02</div>
+            <h3>Explore survey opportunities</h3>
+            <p>When surveys are launched, eligible participants will be able to review the available topics and requirements.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">03</div>
+            <h3>Share your experience</h3>
+            <p>Participate in available surveys and review any participation terms before submitting responses.</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section" id="about">
-      <div class="container vision">
-        <div><span class="eyebrow">💚 OUR VISION</span><h2>Better services begin with listening.</h2><p>SurveyKE aims to give people a place to share experiences and contribute to a better understanding of everyday services in their communities.</p></div>
-        <div class="vision-points">
-          <div class="vision-point"><b>✓</b><div><strong>Community voices</strong><br>Make room for everyday experiences.</div></div>
-          <div class="vision-point"><b>✓</b><div><strong>Useful feedback</strong><br>Help identify service challenges.</div></div>
-          <div class="vision-point"><b>✓</b><div><strong>Responsible participation</strong><br>Build with privacy and transparency in mind.</div></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section white-section" id="support">
       <div class="container">
-        <div class="support-box">
-          <span class="eyebrow">💬 WE'RE HERE TO HELP</span>
-          <h2>Connect with SurveyKE</h2>
-          <p>Have a question or suggestion? Reach out through one of our contact channels.</p>
-          <a class="btn primary" href="mailto:facelessdime@gmail.com">✉️ Email Support</a>
+        <div class="vision-panel">
+          <div>
+            <div class="eyebrow">Our vision</div>
+            <h2>Better decisions begin with listening.</h2>
+            <p>SurveyKE aims to make it easier to share real experiences about services and everyday life in Kenya. Our goal is to build a useful, accessible platform where people's opinions can contribute to better understanding and informed decisions.</p>
+          </div>
+          <button class="btn btn-light" id="visionSignup" type="button">Create an account <svg><use href="#i-arrow"/></svg></button>
         </div>
-        <div class="contact-grid">
-          <div class="contact-card"><div class="contact-icon">✉️</div><strong>Email</strong><small>facelessdime@gmail.com</small><a class="btn outline" href="mailto:facelessdime@gmail.com">Send email</a></div>
-          <div class="contact-card"><div class="contact-icon">🟢</div><strong>WhatsApp</strong><small>+254 705 559 494</small><a class="btn outline" href="https://wa.me/254705559494" target="_blank" rel="noopener noreferrer">Chat with us ↗</a></div>
-          <div class="contact-card"><div class="contact-icon">✈️</div><strong>Telegram</strong><small>@Shearny</small><a class="btn outline" href="https://t.me/Shearny" target="_blank" rel="noopener noreferrer">Message ↗</a></div>
-          <div class="contact-card"><div class="contact-icon">🎮</div><strong>Discord</strong><small id="discordName">benardmauti</small><button class="btn outline" id="discordCopy" type="button">Copy username</button></div>
-        </div>
-        <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:18px">X / Twitter contact will be added later.</p>
       </div>
     </section>
-  </div>
 
-  <section class="account-section hidden" id="accountView">
-    <div class="container account-wrap">
-      <div class="account-card" id="authPanel">
-        <h2 id="authTitle">Create your account</h2>
-        <p class="subtext" id="authDescription">Join SurveyKE and get ready for upcoming surveys.</p>
-        <div id="authNotice" class="notice" role="status" aria-live="polite"></div>
-        <form id="authForm">
-          <div class="field hidden" id="nameField"><label for="fullName">Full name</label><input id="fullName" name="fullName" type="text" autocomplete="name" placeholder="Enter your name"></div>
-          <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
-          <div class="field" id="passwordField"><label for="password">Password</label><input id="password" name="password" type="password" minlength="6" autocomplete="current-password" placeholder="At least 6 characters" required></div>
-          <button class="btn primary" id="authSubmit" type="submit">Create Account</button>
-        </form>
-        <div class="switch" id="authSwitch">Already have an account? <button class="text-btn" id="switchLogin" type="button">Log in</button></div>
-        <div class="switch" id="forgotRow"><button class="text-btn" id="forgotPassword" type="button">Forgot your password?</button></div>
-        <div class="switch"><button class="text-btn" id="backHome" type="button">← Back to SurveyKE home</button></div>
+    <section class="section section-soft" id="support">
+      <div class="container">
+        <div class="section-heading">
+          <div class="eyebrow">We're here to help</div>
+          <h2>Get in touch with SurveyKE.</h2>
+          <p>Have a question about your account or the platform? Choose a contact option below.</p>
+        </div>
+
+        <div class="contact-grid">
+          <a class="contact-card" href="mailto:facelessdime@gmail.com" aria-label="Email SurveyKE support">
+            <span class="contact-icon email-icon"><svg><use href="#i-mail"/></svg></span>
+            <strong>Email support</strong>
+            <span class="contact-detail">facelessdime@gmail.com</span>
+            <span class="contact-action">Send an email <svg><use href="#i-arrow"/></svg></span>
+          </a>
+
+          <a class="contact-card" href="https://wa.me/254705559494" target="_blank" rel="noopener noreferrer" aria-label="Chat with SurveyKE on WhatsApp">
+            <span class="contact-icon whatsapp-icon">
+              <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8">
+                <path d="M20.5 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20l1.2-4.8A8.4 8.4 0 1 1 20.5 11.5Z"/>
+                <path d="M8.7 7.7c.3-.6.6-.6 1-.6h.4c.2 0 .4.1.5.4l.7 1.6c.1.3.1.5-.1.7l-.6.7c-.2.2-.2.4 0 .7.6 1 1.5 1.9 2.6 2.4.3.1.5.1.7-.1l.8-.9c.2-.2.4-.3.7-.2l1.6.8c.3.1.4.3.4.5 0 .5-.2 1.3-.8 1.7-.5.4-1.2.6-2 .4-1.2-.2-2.8-.9-4.3-2.2-1.3-1.2-2.2-2.8-2.4-3.9-.2-.8.2-1.6.8-2Z"/>
+              </svg>
+            </span>
+            <strong>WhatsApp</strong>
+            <span class="contact-detail">+254 705 559 494</span>
+            <span class="contact-action">Start a chat <svg><use href="#i-arrow"/></svg></span>
+          </a>
+
+          <a class="contact-card" href="https://t.me/Shearny" target="_blank" rel="noopener noreferrer" aria-label="Message SurveyKE on Telegram">
+            <span class="contact-icon telegram-icon"><svg><use href="#i-send"/></svg></span>
+            <strong>Telegram</strong>
+            <span class="contact-detail">@Shearny</span>
+            <span class="contact-action">Message us <svg><use href="#i-arrow"/></svg></span>
+          </a>
+
+          <a class="contact-card" href="https://discord.com/app" target="_blank" rel="noopener noreferrer" aria-label="Open Discord to contact SurveyKE support">
+            <span class="contact-icon discord-icon"><svg><use href="#i-discord"/></svg></span>
+            <strong>Discord</strong>
+            <span class="contact-detail">Username: benardmauti</span>
+            <span class="contact-action">Open Discord <svg><use href="#i-arrow"/></svg></span>
+          </a>
+        </div>
+
+        <p class="contact-note">Discord opens the app. A direct-message link may require a valid Discord profile or server invite URL.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-main">
+        <div>
+          <a class="brand" href="#home">
+            <span class="brand-mark"><svg><use href="#i-leaf"/></svg></span>
+            <span>Survey<span>KE</span></span>
+          </a>
+          <p class="footer-about">A growing survey platform built around the experiences, opinions and everyday lives of people in Kenya.</p>
+        </div>
+
+        <div>
+          <div class="footer-title">Explore</div>
+          <div class="footer-links">
+            <a href="#home">Home</a>
+            <a href="#surveys">Survey topics</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#about">Our vision</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-title">Account & support</div>
+          <div class="footer-links">
+            <button id="footerLogin" type="button">Log in</button>
+            <button id="footerSignup" type="button">Create an account</button>
+            <a href="#support">Contact support</a>
+            <a href="mailto:facelessdime@gmail.com">Email us</a>
+          </div>
+        </div>
       </div>
 
-      <div class="profile-panel hidden" id="profilePanel">
-        <div class="profile-avatar">👋</div>
-        <h2>Welcome to SurveyKE</h2>
-        <p class="profile-email" id="profileEmail"></p>
-        <div class="info-panel"><strong>✅ Account status</strong><br>Your account is connected to SurveyKE.</div>
-        <div class="info-panel"><strong>📋 Surveys and rewards</strong><br>Survey participation, reward balances and withdrawals have not launched. No earnings are being credited at this stage.</div>
-        <div class="profile-actions"><button class="btn primary" id="profileExplore" type="button">Explore topics</button><button class="btn outline" id="logoutButton" type="button">Log out</button></div>
-        <div id="profileNotice" class="notice" role="status" aria-live="polite" style="margin-top:18px"></div>
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> SurveyKE. All rights reserved.</span>
+        <span>Built for Kenyan voices · Survey participation features are in development.</span>
       </div>
     </div>
-  </section>
-</main>
+  </footer>
 
-<footer>
-  <div class="container">
-    <div class="footer-grid">
-      <div><a href="#home" class="brand"><span class="brand-mark">S</span><span class="brand-name" style="color:white">Survey<span style="color:#8fe0b4">KE</span></span></a><p>A community-focused platform for understanding everyday experiences across Kenya. 🇰🇪</p></div>
-      <div><h4>Explore</h4><div class="footer-links"><a href="#surveys">Survey topics</a><a href="#about">About SurveyKE</a><button class="text-btn" id="footerAccount" type="button" style="text-align:left;color:#c0d2c8">My account</button></div></div>
-      <div><h4>Contact</h4><div class="footer-links"><a href="mailto:facelessdime@gmail.com">✉️ Email</a><a href="https://wa.me/254705559494" target="_blank" rel="noopener noreferrer">🟢 WhatsApp</a><a href="https://t.me/Shearny" target="_blank" rel="noopener noreferrer">✈️ Telegram</a><a href="#support">🎮 Discord: benardmauti</a></div></div>
+  <!-- Authentication modal -->
+  <div class="auth-overlay" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-box">
+      <button class="auth-close" id="closeAuth" type="button" aria-label="Close dialog"><svg><use href="#i-close"/></svg></button>
+
+      <div class="auth-brand">
+        <span class="brand-mark"><svg><use href="#i-leaf"/></svg></span>
+        <strong>SurveyKE</strong>
+      </div>
+
+      <h2 id="authTitle">Welcome back</h2>
+      <p class="auth-description" id="authDescription">Log in to your SurveyKE account to continue.</p>
+
+      <div class="notice" id="authNotice" role="status" aria-live="polite"></div>
+
+      <form id="authForm">
+        <div class="field hidden" id="nameField">
+          <label for="fullName">Full name (optional)</label>
+          <div class="input-wrap">
+            <svg><use href="#i-user"/></svg>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" placeholder="Enter your name" maxlength="100" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <div class="input-wrap">
+            <svg><use href="#i-mail"/></svg>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </div>
+        </div>
+
+        <div class="field" id="passwordField">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <svg><use href="#i-lock"/></svg>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" minlength="6" required />
+          </div>
+        </div>
+
+        <div class="auth-options" id="forgotRow">
+          <button class="text-button" id="forgotPassword" type="button">Forgot password?</button>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="authSubmit" type="submit">Log in <svg><use href="#i-arrow"/></svg></button>
+      </form>
+
+      <p class="fine-print" id="authFinePrint">By continuing, you agree to use the platform responsibly. Please keep your login details secure.</p>
+
+      <div class="auth-switch" id="authSwitch">
+        Don't have an account?
+        <button class="text-button" id="switchAuth" type="button">Create one</button>
+      </div>
     </div>
-    <div class="footer-bottom"><span>© <span id="year"></span> SurveyKE. All rights reserved.</span><span>Made for community voices in Kenya 🇰🇪</span></div>
   </div>
-</footer>
 
-<script>
-  // Public client-side key only. Never put a Supabase secret key here.
-  const SUPABASE_URL = "https://hisstfhwiijzzteuhewv.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WWKlyx2hD9nH3p22Hl-dAw_XfixoKCQ";
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  let supabaseClient = null;
-  let currentSession = null;
-  let authMode = "signup";
-  let confirmationHandled = false;
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    "use strict";
 
-  const $ = (id) => document.getElementById(id);
-  $("year").textContent = new Date().getFullYear();
+    // SurveyKE Supabase project settings.
+    // This is the publishable key supplied for your project.
+    // Never place a Supabase secret/service_role key in browser code.
+    const SUPABASE_URL = "https://hisstfhwiijzzteuhewv.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WWKlyx2hD9nH3p22Hl-dAw_XfixoKCQ";
 
-  function showNotice(element, message, type = "info") {
-    element.textContent = message;
-    element.className = "notice show " + type;
-  }
+    const $ = (id) => document.getElementById(id);
 
-  function clearNotice(element) {
-    element.textContent = "";
-    element.className = "notice";
-  }
+    $("year").textContent = new Date().getFullYear();
 
-  function initSupabase() {
-    if (!window.supabase || !window.supabase.createClient) {
-      showNotice($("authNotice"), "Supabase could not load. Check your internet connection and reload the page.", "error");
-      return false;
+    let supabaseClient = null;
+    let authMode = "login";
+    let currentUser = null;
+    let toastTimer = null;
+
+    function showToast(message) {
+      const toast = $("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 4200);
     }
-    if (!supabaseClient) {
+
+    function showNotice(message, type = "info") {
+      const notice = $("authNotice");
+      notice.textContent = message;
+      notice.className = "notice show " + type;
+    }
+
+    function clearNotice() {
+      $("authNotice").textContent = "";
+      $("authNotice").className = "notice";
+    }
+
+    function setBusy(busy) {
+      $("authSubmit").disabled = busy;
+      $("authForm").classList.toggle("loading", busy);
+      $("authSubmit").textContent = busy ? "Please wait..." : submitLabel();
+    }
+
+    function submitLabel() {
+      if (authMode === "signup") return "Create account";
+      if (authMode === "reset") return "Send reset link";
+      if (authMode === "newpassword") return "Update password";
+      return "Log in";
+    }
+
+    function setMode(mode, noticeMessage = "", noticeType = "info") {
+      authMode = mode;
+      clearNotice();
+
+      const isSignup = mode === "signup";
+      const isReset = mode === "reset";
+      const isNewPassword = mode === "newpassword";
+      const isLogin = mode === "login";
+
+      $("nameField").classList.toggle("hidden", !isSignup);
+      $("passwordField").classList.toggle("hidden", isReset);
+      $("forgotRow").classList.toggle("hidden", !isLogin);
+      $("authSwitch").classList.toggle("hidden", isReset || isNewPassword);
+      $("authFinePrint").classList.toggle("hidden", isReset || isNewPassword);
+
+      $("password").required = !isReset;
+      $("password").autocomplete = isSignup || isNewPassword ? "new-password" : "current-password";
+      $("password").placeholder = isNewPassword ? "Choose a new password" : isSignup ? "Create a password" : "Enter your password";
+
+      if (isSignup) {
+        $("authTitle").textContent = "Create your account";
+        $("authDescription").textContent = "Join SurveyKE. Registration is free, and you can use your email address to sign in.";
+        $("authSwitch").replaceChildren(document.createTextNode("Already have an account? "));
+        const loginButton = document.createElement("button");
+        loginButton.type = "button";
+        loginButton.className = "text-button";
+        loginButton.textContent = "Log in";
+        loginButton.addEventListener("click", () => setMode("login"));
+        $("authSwitch").appendChild(loginButton);
+      } else if (isReset) {
+        $("authTitle").textContent = "Reset your password";
+        $("authDescription").textContent = "Enter your account email. If password recovery is enabled, we'll send you a reset link.";
+      } else if (isNewPassword) {
+        $("authTitle").textContent = "Choose a new password";
+        $("authDescription").textContent = "Enter a new password for your SurveyKE account.";
+      } else {
+        $("authTitle").textContent = "Welcome back";
+        $("authDescription").textContent = "Log in to your SurveyKE account to continue.";
+        $("authSwitch").replaceChildren(document.createTextNode("Don't have an account? "));
+        const signupButton = document.createElement("button");
+        signupButton.type = "button";
+        signupButton.className = "text-button";
+        signupButton.textContent = "Create one";
+        signupButton.addEventListener("click", () => setMode("signup"));
+        $("authSwitch").appendChild(signupButton);
+      }
+
+      $("authSubmit").innerHTML = submitLabel() + ' <svg><use href="#i-arrow"/></svg>';
+
+      if (noticeMessage) showNotice(noticeMessage, noticeType);
+    }
+
+    function openAuth(mode = "login", message = "", type = "info") {
+      setMode(mode, message, type);
+      $("authOverlay").classList.add("open");
+      document.body.style.overflow = "hidden";
+      setTimeout(() => {
+        if (mode === "signup" && !$("fullName").classList.contains("hidden")) {
+          $("fullName").focus();
+        } else {
+          $("email").focus();
+        }
+      }, 50);
+    }
+
+    function closeAuth() {
+      $("authOverlay").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    function cleanAuthUrl() {
+      try {
+        const clean = new URL(window.location.href);
+        ["code", "token_hash", "type", "access_token", "refresh_token", "expires_at", "expires_in", "error", "error_code", "error_description"].forEach((key) => {
+          clean.searchParams.delete(key);
+        });
+        clean.hash = "";
+        window.history.replaceState({}, document.title, clean.pathname + clean.search);
+      } catch (error) {
+        console.warn("Could not clean authentication URL.", error);
+      }
+    }
+
+    function updateNavigation(user) {
+      currentUser = user || null;
+      $("navLogin").classList.toggle("hidden", !!user);
+      $("navSignup").classList.toggle("hidden", !!user);
+      $("navLogout").classList.toggle("hidden", !user);
+    }
+
+    function readableError(error) {
+      const message = error && error.message ? error.message : "Something went wrong. Please try again.";
+
+      if (/invalid login credentials/i.test(message)) {
+        return "The email or password is incorrect. Check your details, or use Forgot password.";
+      }
+      if (/email not confirmed/i.test(message)) {
+        return "Your email is not confirmed yet. Open the confirmation link in your email, then try logging in again.";
+      }
+      if (/user already registered/i.test(message)) {
+        return "An account with this email may already exist. Try logging in instead.";
+      }
+      if (/password should be at least/i.test(message)) {
+        return "Your password is too short. Use at least 6 characters.";
+      }
+      if (/rate limit|too many requests/i.test(message)) {
+        return "Too many attempts. Please wait a little before trying again.";
+      }
+      if (/failed to fetch|networkerror|load failed/i.test(message)) {
+        return "We couldn't reach the authentication service. Check your internet connection and try again.";
+      }
+      return message;
+    }
+
+    async function initializeAuth() {
+      if (!window.supabase || !window.supabase.createClient) {
+        showToast("The authentication library did not load. Check your internet connection and refresh.");
+        return;
+      }
+
       supabaseClient = window.supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-      );
-    }
-    return true;
-  }
-
-  function showHome(target) {
-    $("homeView").classList.remove("hidden");
-    $("accountView").classList.add("hidden");
-    if (target) {
-      setTimeout(() => $(target)?.scrollIntoView({ behavior: "smooth" }), 50);
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }
-
-  function showAccount() {
-    $("homeView").classList.add("hidden");
-    $("accountView").classList.remove("hidden");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    clearNotice($("authNotice"));
-    clearNotice($("profileNotice"));
-    updateAccountScreen();
-  }
-
-  function updateAccountScreen() {
-    if (currentSession?.user) {
-      $("authPanel").classList.add("hidden");
-      $("profilePanel").classList.remove("hidden");
-      $("profileEmail").textContent = currentSession.user.email || "";
-    } else {
-      $("profilePanel").classList.add("hidden");
-      $("authPanel").classList.remove("hidden");
-    }
-  }
-
-  function setAuthMode(mode) {
-    authMode = mode;
-    clearNotice($("authNotice"));
-    $("authForm").reset();
-    $("nameField").classList.toggle("hidden", mode !== "signup");
-    $("passwordField").classList.toggle("hidden", mode === "reset");
-    $("password").required = mode !== "reset";
-
-    if (mode === "signup") {
-      $("authTitle").textContent = "Create your account";
-      $("authDescription").textContent = "Join SurveyKE and get ready for upcoming surveys.";
-      $("authSubmit").textContent = "Create Account";
-      $("authSwitch").classList.remove("hidden");
-      $("authSwitch").firstChild.textContent = "Already have an account? ";
-      $("switchLogin").textContent = "Log in";
-      $("forgotRow").classList.remove("hidden");
-    } else if (mode === "login") {
-      $("authTitle").textContent = "Welcome back";
-      $("authDescription").textContent = "Log in to your SurveyKE account.";
-      $("authSubmit").textContent = "Log In";
-      $("authSwitch").classList.remove("hidden");
-      $("authSwitch").firstChild.textContent = "New to SurveyKE? ";
-      $("switchLogin").textContent = "Create an account";
-      $("forgotRow").classList.remove("hidden");
-    } else {
-      $("authTitle").textContent = "Reset your password";
-      $("authDescription").textContent = "Enter your email and we'll send you a password reset link.";
-      $("authSubmit").textContent = "Send Reset Link";
-      $("authSwitch").classList.add("hidden");
-      $("forgotRow").classList.add("hidden");
-    }
-  }
-
-  function cleanAuthUrl() {
-    // Remove confirmation tokens from the visible URL after Supabase processes them.
-    if (window.location.hash || window.location.search) {
-      history.replaceState(null, document.title, window.location.pathname);
-    }
-  }
-
-  async function handleEmailConfirmation() {
-    if (confirmationHandled || !supabaseClient) return;
-
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const confirmationType = params.get("type");
-    const authError = params.get("error_description") || params.get("error");
-
-    if (authError) {
-      confirmationHandled = true;
-      cleanAuthUrl();
-      showAccount();
-      setAuthMode("login");
-      showNotice($("authNotice"), "The confirmation link could not be completed. It may have expired. Try registering again or request a fresh email.", "error");
-      return;
-    }
-
-    if (!["signup", "email"].includes(confirmationType)) return;
-
-    confirmationHandled = true;
-
-    // Give Supabase a moment to process the confirmation callback.
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    try {
-      const { data } = await supabaseClient.auth.getSession();
-      if (data?.session) {
-        await supabaseClient.auth.signOut();
-      }
-    } catch (error) {
-      console.error("Confirmation session cleanup:", error);
-    }
-
-    currentSession = null;
-    cleanAuthUrl();
-    showAccount();
-    setAuthMode("login");
-    showNotice(
-      $("authNotice"),
-      "✅ Email confirmed successfully! Your SurveyKE account is ready. Please log in below.",
-      "success"
-    );
-    updateAccountScreen();
-  }
-
-  function friendlyError(error) {
-    const message = error?.message || "Something went wrong. Please try again.";
-    const lower = message.toLowerCase();
-
-    if (lower.includes("invalid login credentials")) return "Incorrect email or password. Check your details or reset your password.";
-    if (lower.includes("already registered")) return "This email already has an account. Please log in instead.";
-    if (lower.includes("email not confirmed")) return "Please confirm your email using the link we sent you before logging in.";
-    if (lower.includes("password")) return message;
-    if (lower.includes("rate limit")) return "Too many attempts. Please wait a little and try again.";
-    if (lower.includes("redirect")) return "The confirmation redirect URL is not allowed in Supabase settings. Please check Authentication → URL Configuration.";
-    return message;
-  }
-
-  $("navAccount").addEventListener("click", showAccount);
-  $("heroAccount").addEventListener("click", showAccount);
-  $("footerAccount").addEventListener("click", showAccount);
-  $("backHome").addEventListener("click", () => showHome());
-  $("profileExplore").addEventListener("click", () => showHome("surveys"));
-
-  $("moreTopics").addEventListener("click", () => {
-    $("moreSurveys").classList.remove("hidden");
-    $("moreSurveys").scrollIntoView({ behavior: "smooth" });
-  });
-
-  document.querySelectorAll(".surveyAction").forEach(button => {
-    button.addEventListener("click", () => {
-      alert("This survey topic is coming soon. Survey participation is not active yet.");
-    });
-  });
-
-  $("switchLogin").addEventListener("click", () => {
-    setAuthMode(authMode === "signup" ? "login" : "signup");
-  });
-
-  $("forgotPassword").addEventListener("click", () => setAuthMode("reset"));
-
-  $("discordCopy").addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText("benardmauti");
-      $("discordCopy").textContent = "✓ Username copied";
-    } catch {
-      prompt("Copy this Discord username:", "benardmauti");
-    }
-    setTimeout(() => $("discordCopy").textContent = "Copy username", 2200);
-  });
-
-  $("authForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!initSupabase()) return;
-
-    const email = $("email").value.trim();
-    const password = $("password").value;
-    const fullName = $("fullName").value.trim();
-    const submit = $("authSubmit");
-
-    submit.disabled = true;
-    clearNotice($("authNotice"));
-
-    try {
-      if (authMode === "signup") {
-        if (fullName.length < 2) {
-          showNotice($("authNotice"), "Please enter your full name.", "error");
-          return;
-        }
-
-        // Confirmation links must return to an allowed, hosted website URL.
-        if (window.location.protocol === "file:") {
-          showNotice($("authNotice"), "Please open SurveyKE through a hosted website or local web server before registering. Email confirmation cannot reliably return to a file:// page.", "error");
-          return;
-        }
-
-        const redirectUrl = window.location.origin + window.location.pathname;
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: redirectUrl
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            flowType: "pkce"
           }
-        });
-
-        if (error) throw error;
-
-        if (data.session) {
-          currentSession = data.session;
-          updateAccountScreen();
-          showNotice($("profileNotice"), "Your account has been created and you're logged in.", "success");
-        } else {
-          setAuthMode("login");
-          $("email").value = email;
-          showNotice($("authNotice"), "Registration successful! 📩 Check your email and click the confirmation link. After confirmation, SurveyKE will show a success message and return you here to log in.", "success");
         }
-      } else if (authMode === "login") {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+      );
 
-        currentSession = data.session;
-        updateAccountScreen();
-        showNotice($("profileNotice"), "✅ You're now logged in to SurveyKE.", "success");
-      } else {
-        if (window.location.protocol === "file:") {
-          showNotice($("authNotice"), "Open SurveyKE through a hosted website or local web server before requesting a reset link.", "error");
-          return;
-        }
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+      const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+      const hasCode = params.has("code");
+      const hasTokenHash = params.has("token_hash");
+      const hasAccessToken = hashParams.has("access_token");
+      const hasAuthError = params.has("error") || hashParams.has("error");
+      const callbackType = params.get("type") || hashParams.get("type") || "";
+      const isRecovery = callbackType === "recovery";
+      const looksLikeEmailCallback = hasCode || hasTokenHash || hasAccessToken ||
+        callbackType === "signup" || callbackType === "email" || hasAuthError;
 
-        const redirectUrl = window.location.origin + window.location.pathname;
-        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectUrl
-        });
-        if (error) throw error;
+      if (hasAuthError) {
+        const errorMessage = params.get("error_description") ||
+          hashParams.get("error_description") ||
+          params.get("error") ||
+          hashParams.get("error") ||
+          "The confirmation link could not be completed. Please request a new link and try again.";
 
-        showNotice($("authNotice"), "If an account exists for this email, a password reset link will be sent. Check your inbox and spam folder.", "success");
+        cleanAuthUrl();
+        openAuth("login", decodeURIComponent(errorMessage.replace(/\+/g, " ")), "error");
       }
-    } catch (error) {
-      showNotice($("authNotice"), friendlyError(error), "error");
-    } finally {
-      submit.disabled = false;
-    }
-  });
 
-  $("logoutButton").addEventListener("click", async () => {
-    if (!supabaseClient) return;
-    const button = $("logoutButton");
-    button.disabled = true;
+      // Supabase JS handles supported PKCE callback codes during initialization.
+      // Give the callback exchange a chance to finish before checking the session.
+      let sessionResult = await supabaseClient.auth.getSession();
 
-    try {
-      const { error } = await supabaseClient.auth.signOut();
-      if (error) throw error;
-      currentSession = null;
-      updateAccountScreen();
-      setAuthMode("login");
-      showNotice($("authNotice"), "You have logged out successfully.", "success");
-    } catch (error) {
-      showNotice($("profileNotice"), friendlyError(error), "error");
-    } finally {
-      button.disabled = false;
-    }
-  });
+      if (looksLikeEmailCallback && !hasAuthError) {
+        if (isRecovery) {
+          cleanAuthUrl();
+          openAuth("newpassword", "Verify or reset your password using the link sent to your email.", "info");
+        } else if (hasTokenHash && params.get("type")) {
+          // Support confirmation links that deliver token_hash + type.
+          const tokenHash = params.get("token_hash");
+          const verifyType = params.get("type");
+          const allowedTypes = ["signup", "email", "email_change", "recovery", "invite", "magiclink"];
+          if (tokenHash && allowedTypes.includes(verifyType)) {
+            const { error } = await supabaseClient.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: verifyType
+            });
+            if (error) {
+              cleanAuthUrl();
+              openAuth("login", readableError(error), "error");
+            } else if (verifyType === "recovery") {
+              cleanAuthUrl();
+              openAuth("newpassword", "Your recovery link is verified. Choose a new password.", "success");
+            } else {
+              await supabaseClient.auth.signOut();
+              cleanAuthUrl();
+              openAuth("login", "Email confirmed successfully! You can now log in to SurveyKE.", "success");
+            }
+          } else {
+            cleanAuthUrl();
+            openAuth("login", "This confirmation link is incomplete or unsupported. Request a new email and try again.", "error");
+          }
+        } else if (hasCode || hasAccessToken || callbackType === "signup" || callbackType === "email") {
+          sessionResult = await supabaseClient.auth.getSession();
+          if (sessionResult.error) {
+            cleanAuthUrl();
+            openAuth("login", "We couldn't complete the email confirmation. Please request a fresh confirmation link.", "error");
+          } else if (sessionResult.data.session) {
+            if (isRecovery) {
+              cleanAuthUrl();
+              openAuth("newpassword", "Choose a new password for your account.", "success");
+            } else {
+              await supabaseClient.auth.signOut();
+              cleanAuthUrl();
+              openAuth("login", "Email confirmed successfully! You can now log in to SurveyKE.", "success");
+            }
+          } else if (callbackType === "signup" || callbackType === "email" || hasAccessToken) {
+            cleanAuthUrl();
+            openAuth("login", "Your confirmation link was opened. If your email is confirmed, you can now log in. If not, request a new link.", "info");
+          } else {
+            cleanAuthUrl();
+            openAuth("login", "We couldn't verify the confirmation session. Please open the newest confirmation email and try again.", "error");
+          }
+        }
+      }
 
-  async function startAuth() {
-    if (!initSupabase()) return;
-
-    try {
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (error) throw error;
-      currentSession = data.session;
-      updateAccountScreen();
-
-      // Process confirmation callback once the page and auth client are ready.
-      await handleEmailConfirmation();
+      sessionResult = await supabaseClient.auth.getSession();
+      if (!sessionResult.error) {
+        updateNavigation(sessionResult.data.session ? sessionResult.data.session.user : null);
+      }
 
       supabaseClient.auth.onAuthStateChange((event, session) => {
-        currentSession = session;
-        updateAccountScreen();
+        updateNavigation(session ? session.user : null);
+
+        if (event === "SIGNED_OUT") {
+          currentUser = null;
+        }
 
         if (event === "PASSWORD_RECOVERY") {
-          showAccount();
-          setAuthMode("reset");
-          showNotice($("authNotice"), "Password recovery opened. Follow the instructions to reset your password.", "info");
+          openAuth("newpassword", "Choose a new password for your account.", "success");
         }
       });
-    } catch (error) {
-      showNotice($("authNotice"), friendlyError(error), "error");
-    }
-  }
 
-  setAuthMode("signup");
-  startAuth();
-</script>
+      if (params.get("auth") === "confirmed") {
+        openAuth("login", "Email confirmed successfully! You can now log in to SurveyKE.", "success");
+      }
+    }
+
+    $("authForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!supabaseClient) {
+        showNotice("Authentication is not ready yet. Refresh the page and try again.", "error");
+        return;
+      }
+
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      const fullName = $("fullName").value.trim();
+
+      clearNotice();
+      setBusy(true);
+
+      try {
+        if (authMode === "signup") {
+          const redirectUrl = window.location.origin && window.location.origin !== "null"
+            ? window.location.origin + window.location.pathname
+            : undefined;
+
+          const options = {
+            data: { full_name: fullName }
+          };
+
+          if (redirectUrl) options.emailRedirectTo = redirectUrl;
+
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options
+          });
+
+          if (error) throw error;
+
+          if (data.session) {
+            updateNavigation(data.session.user);
+            closeAuth();
+            showToast("Your SurveyKE account has been created.");
+          } else {
+            showNotice("Account created! Check your inbox for the confirmation email. Open its link to confirm your email, then return here and log in.", "success");
+            $("password").value = "";
+          }
+        } else if (authMode === "login") {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+
+          if (error) throw error;
+
+          updateNavigation(data.user);
+          closeAuth();
+          showToast("Welcome back to SurveyKE!");
+        } else if (authMode === "reset") {
+          const redirectUrl = window.location.origin && window.location.origin !== "null"
+            ? window.location.origin + window.location.pathname
+            : undefined;
+
+          const options = {};
+          if (redirectUrl) options.redirectTo = redirectUrl;
+
+          const { error } = await supabaseClient.auth.resetPasswordForEmail(email, options);
+          if (error) throw error;
+
+          showNotice("If password recovery is available for this email, a reset link will be sent. Check your inbox and spam folder.", "success");
+        } else if (authMode === "newpassword") {
+          if (password.length < 6) {
+            throw new Error("Password should be at least 6 characters.");
+          }
+
+          const { error } = await supabaseClient.auth.updateUser({ password });
+          if (error) throw error;
+
+          await supabaseClient.auth.signOut();
+          $("password").value = "";
+          cleanAuthUrl();
+          setMode("login", "Password updated successfully. You can now log in using your new password.", "success");
+        }
+      } catch (error) {
+        showNotice(readableError(error), "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("forgotPassword").addEventListener("click", () => {
+      setMode("reset", "Enter the email address you used to register.", "info");
+    });
+
+    $("navLogin").addEventListener("click", () => openAuth("login"));
+    $("navSignup").addEventListener("click", () => openAuth("signup"));
+    $("heroSignup").addEventListener("click", () => openAuth("signup"));
+    $("visionSignup").addEventListener("click", () => openAuth("signup"));
+    $("footerLogin").addEventListener("click", () => openAuth("login"));
+    $("footerSignup").addEventListener("click", () => openAuth("signup"));
+
+    document.querySelectorAll("[data-auth]").forEach((button) => {
+      button.addEventListener("click", () => openAuth(button.dataset.auth || "signup"));
+    });
+
+    $("closeAuth").addEventListener("click", closeAuth);
+
+    $("authOverlay").addEventListener("click", (event) => {
+      if (event.target === $("authOverlay")) closeAuth();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeAuth();
+    });
+
+    $("navLogout").addEventListener("click", async () => {
+      if (!supabaseClient) return;
+
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        showToast(readableError(error));
+        return;
+      }
+
+      updateNavigation(null);
+      showToast("You have been logged out.");
+    });
+
+    initializeAuth().catch((error) => {
+      console.error("SurveyKE authentication initialization error:", error);
+      showToast("We couldn't initialize login. Check the project settings and refresh.");
+    });
+  </script>
 </body>
 </html>
