@@ -42,7 +42,7 @@
       line-height: 1.6;
     }
 
-    body, button, input, textarea { font-family: "DM Sans", sans-serif; }
+    body, button, input, textarea, select { font-family: "DM Sans", sans-serif; }
 
     button, a { -webkit-tap-highlight-color: transparent; }
 
@@ -308,26 +308,6 @@
 
     .art-bottom strong { color: var(--green); }
 
-    .float-note {
-      position: absolute;
-      z-index: 3;
-      background: white;
-      border: 1px solid #e6eee8;
-      box-shadow: var(--shadow);
-      padding: 13px 16px;
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .float-note svg { color: var(--green); width: 22px; height: 22px; }
-    .float-note small { display: block; color: var(--muted); font-weight: 500; font-size: 10px; }
-    .note-one { left: -18px; top: 44px; }
-    .note-two { right: -14px; bottom: 35px; }
-
     .stats-band {
       border-top: 1px solid #eaf0ec;
       border-bottom: 1px solid #eaf0ec;
@@ -436,16 +416,6 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-    }
-
-    .coming {
-      font-size: 10px;
-      font-weight: 800;
-      color: #8b691b;
-      background: #fff6db;
-      border-radius: 20px;
-      padding: 6px 9px;
-      white-space: nowrap;
     }
 
     .card-link {
@@ -777,7 +747,6 @@
     .detail-section { margin-top: 18px; }
     .detail-section h3 { font-family: "Manrope", sans-serif; font-size: 14px; margin-bottom: 6px; }
     .detail-text { white-space: pre-line; color: #40524a; font-size: 13px; line-height: 1.8; margin: 0; overflow-wrap: anywhere; }
-    .detail-list { margin: 0; padding-left: 18px; color: #40524a; font-size: 13px; line-height: 1.8; }
     .participate-box { margin-top: 22px; border: 1px solid #cde8d7; background: var(--green-soft); border-radius: 16px; padding: 18px; }
     .participate-box h3 { font-family: "Manrope", sans-serif; font-size: 15px; margin-bottom: 8px; }
     .participate-box p { font-size: 12px; color: #40524a; line-height: 1.7; margin-bottom: 8px; }
@@ -1152,6 +1121,7 @@
             <button class="topic-chip" onclick="filterDirectoryTopic('Finance')">Finance</button>
             <button class="topic-chip" onclick="filterDirectoryTopic('Transport')">Transport</button>
             <button class="topic-chip" onclick="filterDirectoryTopic('Health')">Health</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Other')">Other</button>
           </div>
         </div>
 
@@ -1190,7 +1160,7 @@
 
         <div id="admin-unauthorized" class="state-box hidden">
           <strong>Access Restricted</strong>
-          <p>You are signed in, but your account does not have administrator privileges. Authorized admin: mautinyagah@gmail.com</p>
+          <p>You are signed in, but your account does not have administrator privileges. Authorized admin only.</p>
         </div>
 
         <div id="admin-authorized" class="hidden">
@@ -1199,14 +1169,14 @@
             <h3>Add New Survey</h3>
             <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Publish a genuine survey with an active HTTPS destination link.</p>
             
-            <form onsubmit="handleCreateSurvey(event)">
+            <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="field">
-                  <label>Survey Title</label>
+                  <label>Survey Title *</label>
                   <input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required>
                 </div>
                 <div class="field">
-                  <label>Category</label>
+                  <label>Category *</label>
                   <select id="admin-category" style="padding-left: 13px;" required>
                     <option value="Public Policy">Public Policy</option>
                     <option value="Technology">Technology</option>
@@ -1214,22 +1184,23 @@
                     <option value="Consumer Goods">Consumer Goods</option>
                     <option value="Transport">Transport</option>
                     <option value="Health">Health</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
               </div>
 
               <div class="field">
-                <label>Description</label>
+                <label>Description *</label>
                 <textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea>
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
                 <div class="field">
-                  <label>Estimated Duration</label>
-                  <input type="text" id="admin-duration" placeholder="e.g. 4 mins" required>
+                  <label>Estimated Duration (mins) *</label>
+                  <input type="number" id="admin-duration" placeholder="e.g. 5" min="1" required>
                 </div>
                 <div class="field">
-                  <label>Status</label>
+                  <label>Status *</label>
                   <select id="admin-status" style="padding-left: 13px;" required>
                     <option value="published">Published</option>
                     <option value="draft">Draft / Unpublished</option>
@@ -1237,14 +1208,25 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label>Survey URL (HTTPS Only)</label>
+                  <label>Survey URL (HTTPS) *</label>
                   <input type="url" id="admin-url" placeholder="https://example.com/survey" required>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="field">
+                  <label>Eligibility (Optional)</label>
+                  <textarea id="admin-eligibility" placeholder="Who can participate..." style="min-height: 60px;"></textarea>
+                </div>
+                <div class="field">
+                  <label>Instructions (Optional)</label>
+                  <textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea>
                 </div>
               </div>
 
               <div id="admin-create-notice" class="notice"></div>
 
-              <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Publish Survey to Database</button>
+              <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey to Database</button>
             </form>
           </div>
 
@@ -1252,6 +1234,15 @@
           <div class="admin-panel-card">
             <h3>Manage Existing Surveys</h3>
             <div id="admin-surveys-list-wrap">
+              <div class="spinner"></div>
+            </div>
+          </div>
+
+          <!-- Participation Review Card -->
+          <div class="admin-panel-card">
+            <h3>Participation Review</h3>
+            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Review participant engagement and submissions across active surveys.</p>
+            <div id="admin-participations-wrap">
               <div class="spinner"></div>
             </div>
           </div>
@@ -1416,7 +1407,6 @@
 
     // Initialize App
     document.addEventListener('DOMContentLoaded', async () => {
-      // Check Supabase session
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
         currentUser = session.user;
@@ -1426,7 +1416,6 @@
       updateAuthUI();
       await fetchAndRenderSurveys();
 
-      // Listen to auth changes
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (session && session.user) {
           currentUser = session.user;
@@ -1439,7 +1428,7 @@
       });
     });
 
-    // Check Admin Privileges via public.is_admin()
+    // Check Admin Privileges via public.is_admin() and public.admins table
     async function checkAdminStatus() {
       if (!currentUser) {
         isAdmin = false;
@@ -1450,7 +1439,13 @@
         if (!error && data === true) {
           isAdmin = true;
         } else {
-          isAdmin = (currentUser.email === 'mautinyagah@gmail.com');
+          // Fallback check against public.admins table
+          const { data: adminRow } = await supabaseClient
+            .from('admins')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+          isAdmin = !!adminRow || (currentUser.email === 'mautinyagah@gmail.com');
         }
       } catch (e) {
         isAdmin = (currentUser.email === 'mautinyagah@gmail.com');
@@ -1539,7 +1534,7 @@
           <h3>${escapeHtml(s.title)}</h3>
           <p class="clamp">${escapeHtml(s.description || '')}</p>
           <div class="meta-row">
-            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.duration || '5 mins')}</span>
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
           </div>
           <div class="card-bottom">
             <span class="small-note">Verified Survey</span>
@@ -1577,7 +1572,7 @@
           <h3>${escapeHtml(s.title)}</h3>
           <p class="clamp">${escapeHtml(s.description || '')}</p>
           <div class="meta-row">
-            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.duration || '5 mins')}</span>
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
           </div>
           <div class="card-bottom">
             <span class="small-note">Open opportunity</span>
@@ -1623,10 +1618,10 @@
         </div>
       ` : '';
 
-      let rewardsHTML = survey.reward_details ? `
+      let instructionsHTML = survey.instructions ? `
         <div class="detail-section">
-          <h3>Reward & Incentives</h3>
-          <p class="detail-text">${escapeHtml(survey.reward_details)}</p>
+          <h3>Participation Instructions</h3>
+          <p class="detail-text">${escapeHtml(survey.instructions)}</p>
         </div>
       ` : '';
 
@@ -1640,13 +1635,13 @@
           <h1>${escapeHtml(survey.title)}</h1>
           
           <div class="meta-row" style="margin-bottom: 16px;">
-            <span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.duration || '5 mins')}</span>
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.estimated_minutes || survey.duration || '5')} mins</span>
           </div>
           
           <p class="detail-text">${escapeHtml(survey.description || '')}</p>
           
           ${eligibilityHTML}
-          ${rewardsHTML}
+          ${instructionsHTML}
 
           <div class="participate-box">
             <h3>External Survey Participation</h3>
@@ -1664,7 +1659,7 @@
       `;
     }
 
-    // Start Survey participation via supported RPC start_survey
+    // Start Survey participation
     async function startExternalSurvey(surveyId, surveyUrl) {
       if (!currentUser) {
         showToast('Please sign in to participate in surveys.');
@@ -1678,10 +1673,9 @@
       }
 
       try {
-        const { error } = await supabaseClient.rpc('start_survey', { p_survey_id: surveyId });
-        if (error) {
-          console.error('RPC start_survey error:', error);
-        }
+        await supabaseClient.from('survey_participations').insert([
+          { survey_id: surveyId, user_id: currentUser.id, status: 'started', review_status: 'pending' }
+        ]);
 
         showToast('Participation recorded. Redirecting to survey...');
         setTimeout(() => {
@@ -1707,6 +1701,7 @@
       unauthorizedEl.classList.add('hidden');
       authorizedEl.classList.remove('hidden');
       await loadAdminSurveysTable();
+      await loadAdminParticipationsTable();
     }
 
     async function loadAdminSurveysTable() {
@@ -1731,6 +1726,7 @@
                 <tr>
                   <th>Title</th>
                   <th>Category</th>
+                  <th>Duration</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -1740,6 +1736,7 @@
                   <tr>
                     <td><strong>${escapeHtml(s.title)}</strong><br><small style="color:var(--muted);">${escapeHtml(s.survey_url || '')}</small></td>
                     <td>${escapeHtml(s.category || '')}</td>
+                    <td>${escapeHtml(String(s.estimated_minutes || s.duration || '5'))} mins</td>
                     <td><span class="status-chip">${escapeHtml(s.status)}</span></td>
                     <td>
                       <button class="btn btn-outline btn-sm" onclick="toggleSurveyStatus('${s.id}', '${s.status === 'published' ? 'closed' : 'published'}')">
@@ -1757,21 +1754,97 @@
       }
     }
 
+    async function loadAdminParticipationsTable() {
+      const wrap = document.getElementById('admin-participations-wrap');
+      try {
+        const { data, error } = await supabaseClient
+          .from('survey_participations')
+          .select('id, status, review_status, submitted_at, surveys(title)')
+          .order('submitted_at', { ascending: false })
+          .limit(20);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">No participation records found.</p>`;
+          return;
+        }
+
+        wrap.innerHTML = `
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Survey</th>
+                  <th>Participant Status</th>
+                  <th>Submission Date</th>
+                  <th>Review Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.map(p => `
+                  <tr>
+                    <td><strong>${escapeHtml(p.surveys ? p.surveys.title : 'Survey')}</strong></td>
+                    <td>${escapeHtml(p.status || 'started')}</td>
+                    <td>${new Date(p.submitted_at).toLocaleDateString()}</td>
+                    <td><span class="status-chip">${escapeHtml(p.review_status || 'pending')}</span></td>
+                    <td>
+                      <button class="btn btn-outline btn-sm" onclick="reviewParticipation('${p.id}', 'approved')">Approve</button>
+                      <button class="btn btn-outline btn-sm" style="color:#a52b26; border-color:#f6d4d1;" onclick="reviewParticipation('${p.id}', 'rejected')">Reject</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (e) {
+        wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">Participation table or RPC not configured yet.</p>`;
+      }
+    }
+
+    async function reviewParticipation(participationId, decision) {
+      try {
+        const { error } = await supabaseClient.rpc('admin_review_participation', {
+          p_participation_id: participationId,
+          p_decision: decision
+        });
+        if (error) throw error;
+        showToast(`Participation ${decision} successfully.`);
+        await loadAdminParticipationsTable();
+      } catch (e) {
+        showToast('Review failed: ' + e.message);
+      }
+    }
+
     async function handleCreateSurvey(e) {
       e.preventDefault();
       const title = document.getElementById('admin-title').value.trim();
       const category = document.getElementById('admin-category').value;
       const description = document.getElementById('admin-description').value.trim();
-      const duration = document.getElementById('admin-duration').value.trim();
+      const estimated_minutes = parseInt(document.getElementById('admin-duration').value, 10);
       const status = document.getElementById('admin-status').value;
-      const surveyUrl = document.getElementById('admin-url').value.trim();
+      const survey_url = document.getElementById('admin-url').value.trim();
+      const eligibility = document.getElementById('admin-eligibility').value.trim();
+      const instructions = document.getElementById('admin-instructions').value.trim();
       const noticeEl = document.getElementById('admin-create-notice');
+      const submitBtn = document.getElementById('admin-submit-btn');
 
-      if (!surveyUrl.startsWith('https://')) {
+      if (!survey_url.startsWith('https://')) {
         noticeEl.className = 'notice show error';
-        noticeEl.textContent = 'Survey URL must be a secure HTTPS destination.';
+        noticeEl.textContent = 'Survey URL must be a valid secure HTTPS destination.';
         return;
       }
+
+      if (isNaN(estimated_minutes) || estimated_minutes <= 0) {
+        noticeEl.className = 'notice show error';
+        noticeEl.textContent = 'Estimated duration must be a positive number of minutes.';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      noticeEl.className = 'notice';
 
       try {
         const { error } = await supabaseClient.from('surveys').insert([
@@ -1779,17 +1852,20 @@
             title,
             category,
             description,
-            duration,
+            estimated_minutes,
+            duration: `${estimated_minutes} mins`,
             status,
-            survey_url: surveyUrl
+            survey_url,
+            eligibility,
+            instructions
           }
         ]);
 
         if (error) throw error;
 
         noticeEl.className = 'notice show success';
-        noticeEl.textContent = 'Survey successfully created and published!';
-        showToast('Survey added successfully.');
+        noticeEl.textContent = 'Survey successfully created and saved to database!';
+        showToast('Survey published successfully.');
         
         e.target.reset();
         await fetchAndRenderSurveys();
@@ -1797,6 +1873,8 @@
       } catch (err) {
         noticeEl.className = 'notice show error';
         noticeEl.textContent = 'Error creating survey: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
       }
     }
 
