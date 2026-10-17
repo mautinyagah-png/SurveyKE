@@ -1324,7 +1324,7 @@
         <h2>Welcome Back</h2>
         <p class="auth-description">Sign in to your account to participate in active surveys and track your submissions.</p>
 
-        <form onsubmit="submitSignIn(event)">
+        <form id="signin-form" onsubmit="submitSignIn(event)">
           <div class="field">
             <label>Email Address</label>
             <div class="input-wrap">
@@ -1345,7 +1345,7 @@
             <button type="button" class="text-button" onclick="submitPasswordReset()">Forgot password?</button>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+          <button type="submit" id="signin-submit-btn" class="btn btn-primary btn-block">Sign In</button>
         </form>
 
         <div class="auth-switch">
@@ -1358,7 +1358,7 @@
         <h2>Create Account</h2>
         <p class="auth-description">Join SurveyKE to share your opinions and help shape products and services in Kenya.</p>
 
-        <form onsubmit="submitSignUp(event)">
+        <form id="signup-form" onsubmit="submitSignUp(event)">
           <div class="field">
             <label>Full Name</label>
             <div class="input-wrap">
@@ -1385,7 +1385,7 @@
 
           <p class="fine-print">By registering, you agree to SurveyKE’s terms of confidentiality and privacy guidelines.</p>
 
-          <button type="submit" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
+          <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
         </form>
 
         <div class="auth-switch">
@@ -1402,12 +1402,9 @@
   <script>
     // Initialize Supabase Client
     const SUPABASE_URL = 'https://hisstfhwiijzzteuhewv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZf...'; // Placeholder safe anonymized key token structure or loaded project key
-    // Let's use the exact public configuration for the client
-    const supabaseClient = window.supabase.createClient(
-      'https://hisstfhwiijzzteuhewv.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc3RmaHdpaWp6enRldWhld3YiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyNDMxMDAwMCwiZXhwIjoyMDM5ODg2MDAwfQ.EXAMPLE_KEY_ANON'
-    );
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc3RmaHdpaWp6enRldWhld3YiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyNDMxMDAwMCwiZXhwIjoyMDM5ODg2MDAwfQ.EXAMPLE_KEY_ANON';
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // App State
     let currentView = 'home';
@@ -1453,15 +1450,10 @@
         if (!error && data === true) {
           isAdmin = true;
         } else {
-          // Fallback check against known admin email
-          if (currentUser.email === 'mautinyagah@gmail.com') {
-            isAdmin = true;
-          } else {
-            isAdmin = false;
-          }
+          isAdmin = (currentUser.email === 'mautinyagah@gmail.com');
         }
       } catch (e) {
-        isAdmin = currentUser.email === 'mautinyagah@gmail.com';
+        isAdmin = (currentUser.email === 'mautinyagah@gmail.com');
       }
     }
 
@@ -1506,7 +1498,6 @@
 
         if (error) throw error;
 
-        // Filter out placeholder/example.com test records as instructed
         surveysCache = (data || []).filter(s => {
           if (!s.survey_url) return false;
           const urlLower = s.survey_url.toLowerCase();
@@ -1524,7 +1515,7 @@
       }
     }
 
-    // Render Home Featured Surveys (compact selection of available surveys)
+    // Render Home Featured Surveys
     function renderHomeSurveys() {
       const container = document.getElementById('home-surveys-grid');
       
@@ -1687,12 +1678,9 @@
       }
 
       try {
-        // Call database RPC start_survey(p_survey_id)
-        const { data, error } = await supabaseClient.rpc('start_survey', { p_survey_id: surveyId });
-        
+        const { error } = await supabaseClient.rpc('start_survey', { p_survey_id: surveyId });
         if (error) {
           console.error('RPC start_survey error:', error);
-          // If already participated or error, we still allow safe redirect if permitted, or show notice
         }
 
         showToast('Participation recorded. Redirecting to survey...');
@@ -1872,8 +1860,13 @@
 
     async function submitSignIn(e) {
       e.preventDefault();
-      const email = document.getElementById('signin-email').value;
+      const email = document.getElementById('signin-email').value.trim();
       const password = document.getElementById('signin-password').value;
+      const submitBtn = document.getElementById('signin-submit-btn');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      clearAuthNotices();
 
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -1886,32 +1879,54 @@
         showToast(`Welcome back, ${currentUser.email}!`);
       } catch (err) {
         showNotice(err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
       }
     }
 
     async function submitSignUp(e) {
       e.preventDefault();
-      const name = document.getElementById('signup-name').value;
-      const email = document.getElementById('signup-email').value;
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
       const password = document.getElementById('signup-password').value;
+      const submitBtn = document.getElementById('signup-submit-btn');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      clearAuthNotices();
 
       try {
         const { data, error } = await supabaseClient.auth.signUp({
           email,
           password,
-          options: { data: { full_name: name } }
+          options: {
+            data: { full_name: name, name: name }
+          }
         });
+
         if (error) throw error;
 
-        showNotice('Account created successfully! Please check your email for confirmation or sign in.', 'success');
-        showToast('Account registered successfully.');
+        if (data && data.session) {
+          currentUser = data.session.user;
+          await checkAdminStatus();
+          updateAuthUI();
+          closeAuth();
+          showToast(`Account created successfully. Karibu, ${name}!`);
+        } else {
+          showNotice('Account created successfully! Please check your email inbox to confirm your registration before signing in.', 'success');
+          showToast('Registration verification email sent.');
+        }
       } catch (err) {
         showNotice(err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
       }
     }
 
     async function submitPasswordReset() {
-      const email = document.getElementById('signin-email').value;
+      const email = document.getElementById('signin-email').value.trim();
       if (!email) {
         showNotice('Please enter your email address above to reset password.', 'error');
         return;
@@ -1973,7 +1988,7 @@
       return String(str)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
-        .replace(> /g, '&gt;')
+        .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
