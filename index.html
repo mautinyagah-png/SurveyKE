@@ -1391,7 +1391,7 @@
 
   <!-- Application Logic & Supabase Integration -->
   <script>
-    // Initialize Supabase Client
+    // Initialize Supabase Client with your genuine project URL and publishable anon key from Supabase Dashboard
     const SUPABASE_URL = 'https://hisstfhwiijzzteuhewv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc3RmaHdpaWp6enRldWhld3YiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyNDMxMDAwMCwiZXhwIjoyMDM5ODg2MDAwfQ.EXAMPLE_KEY_ANON';
     
@@ -1439,7 +1439,6 @@
         if (!error && data === true) {
           isAdmin = true;
         } else {
-          // Fallback check against public.admins table
           const { data: adminRow } = await supabaseClient
             .from('admins')
             .select('*')
@@ -2075,6 +2074,7 @@
     function showToast(message) {
       const t = document.getElementById('toast');
       t.textContent = message;
+      t.classList.toggled = true;
       t.classList.add('show');
       setTimeout(() => {
         t.classList.remove('show');
