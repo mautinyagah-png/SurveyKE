@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1371,7 +1370,7 @@
           </div>
         </div>
 
-        <div class="field">
+        <div class="field" id="emailField">
           <label for="email">Email address</label>
           <div class="input-wrap">
             <svg><use href="#i-mail"/></svg>
@@ -1380,10 +1379,18 @@
         </div>
 
         <div class="field" id="passwordField">
-          <label for="password">Password</label>
+          <label for="password" id="passwordLabel">Password</label>
           <div class="input-wrap">
             <svg><use href="#i-lock"/></svg>
             <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" minlength="6" required />
+          </div>
+        </div>
+
+        <div class="field hidden" id="confirmField">
+          <label for="confirmPassword">Confirm new password</label>
+          <div class="input-wrap">
+            <svg><use href="#i-lock"/></svg>
+            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter your new password" minlength="6" />
           </div>
         </div>
 
@@ -1424,6 +1431,40 @@
     let currentUser = null;
     let toastTimer = null;
 
+    // Password-recovery state.
+    // recoveryHandled: the new-password form has already been opened for this callback (prevents double handling).
+    // recoveryEventSeen: Supabase itself reported a PASSWORD_RECOVERY event for this page load.
+    let recoveryHandled = false;
+    let recoveryEventSeen = false;
+
+    // Remembers (in this browser only) that a reset email was just requested.
+    // Used only as a fallback hint; it never contains tokens or passwords.
+    const RESET_FLAG = "surveyke_reset_requested";
+    const RESET_FLAG_MAX_AGE_MS = 60 * 60 * 1000;
+
+    function markResetRequested() {
+      try { localStorage.setItem(RESET_FLAG, String(Date.now())); } catch (e) { /* storage unavailable */ }
+    }
+
+    function clearResetFlag() {
+      try { localStorage.removeItem(RESET_FLAG); } catch (e) { /* storage unavailable */ }
+    }
+
+    function resetRecentlyRequested() {
+      try {
+        const stamp = Number(localStorage.getItem(RESET_FLAG));
+        return !!stamp && Date.now() - stamp < RESET_FLAG_MAX_AGE_MS;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Redirect target for emails: the site root, without a trailing "index.html".
+    function getRedirectUrl() {
+      if (!window.location.origin || window.location.origin === "null") return undefined;
+      return window.location.origin + window.location.pathname.replace(/index\.html$/i, "");
+    }
+
     function showToast(message) {
       const toast = $("toast");
       toast.textContent = message;
@@ -1446,7 +1487,11 @@
     function setBusy(busy) {
       $("authSubmit").disabled = busy;
       $("authForm").classList.toggle("loading", busy);
-      $("authSubmit").textContent = busy ? "Please wait..." : submitLabel();
+      if (busy) {
+        $("authSubmit").textContent = "Please wait...";
+      } else {
+        $("authSubmit").innerHTML = submitLabel() + ' <svg><use href="#i-arrow"/></svg>';
+      }
     }
 
     function submitLabel() {
@@ -1465,15 +1510,27 @@
       const isNewPassword = mode === "newpassword";
       const isLogin = mode === "login";
 
+      // Leaving the new-password form means a later recovery link may be handled again.
+      if (!isNewPassword) recoveryHandled = false;
+
       $("nameField").classList.toggle("hidden", !isSignup);
+      $("emailField").classList.toggle("hidden", isNewPassword);
       $("passwordField").classList.toggle("hidden", isReset);
+      $("confirmField").classList.toggle("hidden", !isNewPassword);
       $("forgotRow").classList.toggle("hidden", !isLogin);
       $("authSwitch").classList.toggle("hidden", isReset || isNewPassword);
       $("authFinePrint").classList.toggle("hidden", isReset || isNewPassword);
 
+      // Hidden required fields would silently block form submission, so only require what is visible.
+      $("email").required = !isNewPassword;
       $("password").required = !isReset;
+      $("confirmPassword").required = isNewPassword;
+
       $("password").autocomplete = isSignup || isNewPassword ? "new-password" : "current-password";
       $("password").placeholder = isNewPassword ? "Choose a new password" : isSignup ? "Create a password" : "Enter your password";
+      $("passwordLabel").textContent = isNewPassword ? "New password" : "Password";
+
+      if (!isNewPassword) $("confirmPassword").value = "";
 
       if (isSignup) {
         $("authTitle").textContent = "Create your account";
@@ -1489,8 +1546,8 @@
         $("authTitle").textContent = "Reset your password";
         $("authDescription").textContent = "Enter your account email. If password recovery is enabled, we'll send you a reset link.";
       } else if (isNewPassword) {
-        $("authTitle").textContent = "Choose a new password";
-        $("authDescription").textContent = "Enter a new password for your SurveyKE account.";
+        $("authTitle").textContent = "Create a new password";
+        $("authDescription").textContent = "You're creating a new password for your SurveyKE account. Use at least 6 characters, then confirm it below.";
       } else {
         $("authTitle").textContent = "Welcome back";
         $("authDescription").textContent = "Log in to your SurveyKE account to continue.";
@@ -1515,6 +1572,8 @@
       setTimeout(() => {
         if (mode === "signup" && !$("fullName").classList.contains("hidden")) {
           $("fullName").focus();
+        } else if (mode === "newpassword") {
+          $("password").focus();
         } else {
           $("email").focus();
         }
@@ -1529,7 +1588,7 @@
     function cleanAuthUrl() {
       try {
         const clean = new URL(window.location.href);
-        ["code", "token_hash", "type", "access_token", "refresh_token", "expires_at", "expires_in", "error", "error_code", "error_description"].forEach((key) => {
+        ["code", "token_hash", "type", "access_token", "refresh_token", "expires_at", "expires_in", "token_type", "provider_token", "error", "error_code", "error_description"].forEach((key) => {
           clean.searchParams.delete(key);
         });
         clean.hash = "";
@@ -1561,6 +1620,9 @@
       if (/password should be at least/i.test(message)) {
         return "Your password is too short. Use at least 6 characters.";
       }
+      if (/different from the old password/i.test(message)) {
+        return "Your new password must be different from your current password.";
+      }
       if (/rate limit|too many requests/i.test(message)) {
         return "Too many attempts. Please wait a little before trying again.";
       }
@@ -1568,6 +1630,21 @@
         return "We couldn't reach the authentication service. Check your internet connection and try again.";
       }
       return message;
+    }
+
+    // Opens the existing new-password form. Safe to call more than once for the same callback.
+    function showRecoveryForm(message, type) {
+      if (recoveryHandled) return;
+      recoveryHandled = true;
+      clearResetFlag();
+      cleanAuthUrl();
+      openAuth("newpassword", message || "Your reset link is verified. Create your new password below.", type || "success");
+    }
+
+    // Opens the reset-request form with a clear explanation, so the user can ask for another email.
+    function showRecoveryProblem(message) {
+      cleanAuthUrl();
+      openAuth("reset", message, "error");
     }
 
     async function initializeAuth() {
@@ -1589,6 +1666,23 @@
         }
       );
 
+      // IMPORTANT: register the listener immediately, before anything is awaited.
+      // Supabase processes the email link (and fires PASSWORD_RECOVERY) while the client initializes;
+      // a listener added later would miss that event.
+      // Keep this callback synchronous: do not call other Supabase auth methods inside it.
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        updateNavigation(session ? session.user : null);
+
+        if (event === "SIGNED_OUT") {
+          currentUser = null;
+        }
+
+        if (event === "PASSWORD_RECOVERY") {
+          recoveryEventSeen = true;
+          setTimeout(() => showRecoveryForm(), 0);
+        }
+      });
+
       const url = new URL(window.location.href);
       const params = url.searchParams;
       const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
@@ -1601,43 +1695,51 @@
       const looksLikeEmailCallback = hasCode || hasTokenHash || hasAccessToken ||
         callbackType === "signup" || callbackType === "email" || hasAuthError;
 
+      // Link problems reported by Supabase (for example an expired link).
       if (hasAuthError) {
+        const errorCode = params.get("error_code") || hashParams.get("error_code") || "";
         const errorMessage = params.get("error_description") ||
           hashParams.get("error_description") ||
           params.get("error") ||
           hashParams.get("error") ||
-          "The confirmation link could not be completed. Please request a new link and try again.";
+          "The link could not be completed. Please request a new link and try again.";
 
-        cleanAuthUrl();
-        openAuth("login", decodeURIComponent(errorMessage.replace(/\+/g, " ")), "error");
+        if (/expired|invalid/i.test(errorCode + " " + errorMessage)) {
+          showRecoveryProblem("This link is invalid or has expired. To reset your password, enter your email below and we'll send you a new link.");
+        } else {
+          cleanAuthUrl();
+          openAuth("login", errorMessage, "error");
+        }
       }
 
-      // Supabase JS handles supported PKCE callback codes during initialization.
-      // Give the callback exchange a chance to finish before checking the session.
-      let sessionResult = await supabaseClient.auth.getSession();
+      // Waits for Supabase to finish initialization, including any code exchange from the email link.
+      const initial = await supabaseClient.auth.getSession();
+      let session = initial.data ? initial.data.session : null;
 
-      if (looksLikeEmailCallback && !hasAuthError) {
-        if (isRecovery) {
-          cleanAuthUrl();
-          openAuth("newpassword", "Verify or reset your password using the link sent to your email.", "info");
-        } else if (hasTokenHash && params.get("type")) {
-          // Support confirmation links that deliver token_hash + type.
+      if (looksLikeEmailCallback && !hasAuthError && !recoveryEventSeen) {
+        // The PASSWORD_RECOVERY event was not seen, so check each remaining callback style.
+        if (hasTokenHash && callbackType) {
+          // Links that deliver token_hash + type.
           const tokenHash = params.get("token_hash");
-          const verifyType = params.get("type");
           const allowedTypes = ["signup", "email", "email_change", "recovery", "invite", "magiclink"];
-          if (tokenHash && allowedTypes.includes(verifyType)) {
-            const { error } = await supabaseClient.auth.verifyOtp({
+          if (tokenHash && allowedTypes.includes(callbackType)) {
+            const { data, error } = await supabaseClient.auth.verifyOtp({
               token_hash: tokenHash,
-              type: verifyType
+              type: callbackType
             });
             if (error) {
-              cleanAuthUrl();
-              openAuth("login", readableError(error), "error");
-            } else if (verifyType === "recovery") {
-              cleanAuthUrl();
-              openAuth("newpassword", "Your recovery link is verified. Choose a new password.", "success");
+              if (isRecovery) {
+                showRecoveryProblem("This reset link is invalid or has expired. Enter your email below to get a new one.");
+              } else {
+                cleanAuthUrl();
+                openAuth("login", readableError(error), "error");
+              }
+            } else if (isRecovery && data && data.session) {
+              showRecoveryForm("Your reset link is verified. Create your new password below.", "success");
+            } else if (isRecovery) {
+              showRecoveryProblem("We couldn't verify this reset link. Enter your email below to get a new one.");
             } else {
-              await supabaseClient.auth.signOut();
+              await supabaseClient.auth.signOut({ scope: "local" });
               cleanAuthUrl();
               openAuth("login", "Email confirmed successfully! You can now log in to SurveyKE.", "success");
             }
@@ -1645,46 +1747,60 @@
             cleanAuthUrl();
             openAuth("login", "This confirmation link is incomplete or unsupported. Request a new email and try again.", "error");
           }
-        } else if (hasCode || hasAccessToken || callbackType === "signup" || callbackType === "email") {
-          sessionResult = await supabaseClient.auth.getSession();
-          if (sessionResult.error) {
+        } else if (hasAccessToken) {
+          // Fragment-style links (access_token in the URL hash).
+          if (!session) {
+            const accessToken = hashParams.get("access_token");
+            const refreshToken = hashParams.get("refresh_token");
+            if (accessToken && refreshToken) {
+              const { data, error } = await supabaseClient.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken
+              });
+              if (!error && data) session = data.session;
+            }
+          }
+
+          if (session && isRecovery) {
+            showRecoveryForm("Your reset link is verified. Create your new password below.", "success");
+          } else if (session) {
+            await supabaseClient.auth.signOut({ scope: "local" });
             cleanAuthUrl();
-            openAuth("login", "We couldn't complete the email confirmation. Please request a fresh confirmation link.", "error");
-          } else if (sessionResult.data.session) {
-            if (isRecovery) {
-              cleanAuthUrl();
-              openAuth("newpassword", "Choose a new password for your account.", "success");
+            openAuth("login", "Email confirmed successfully! You can now log in to SurveyKE.", "success");
+          } else if (isRecovery) {
+            showRecoveryProblem("We couldn't verify this reset link. Enter your email below to get a new one.");
+          } else {
+            cleanAuthUrl();
+            openAuth("login", "Your confirmation link was opened. If your email is confirmed, you can now log in. If not, request a new link.", "info");
+          }
+        } else if (hasCode) {
+          // PKCE links (?code=...). The link itself does not say whether it is for signup or recovery.
+          // Supabase normally reports recovery through the PASSWORD_RECOVERY event (handled above);
+          // this branch only runs when that event did not arrive.
+          if (session) {
+            if (resetRecentlyRequested()) {
+              showRecoveryForm("Your reset link is verified. Create your new password below.", "success");
             } else {
-              await supabaseClient.auth.signOut();
+              await supabaseClient.auth.signOut({ scope: "local" });
               cleanAuthUrl();
               openAuth("login", "Email confirmed successfully! You can now log in to SurveyKE.", "success");
             }
-          } else if (callbackType === "signup" || callbackType === "email" || hasAccessToken) {
-            cleanAuthUrl();
-            openAuth("login", "Your confirmation link was opened. If your email is confirmed, you can now log in. If not, request a new link.", "info");
+          } else if (resetRecentlyRequested()) {
+            showRecoveryProblem("We couldn't verify this reset link. It may have expired, been used already, or been opened in a different browser than the one you requested it from. Enter your email below to get a new link.");
           } else {
             cleanAuthUrl();
-            openAuth("login", "We couldn't verify the confirmation session. Please open the newest confirmation email and try again.", "error");
+            openAuth("login", "We couldn't complete this link. If you were confirming your email, it may already be confirmed, so try logging in. If you were resetting your password, use Forgot password to get a new link.", "error");
           }
+        } else if (callbackType === "signup" || callbackType === "email") {
+          cleanAuthUrl();
+          openAuth("login", "Your confirmation link was opened. If your email is confirmed, you can now log in. If not, request a new link.", "info");
         }
       }
 
-      sessionResult = await supabaseClient.auth.getSession();
-      if (!sessionResult.error) {
-        updateNavigation(sessionResult.data.session ? sessionResult.data.session.user : null);
+      const latest = await supabaseClient.auth.getSession();
+      if (!latest.error) {
+        updateNavigation(latest.data.session ? latest.data.session.user : null);
       }
-
-      supabaseClient.auth.onAuthStateChange((event, session) => {
-        updateNavigation(session ? session.user : null);
-
-        if (event === "SIGNED_OUT") {
-          currentUser = null;
-        }
-
-        if (event === "PASSWORD_RECOVERY") {
-          openAuth("newpassword", "Choose a new password for your account.", "success");
-        }
-      });
 
       if (params.get("auth") === "confirmed") {
         openAuth("login", "Email confirmed successfully! You can now log in to SurveyKE.", "success");
@@ -1701,6 +1817,7 @@
 
       const email = $("email").value.trim();
       const password = $("password").value;
+      const confirmValue = $("confirmPassword").value;
       const fullName = $("fullName").value.trim();
 
       clearNotice();
@@ -1708,9 +1825,7 @@
 
       try {
         if (authMode === "signup") {
-          const redirectUrl = window.location.origin && window.location.origin !== "null"
-            ? window.location.origin + window.location.pathname
-            : undefined;
+          const redirectUrl = getRedirectUrl();
 
           const options = {
             data: { full_name: fullName }
@@ -1746,9 +1861,7 @@
           closeAuth();
           showToast("Welcome back to SurveyKE!");
         } else if (authMode === "reset") {
-          const redirectUrl = window.location.origin && window.location.origin !== "null"
-            ? window.location.origin + window.location.pathname
-            : undefined;
+          const redirectUrl = getRedirectUrl();
 
           const options = {};
           if (redirectUrl) options.redirectTo = redirectUrl;
@@ -1756,17 +1869,40 @@
           const { error } = await supabaseClient.auth.resetPasswordForEmail(email, options);
           if (error) throw error;
 
-          showNotice("If password recovery is available for this email, a reset link will be sent. Check your inbox and spam folder.", "success");
+          markResetRequested();
+          showNotice("If password recovery is available for this email, a reset link will be sent. Open the link in this same browser. Check your inbox and spam folder.", "success");
         } else if (authMode === "newpassword") {
           if (password.length < 6) {
             throw new Error("Password should be at least 6 characters.");
           }
+          if (password !== confirmValue) {
+            throw new Error("The two passwords do not match. Please re-enter them.");
+          }
+
+          // The password can only be changed with a valid recovery session.
+          const check = await supabaseClient.auth.getSession();
+          if (check.error || !check.data.session) {
+            $("password").value = "";
+            $("confirmPassword").value = "";
+            openAuth("reset", "Your reset session is no longer valid. Enter your email below to get a new reset link.", "error");
+            return;
+          }
 
           const { error } = await supabaseClient.auth.updateUser({ password });
-          if (error) throw error;
+          if (error) {
+            if (/session missing|not authenticated|jwt/i.test(error.message || "")) {
+              $("password").value = "";
+              $("confirmPassword").value = "";
+              openAuth("reset", "Your reset session has expired. Enter your email below to get a new reset link.", "error");
+              return;
+            }
+            throw error;
+          }
 
+          // Success is shown only after Supabase has confirmed the update.
           await supabaseClient.auth.signOut();
           $("password").value = "";
+          $("confirmPassword").value = "";
           cleanAuthUrl();
           setMode("login", "Password updated successfully. You can now log in using your new password.", "success");
         }
