@@ -1,876 +1,1388 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SurveyKE — Participate in surveys, share your opinions, and help shape research.">
-  <title>SurveyKE | Online Surveys</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#087f5b" />
+  <meta name="description" content="SurveyKE — Share your opinions, help shape better services, and discover upcoming survey opportunities in Kenya." />
+  <title>SurveyKE — Your Voice Matters</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Supabase JS Client UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
-      --primary: #087f5b;
-      --primary-dark: #066548;
-      --background: #f5f8f7;
-      --surface: #ffffff;
-      --text: #172522;
-      --muted: #687873;
-      --border: #dce7e2;
-      --danger: #c92a2a;
-      --radius: 16px;
+      --green: #087f5b;
+      --green-dark: #056447;
+      --green-light: #e7f7ef;
+      --green-soft: #f2fbf6;
+      --ink: #172b24;
+      --muted: #718078;
+      --line: #e5ece8;
+      --white: #ffffff;
+      --surface: #f8faf9;
+      --orange: #f59e0b;
+      --shadow: 0 12px 36px rgba(20, 60, 42, .07);
+      --radius: 20px;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--background);
-      color: var(--text);
+      background: #fff;
+      color: var(--ink);
+      font-family: "DM Sans", sans-serif;
       line-height: 1.6;
     }
 
-    button, input, textarea, select { font: inherit; }
+    body, button, input, textarea, select { font-family: "DM Sans", sans-serif; }
+    button, a { -webkit-tap-highlight-color: transparent; }
     button { cursor: pointer; }
-    a { color: var(--primary); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    a { color: inherit; text-decoration: none; }
 
-    .container {
-      width: min(1120px, 92%);
-      margin: auto;
+    svg {
+      width: 22px;
+      height: 22px;
+      display: inline-block;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
+
+    .container { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+
+    .announcement {
+      background: #07583f;
+      color: #e8fff2;
+      text-align: center;
+      font-size: 12px;
+      padding: 9px 15px;
+      letter-spacing: .15px;
+    }
+    .announcement strong { color: white; }
 
     header {
-      background: white;
-      border-bottom: 1px solid var(--border);
+      height: 78px;
+      border-bottom: 1px solid #edf1ee;
+      background: rgba(255,255,255,.96);
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 50;
+      backdrop-filter: blur(12px);
     }
 
-    .navbar {
-      min-height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      padding: 12px 0;
-    }
+    .nav { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 
     .brand {
-      color: var(--primary);
-      font-size: 25px;
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-family: "Manrope", sans-serif;
+      font-size: 23px;
       font-weight: 800;
       letter-spacing: -1px;
     }
+    .brand-mark {
+      width: 42px; height: 42px;
+      display: grid; place-items: center;
+      background: var(--green);
+      color: white;
+      border-radius: 13px;
+      box-shadow: 0 5px 13px rgba(8,127,91,.2);
+    }
+    .brand-mark svg { width: 24px; height: 24px; }
+    .brand span span { color: var(--green); }
 
-    nav {
+    .nav-links {
       display: flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 28px;
+      font-size: 13px;
+      color: #53635b;
+      font-weight: 600;
     }
+    .nav-links a:hover { color: var(--green); }
 
-    nav button {
-      background: transparent;
-      border: 0;
-      padding: 9px 12px;
-      color: var(--text);
-      border-radius: 9px;
-    }
-
-    nav button:hover { background: #eaf5ef; }
-
-    .hero {
-      padding: 70px 0;
-      background: linear-gradient(135deg, #e4f7ee, #f5f8f7 70%);
-    }
-
-    .hero h1 {
-      max-width: 750px;
-      font-size: clamp(35px, 6vw, 58px);
-      line-height: 1.1;
-      letter-spacing: -1.5px;
-      margin: 0 0 18px;
-    }
-
-    .hero p {
-      max-width: 650px;
-      color: var(--muted);
-      font-size: 18px;
-    }
-
-    .section { padding: 36px 0 55px; }
-    .section-heading { margin-bottom: 22px; }
-    .section-heading h2 { margin: 0 0 5px; font-size: 29px; }
-    .muted { color: var(--muted); }
-    .hidden { display: none !important; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-      box-shadow: 0 5px 18px rgba(20, 50, 40, .035);
-    }
-
-    .survey-card {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .survey-card h3 { margin: 0; font-size: 20px; }
-    .survey-card p { margin: 0; color: var(--muted); }
-    .survey-card .btn { margin-top: auto; }
-
-    .tag {
-      display: inline-block;
-      background: #e6f5ed;
-      color: var(--primary-dark);
-      border-radius: 20px;
-      padding: 4px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      width: fit-content;
-    }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
 
     .btn {
       border: 1px solid transparent;
-      border-radius: 10px;
-      padding: 11px 16px;
-      font-weight: 700;
+      border-radius: 11px;
+      padding: 12px 18px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      text-decoration: none;
+      gap: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: .2s ease;
+      min-height: 44px;
     }
+    .btn svg { width: 17px; height: 17px; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
 
     .btn-primary {
-      background: var(--primary);
+      background: var(--green);
       color: white;
+      box-shadow: 0 5px 12px rgba(8,127,91,.12);
     }
+    .btn-primary:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); }
 
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      color: white;
-      text-decoration: none;
-    }
-
-    .btn-secondary {
+    .btn-outline {
       background: white;
-      border-color: var(--border);
-      color: var(--text);
+      color: var(--ink);
+      border-color: #dce6e0;
     }
+    .btn-outline:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
 
-    .btn-danger {
-      background: #fff0f0;
-      border-color: #ffd2d2;
-      color: var(--danger);
+    .btn-light { background: white; color: var(--green-dark); }
+    .btn-light:hover { background: #f1fff7; }
+    .btn-block { width: 100%; }
+
+    .hero {
+      padding: 40px 0 36px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 82% 20%, rgba(181,238,207,.34), transparent 32%),
+        linear-gradient(180deg, #f6fcf8 0%, #fff 95%);
     }
-
-    .btn-small { padding: 7px 10px; font-size: 13px; }
-
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .field { margin-bottom: 16px; }
-
-    label {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      border: 1px solid #cbd9d2;
-      background: white;
-      border-radius: 9px;
-      padding: 11px 12px;
-      color: var(--text);
-    }
-
-    textarea { min-height: 100px; resize: vertical; }
-    input:focus, textarea:focus, select:focus {
-      outline: 2px solid #b5e7cf;
-      border-color: var(--primary);
-    }
-
-    .form-grid {
+    .hero-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
+      grid-template-columns: 1.06fr .94fr;
+      align-items: center;
+      gap: 40px;
     }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green);
+      background: #e5f6eb;
+      border: 1px solid #d5eedf;
+      border-radius: 30px;
+      padding: 7px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .eyebrow svg { width: 15px; height: 15px; }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      font-family: "Manrope", sans-serif;
+      font-size: clamp(30px, 4.2vw, 44px);
+      letter-spacing: -1.8px;
+      line-height: 1.12;
+      margin: 16px 0 14px;
+      max-width: 650px;
+    }
+    h1 .accent { color: var(--green); }
+
+    .hero-copy {
+      color: #64736b;
+      font-size: 15px;
+      max-width: 505px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .hero-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+    .hero-buttons .btn { min-height: 44px; padding: 11px 18px; }
+
+    .trust-row {
+      display: flex; flex-wrap: wrap; gap: 18px;
+      color: #65766d; font-size: 11px; font-weight: 600;
+    }
+    .trust-item { display: flex; align-items: center; gap: 6px; }
+    .trust-item svg { color: var(--green); width: 16px; height: 16px; }
+
+    .hero-art { position: relative; min-height: 0; display: grid; place-items: center; }
+
+    .art-card {
+      width: min(100%, 440px);
+      min-height: 350px;
+      background: white;
+      border: 1px solid #e2eee6;
+      border-radius: 28px;
+      box-shadow: 0 30px 75px rgba(20,76,47,.10);
+      padding: 26px;
+      position: relative;
+      z-index: 2;
+    }
+    .art-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .art-top strong { font-size: 14px; }
+    .art-top small { display: block; color: var(--muted); font-size: 11px; }
+
+    .live-pill {
+      background: #e6f8ee;
+      color: #087f5b;
+      padding: 6px 10px;
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .art-bottom {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 10px; font-size: 11px; color: var(--muted);
+    }
+    .art-bottom strong { color: var(--green); }
+
+    .stats-band {
+      border-top: 1px solid #eaf0ec;
+      border-bottom: 1px solid #eaf0ec;
+      padding: 25px 0;
+      background: white;
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+
+    .stat { display: flex; justify-content: center; align-items: center; gap: 13px; text-align: left; }
+    .stat-icon {
+      width: 43px; height: 43px;
+      border-radius: 13px;
+      display: grid; place-items: center;
+      color: var(--green);
+      background: var(--green-light);
+    }
+    .stat-icon svg { width: 21px; height: 21px; }
+    .stat strong { display: block; font-size: 13px; }
+    .stat small { color: var(--muted); font-size: 11px; }
+
+    section { scroll-margin-top: 95px; }
+    .section { padding: 44px 0; }
+    .section.tight { padding: 38px 0; }
+    .section-soft { background: #f8fbf9; }
+
+    .section-heading { text-align: center; max-width: 620px; margin: 0 auto 24px; }
+    .section-heading .eyebrow { margin-bottom: 13px; }
+
+    h2 {
+      font-family: "Manrope", sans-serif;
+      font-size: clamp(22px, 2.6vw, 30px);
+      letter-spacing: -1px;
+      line-height: 1.25;
+      margin-bottom: 13px;
+    }
+
+    .section-heading p { color: var(--muted); font-size: 14px; line-height: 1.8; margin-bottom: 0; }
+
+    .survey-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+
+    .survey-card {
+      background: white;
+      border: 1px solid #e6ede8;
+      border-radius: var(--radius);
+      padding: 23px;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+    .survey-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+      border-color: #cde8d7;
+    }
+    .survey-card .mini-icon { margin-bottom: 17px; }
+    .survey-card h3 {
+      font-family: "Manrope", sans-serif;
+      font-size: 15px;
+      margin-bottom: 8px;
+      letter-spacing: -.25px;
+    }
+    .survey-card p { color: var(--muted); font-size: 12px; line-height: 1.8; margin-bottom: 17px; }
+
+    .card-bottom {
+      border-top: 1px solid #edf1ee;
+      padding-top: 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+
+    .card-link {
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 0;
+    }
+    .card-link:hover { color: var(--green-dark); }
+
+    .vision-panel {
+      background: #07583f;
+      color: white;
+      border-radius: 26px;
+      padding: 45px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 35px;
+      position: relative;
+      overflow: hidden;
+    }
+    .vision-panel::after {
+      content: "";
+      width: 250px;
+      height: 250px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 50%;
+      position: absolute;
+      right: 120px;
+      top: -130px;
+      box-shadow: 0 0 0 30px rgba(255,255,255,.03), 0 0 0 60px rgba(255,255,255,.025);
+    }
+    .vision-panel h2 { max-width: 550px; position: relative; z-index: 1; }
+    .vision-panel p { color: #c4e3d4; max-width: 570px; font-size: 13px; line-height: 1.9; margin-bottom: 0; position: relative; z-index: 1; }
+    .vision-panel .btn { position: relative; z-index: 2; white-space: nowrap; }
+
+    .contact-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; }
+
+    .contact-card {
+      display: flex; flex-direction: column; align-items: flex-start;
+      padding: 22px;
+      background: white;
+      border: 1px solid #e4ece7;
+      border-radius: 17px;
+      transition: .2s ease;
+      min-width: 0;
+    }
+    a.contact-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: #bfe3ce; }
+
+    .contact-icon { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 14px; margin-bottom: 17px; }
+    .contact-icon svg { width: 23px; height: 23px; }
+    .email-icon { background: #e9f6ed; color: #087f5b; }
+    .whatsapp-icon { background: #e2f8e9; color: #168546; }
+    .telegram-icon { background: #e5f3ff; color: #1687c9; }
+    .discord-icon { background: #eeebff; color: #635bce; }
+
+    .contact-card strong { font-size: 13px; margin-bottom: 5px; }
+    .contact-card .contact-detail {
+      font-size: 11px; color: var(--muted);
+      overflow-wrap: anywhere;
+      margin-bottom: 13px;
+    }
+    .contact-action {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 800; color: var(--green);
+      margin-top: auto;
+    }
+    .contact-action svg { width: 14px; height: 14px; }
+
+    .contact-note { text-align: center; font-size: 11px; color: var(--muted); margin-top: 20px; }
+
+    footer { background: #102b21; color: white; padding: 30px 0 16px; }
+
+    .auth-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      padding: 22px;
+      background: rgba(10,31,22,.63);
+      backdrop-filter: blur(7px);
+      align-items: center; justify-content: center;
+      overflow-y: auto;
+    }
+    .auth-overlay.open { display: flex; }
+
+    .auth-box {
+      background: white;
+      width: min(100%, 440px);
+      border-radius: 23px;
+      padding: 32px;
+      position: relative;
+      box-shadow: 0 25px 90px rgba(0,0,0,.22);
+      margin: auto;
+    }
+
+    .auth-close {
+      position: absolute; top: 16px; right: 16px;
+      border: 1px solid #e6ece8;
+      background: white;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      color: #65756b;
+    }
+    .auth-close:hover { background: #f3f8f5; }
+    .auth-close svg { width: 18px; height: 18px; }
+
+    .auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 23px; }
+    .auth-brand .brand-mark { width: 39px; height: 39px; border-radius: 12px; }
+    .auth-brand strong { font-family: "Manrope", sans-serif; font-size: 19px; letter-spacing: -.6px; }
+
+    .auth-box h2 { font-size: 26px; margin-bottom: 8px; letter-spacing: -.9px; }
+    .auth-description { color: var(--muted); font-size: 12px; margin-bottom: 22px; line-height: 1.8; }
 
     .notice {
-      padding: 12px 14px;
-      background: #eaf5ef;
-      border-radius: 9px;
-      margin: 12px 0;
-      color: #145c42;
+      display: none;
+      border-radius: 11px;
+      padding: 12px 13px;
+      font-size: 12px;
+      line-height: 1.65;
+      margin-bottom: 17px;
+      overflow-wrap: anywhere;
+    }
+    .notice.show { display: block; }
+    .notice.success { background: #e9f9ef; color: #146c43; border: 1px solid #ccefd9; }
+    .notice.error { background: #fff0ef; color: #a52b26; border: 1px solid #f6d4d1; }
+    .notice.info { background: #edf6ff; color: #205d91; border: 1px solid #d5e8fb; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; color: #30483b; }
+
+    .input-wrap { position: relative; }
+    .input-wrap > svg {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px;
+      color: #8a9b90;
     }
 
-    .notice.error {
-      background: #fff0f0;
-      color: #a61e1e;
+    .field input, .field textarea, .field select {
+      width: 100%;
+      min-height: 47px;
+      border: 1px solid #dfe8e2;
+      background: #fbfdfb;
+      border-radius: 11px;
+      padding: 12px 13px 12px 42px;
+      outline: none;
+      font-size: 13px;
+      color: var(--ink);
     }
+    .field textarea { padding-left: 13px; min-height: 80px; resize: vertical; }
 
-    .question-card {
-      padding: 18px;
-      background: #f9fbfa;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin: 15px 0;
-    }
-
-    .question-card h3 { margin-top: 0; }
-    .answer-option {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin: 10px 0;
-      font-weight: 400;
-    }
-
-    .answer-option input {
-      width: auto;
-      flex: 0 0 auto;
-    }
-
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 650px; }
-    th, td {
-      text-align: left;
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
-    th { background: #f5f8f7; }
-    td .btn { margin: 2px; }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 30;
-      background: rgba(10, 25, 20, .6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      overflow-y: auto;
-    }
-
-    .modal {
-      width: min(460px, 100%);
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(8,127,91,.09);
       background: white;
-      padding: 26px;
-      border-radius: 16px;
-      max-height: 90vh;
-      overflow-y: auto;
     }
 
-    .modal h2 { margin-top: 0; }
+    .auth-options { display: flex; justify-content: flex-end; margin: -3px 0 19px; }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 14px;
-      margin: 20px 0;
+    .text-button {
+      border: 0; background: transparent;
+      color: var(--green); font-size: 11px; font-weight: 800;
+      padding: 0;
     }
+    .text-button:hover { text-decoration: underline; }
 
-    .stat strong { display: block; font-size: 27px; color: var(--primary); }
-
-    footer {
-      background: #122a22;
-      color: white;
-      padding: 35px 0;
-      margin-top: 25px;
-    }
-
-    footer a { color: #bcebd4; }
-    footer p { margin: 6px 0; }
-
-    .empty {
-      padding: 28px;
+    .auth-switch {
+      margin-top: 19px;
+      padding-top: 17px;
+      border-top: 1px solid #edf1ee;
       text-align: center;
-      background: white;
-      border: 1px dashed var(--border);
-      border-radius: 12px;
+      font-size: 12px;
       color: var(--muted);
     }
+    .auth-switch button { margin-left: 4px; }
 
-    .top-gap { margin-top: 18px; }
+    .fine-print { color: #8a9890; font-size: 10px; line-height: 1.7; margin: 15px 0 0; }
 
-    @media (max-width: 650px) {
-      .hero { padding: 45px 0; }
-      .navbar { justify-content: center; }
-      nav { justify-content: center; }
-      nav button { padding: 8px; }
-      .section { padding: 26px 0 38px; }
+    .hidden { display: none !important; }
+
+    .toast {
+      position: fixed; z-index: 150;
+      right: 22px; bottom: 22px;
+      max-width: min(390px, calc(100% - 44px));
+      background: #123e2c; color: white;
+      border-radius: 13px;
+      padding: 14px 18px;
+      box-shadow: 0 12px 35px rgba(0,0,0,.18);
+      font-size: 12px;
+      display: none;
+    }
+    .toast.show { display: block; }
+
+    /* ===== Compact Homepage & UI elements ===== */
+    .how-card { min-height: 0; padding: 20px 22px; }
+    .how-step { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-top: 1px solid #edf1ee; }
+    .how-step:first-of-type { border-top: 0; padding-top: 0; }
+    .how-num {
+      width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+      display: grid; place-items: center; background: var(--green-light); color: var(--green);
+      font-family: "Manrope", sans-serif; font-size: 12px; font-weight: 800;
+    }
+    .how-step strong { display: block; font-size: 13px; }
+    .how-step small { display: block; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .how-card .art-bottom { margin-top: 10px; }
+
+    .section-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+    .section-head-row h2 { margin: 0 0 4px; font-size: clamp(21px, 2.4vw, 28px); }
+    .section-head-row p { margin: 0; color: var(--muted); font-size: 13px; }
+    .btn-sm { min-height: 36px; padding: 8px 14px; font-size: 12px; }
+
+    .survey-card.compact { padding: 18px; display: flex; flex-direction: column; }
+    .survey-card.compact h3 { font-size: 15px; margin-bottom: 6px; overflow-wrap: anywhere; }
+    .survey-card.compact p { margin-bottom: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+    .survey-card.compact .card-bottom { margin-top: auto; }
+    .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .cat-chip { font-size: 10px; font-weight: 800; color: var(--green); background: var(--green-light); border-radius: 20px; padding: 4px 9px; text-transform: uppercase; letter-spacing: .5px; overflow-wrap: anywhere; }
+    .status-chip { font-size: 10px; font-weight: 800; color: #146c43; background: #e9f9ef; border-radius: 20px; padding: 4px 9px; white-space: nowrap; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .meta-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #53635b; background: #f3f7f5; border-radius: 8px; padding: 4px 8px; }
+    .meta-chip svg { width: 13px; height: 13px; }
+    .small-note { font-size: 11px; color: var(--muted); }
+
+    .state-box { border: 1px dashed #cfe3d7; border-radius: 16px; padding: 32px 20px; text-align: center; color: var(--muted); font-size: 13px; background: #fbfefc; line-height: 1.7; }
+    .state-box strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 4px; }
+    .spinner { width: 22px; height: 22px; border: 3px solid #d9eadf; border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 10px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .topic-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .topic-chip { border: 1px solid #dbe8e0; background: #fff; color: #30483b; border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 700; }
+    button.topic-chip:hover { border-color: var(--green); color: var(--green); }
+    .topic-chip.active { background: var(--green); color: #fff; border-color: var(--green); }
+    .filter-row { margin-bottom: 18px; }
+
+    .detail-wrap { max-width: 820px; margin: 0 auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--green); margin-bottom: 14px; }
+    .back-link svg { width: 15px; height: 15px; }
+    .back-link:hover { color: var(--green-dark); }
+    .detail-card { background: #fff; border: 1px solid #e6ede8; border-radius: 20px; padding: 26px; }
+    .detail-card h1 { font-size: clamp(22px, 3vw, 30px); letter-spacing: -1px; margin: 10px 0 10px; line-height: 1.25; overflow-wrap: anywhere; }
+    .detail-section { margin-top: 18px; }
+    .detail-section h3 { font-family: "Manrope", sans-serif; font-size: 14px; margin-bottom: 6px; }
+    .detail-text { white-space: pre-line; color: #40524a; font-size: 13px; line-height: 1.8; margin: 0; overflow-wrap: anywhere; }
+    .participate-box { margin-top: 22px; border: 1px solid #cde8d7; background: var(--green-soft); border-radius: 16px; padding: 18px; }
+    .participate-box h3 { font-family: "Manrope", sans-serif; font-size: 15px; margin-bottom: 8px; }
+    .participate-box p { font-size: 12px; color: #40524a; line-height: 1.7; margin-bottom: 8px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+
+    /* Admin Dashboard styles */
+    .admin-panel-card { background: #fff; border: 1px solid #e4ece7; border-radius: 20px; padding: 24px; margin-bottom: 24px; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+    .admin-table th, .admin-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #edf1ee; }
+    .admin-table th { font-weight: 700; color: var(--muted); background: #f8faf9; }
+
+    /* Admin question builder */
+    .admin-question-row {
+      border: 1px solid #e4ece7;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      background: #fbfdfc;
+    }
+    .admin-question-row .field { margin-bottom: 10px; }
+
+    /* Answers modal */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 120;
+      padding: 22px;
+      background: rgba(10,31,22,.63);
+      backdrop-filter: blur(7px);
+      align-items: center; justify-content: center;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white;
+      width: min(100%, 560px);
+      border-radius: 23px;
+      padding: 28px;
+      position: relative;
+      box-shadow: 0 25px 90px rgba(0,0,0,.22);
+      margin: auto;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-box h3 { font-family: "Manrope", sans-serif; font-size: 18px; margin-bottom: 16px; }
+    .answer-item { border-bottom: 1px solid #edf1ee; padding: 12px 0; }
+    .answer-item:last-child { border-bottom: 0; }
+    .answer-item strong { display: block; font-size: 13px; margin-bottom: 4px; color: var(--ink); }
+    .answer-item span { font-size: 13px; color: #40524a; }
+
+    .mini-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--green-light); color: var(--green); display: grid; place-items: center; }
+    .mini-icon svg { width: 21px; height: 21px; }
+
+    .footer-compact { display: grid; grid-template-columns: 1.1fr 1.7fr .8fr; gap: 28px; padding-bottom: 20px; }
+    .footer-compact .footer-about { margin: 0; color: #b7ccc0; font-size: 12px; line-height: 1.9; }
+    .footer-title { color: white; font-size: 12px; font-weight: 800; margin-bottom: 10px; }
+    .social-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .social-link {
+      display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18); color: #d3e6db; font-size: 12px; font-weight: 600; line-height: 1;
+      transition: .2s ease;
+    }
+    .social-link:hover { background: rgba(255,255,255,.09); color: #fff; }
+    .social-link svg { width: 16px; height: 16px; }
+    .brand-icon { fill: currentColor; stroke: none; }
+    .social-link.wa .brand-icon { color: #25d366; }
+    .social-link.tg .brand-icon { color: #29a9eb; }
+    .social-link.dc .brand-icon { color: #8ea1ff; }
+    .contact-lines { margin: 0; color: #9eb6a8; font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
+    footer .footer-links { display: grid; gap: 8px; }
+    footer .footer-links button { border: 0; background: transparent; padding: 0; text-align: left; color: #b7ccc0; font-size: 12px; width: fit-content; cursor: pointer; }
+    footer .footer-links button:hover { color: white; }
+    footer .footer-bottom { border-top: 1px solid rgba(255,255,255,.13); padding-top: 14px; display: flex; justify-content: space-between; gap: 15px; flex-wrap: wrap; color: #9eb6a8; font-size: 10px; }
+
+    @media (max-width: 900px) {
+      .footer-compact { grid-template-columns: 1fr 1fr; }
+      .footer-compact > div:first-child { grid-column: 1 / -1; }
+      .contact-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .survey-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .container { width: min(100% - 30px, 540px); }
+      header { height: 68px; }
+      .brand { font-size: 21px; }
+      .brand-mark { width: 38px; height: 38px; }
+      .nav-links { display: none; }
+      .nav-actions { gap: 7px; }
+      .hero { padding: 30px 0 28px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 15px; }
+      h1 { font-size: clamp(37px, 10vw, 49px); letter-spacing: -2px; margin-top: 18px; }
+      .hero-art { display: none; }
+      .stats-grid { gap: 17px 8px; grid-template-columns: 1fr; }
+      .stat { justify-content: flex-start; max-width: 260px; margin: 0 auto; width: 100%; }
+      .section, .section.tight { padding: 30px 0; }
+      .survey-grid { grid-template-columns: 1fr; gap: 13px; }
+      .survey-card { padding: 20px; }
+      .vision-panel { grid-template-columns: 1fr; padding: 29px 23px; gap: 24px; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .footer-compact { grid-template-columns: 1fr; gap: 20px; }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="container navbar">
-      <a href="#" class="brand" onclick="navigate('home'); return false;">SurveyKE</a>
+  <!-- Inline SVG icon library -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <symbol id="i-leaf" viewBox="0 0 24 24">
+      <path d="M20 4c-8 0-14 3-14 10a6 6 0 0 0 6 6c7 0 8-8 8-16Z"/>
+      <path d="M4 21c2-5 6-9 12-12"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12 4 4L19 6"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/>
+      <path d="m9 12 2 2 4-4"/>
+    </symbol>
+    <symbol id="i-users" viewBox="0 0 24 24">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+    </symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24">
+      <path d="M3 3v18h18"/>
+      <path d="m8 14 4-4 4 3 5-7"/>
+    </symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24">
+      <path d="m13 2-3 8h7L8 22l3-9H4l9-11Z"/>
+    </symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 24 24">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24">
+      <path d="M18 6 6 18M6 6l12 12"/>
+    </symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24">
+      <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </symbol>
+    <symbol id="i-user" viewBox="0 0 24 24">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    </symbol>
+    <symbol id="i-external" viewBox="0 0 24 24">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+    </symbol>
+  </svg>
 
-      <nav>
-        <button onclick="navigate('home')">Home</button>
-        <button onclick="navigate('surveys')">Surveys</button>
-        <button id="nav-admin" class="hidden" onclick="navigate('admin')">Admin</button>
-        <button id="nav-auth" class="btn btn-primary" onclick="openAuth('signin')">Sign in</button>
-        <button id="nav-signout" class="hidden" onclick="signOut()">Sign out</button>
+  <!-- Announcement Bar -->
+  <div class="announcement">
+    🇰🇪 <strong>SurveyKE is live!</strong> Shape future services, products, and policies across Kenya.
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <a href="#" class="brand" onclick="navigate('home'); return false;">
+        <div class="brand-mark">
+          <svg><use href="#i-leaf"/></svg>
+        </div>
+        <span>Survey<span>KE</span></span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#surveys" onclick="navigate('surveys'); return false;">Surveys</a>
+        <a href="#how-it-works" onclick="navigate('home'); return false;">How It Works</a>
+        <a href="#community" onclick="navigate('home'); return false;">Community</a>
+        <a href="#contact" onclick="navigate('home'); return false;">Contact</a>
+        <a id="nav-admin-link" href="#" class="hidden" onclick="navigate('admin'); return false;">Admin</a>
       </nav>
+
+      <div class="nav-actions">
+        <div id="auth-guest-actions">
+          <button class="btn btn-outline" onclick="openAuth('signin')">Sign In</button>
+          <button class="btn btn-primary" onclick="openAuth('signup')">Register</button>
+        </div>
+        <div id="auth-user-actions" class="hidden" style="display: none; align-items: center; gap: 10px;">
+          <span id="user-greeting" style="font-size: 13px; font-weight: 600; color: var(--green);"></span>
+          <button class="btn btn-outline" onclick="signOut()">Sign Out</button>
+        </div>
+      </div>
     </div>
   </header>
 
-  <main>
-    <section id="view-home">
-      <div class="hero">
-        <div class="container">
-          <span class="tag">Your voice matters</span>
-          <h1>Share your opinion. Help shape the future.</h1>
-          <p>
-            Discover surveys, share your experiences, and contribute to research
-            through SurveyKE.
-          </p>
-          <div class="btn-row top-gap">
-            <button class="btn btn-primary" onclick="navigate('surveys')">Explore surveys</button>
-            <button class="btn btn-secondary" onclick="openAuth('signup')">Create an account</button>
-          </div>
-        </div>
-      </div>
+  <!-- Main Dynamic View Container -->
+  <main id="app-main">
+    <!-- View: Home -->
+    <div id="view-home">
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="eyebrow">
+              <svg><use href="#i-shield"/></svg> Kenya’s Opinion Hub
+            </div>
+            <h1>Your Voice Shapes <span class="accent">Kenya's Future</span></h1>
+            <p class="hero-copy">Participate in trusted public and private sector surveys, share your genuine perspectives, and help guide better services, products, and policies in Kenya.</p>
 
-      <section class="container section">
-        <div class="section-heading">
-          <h2>Available surveys</h2>
-          <p class="muted">Explore the latest published surveys.</p>
-        </div>
-        <div id="home-surveys-grid" class="grid">
-          <div class="empty">Loading surveys...</div>
+            <div class="hero-buttons">
+              <button class="btn btn-primary" onclick="navigate('surveys')">
+                Explore Active Surveys <svg><use href="#i-arrow"/></svg>
+              </button>
+              <button class="btn btn-outline" onclick="openAuth('signup')">
+                Create Free Account
+              </button>
+            </div>
+
+            <div class="trust-row">
+              <div class="trust-item"><svg><use href="#i-check"/></svg> 100% Confidential</div>
+              <div class="trust-item"><svg><use href="#i-check"/></svg> Verified Kenyan Insights</div>
+              <div class="trust-item"><svg><use href="#i-check"/></svg> Instant Access</div>
+            </div>
+          </div>
+
+          <div class="hero-art" id="how-it-works">
+            <div class="art-card how-card">
+              <div class="art-top">
+                <div>
+                  <strong>How SurveyKE Works</strong>
+                  <small>Quick 3-step participation</small>
+                </div>
+                <div class="live-pill">Simple & Secure</div>
+              </div>
+
+              <div class="how-step">
+                <div class="how-num">1</div>
+                <div>
+                  <strong>Browse & Choose</strong>
+                  <small>Select from verified public opinion polls, tech adoption studies, or consumer feedback.</small>
+                </div>
+              </div>
+
+              <div class="how-step">
+                <div class="how-num">2</div>
+                <div>
+                  <strong>Share Your View</strong>
+                  <small>Securely access external survey platforms with trusted authentication tracking.</small>
+                </div>
+              </div>
+
+              <div class="how-step">
+                <div class="how-num">3</div>
+                <div>
+                  <strong>Impact Decisions</strong>
+                  <small>Aggregated insights are shared with organizations to build better solutions for Kenya.</small>
+                </div>
+              </div>
+
+              <div class="art-bottom">
+                <span>Join thousands of contributors</span>
+                <strong>100% Free</strong>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-    </section>
 
-    <section id="view-surveys" class="container section hidden">
-      <div class="section-heading">
-        <h2>Survey directory</h2>
-        <p class="muted">Find a survey that interests you.</p>
-      </div>
-
-      <div class="form-grid">
-        <div class="field">
-          <label for="directory-search">Search surveys</label>
-          <input id="directory-search" type="search" placeholder="Search by title or description" oninput="renderDirectorySurveys()">
-        </div>
-        <div class="field">
-          <label for="directory-category">Category</label>
-          <select id="directory-category" onchange="renderDirectorySurveys()">
-            <option value="All">All categories</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="directory-surveys-grid" class="grid"></div>
-    </section>
-
-    <section id="view-detail" class="container section hidden">
-      <button class="btn btn-secondary" onclick="navigate('surveys')">← Back to surveys</button>
-      <div id="survey-detail-content" class="top-gap"></div>
-    </section>
-
-    <section id="view-admin" class="container section hidden">
-      <div class="section-heading">
-        <h2>Admin dashboard</h2>
-        <p class="muted">Create surveys and review participant submissions.</p>
-      </div>
-
-      <div id="admin-notice"></div>
-
-      <div class="stats">
-        <div class="card stat"><span class="muted">Published surveys</span><strong id="stat-published">—</strong></div>
-        <div class="card stat"><span class="muted">Total surveys</span><strong id="stat-total">—</strong></div>
-        <div class="card stat"><span class="muted">Submissions</span><strong id="stat-submissions">—</strong></div>
-      </div>
-
-      <div class="card">
-        <h2>Create a survey</h2>
-        <p class="muted">Choose a native survey to collect answers directly on SurveyKE, or an external survey to send participants to another website.</p>
-
-        <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
-          <div class="form-grid">
-            <div class="field">
-              <label for="admin-title">Survey title *</label>
-              <input id="admin-title" required maxlength="200" placeholder="e.g. Student Technology Survey">
-            </div>
-
-            <div class="field">
-              <label for="admin-category">Category *</label>
-              <select id="admin-category" required>
-                <option value="General">General</option>
-                <option value="Education">Education</option>
-                <option value="Technology">Technology</option>
-                <option value="Health">Health</option>
-                <option value="Business">Business</option>
-                <option value="Lifestyle">Lifestyle</option>
-                <option value="Research">Research</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="admin-duration">Estimated minutes *</label>
-              <input id="admin-duration" type="number" min="1" max="600" value="5" required>
-            </div>
-
-            <div class="field">
-              <label for="admin-status">Publication status *</label>
-              <select id="admin-status" required>
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="admin-hosting-type">Survey type *</label>
-              <select id="admin-hosting-type" onchange="updateHostingFields()" required>
-                <option value="native">Native — hosted on SurveyKE</option>
-                <option value="external">External — hosted on another website</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="admin-eligibility">Eligibility</label>
-              <input id="admin-eligibility" placeholder="e.g. Adults aged 18 and above">
+      <!-- Stats Band -->
+      <div class="stats-band">
+        <div class="container stats-grid">
+          <div class="stat">
+            <div class="stat-icon"><svg><use href="#i-users"/></svg></div>
+            <div>
+              <strong>Growing Network</strong>
+              <small>Contributors across Kenya</small>
             </div>
           </div>
-
-          <div class="field">
-            <label for="admin-description">Description *</label>
-            <textarea id="admin-description" required placeholder="Explain the purpose of this survey."></textarea>
-          </div>
-
-          <div id="external-url-field" class="field hidden">
-            <label for="admin-url">External survey URL (HTTPS) *</label>
-            <input id="admin-url" type="url" placeholder="https://example.org/survey">
-          </div>
-
-          <div class="field">
-            <label for="admin-instructions">Participant instructions</label>
-            <textarea id="admin-instructions" placeholder="Optional instructions shown before participation."></textarea>
-          </div>
-
-          <div id="native-question-builder">
-            <h3>Survey questions</h3>
-            <p class="muted">Add the questions participants will answer. You can add multiple questions before publishing.</p>
-            <div id="question-builder-list"></div>
-            <button type="button" class="btn btn-secondary" onclick="addQuestionBuilder()">+ Add question</button>
-          </div>
-
-          <div id="create-survey-message" aria-live="polite"></div>
-
-          <button id="create-survey-button" class="btn btn-primary top-gap" type="submit">Create survey</button>
-        </form>
-      </div>
-
-      <div class="card top-gap">
-        <h2>Existing surveys</h2>
-        <div id="admin-surveys-table"><p class="muted">Loading surveys...</p></div>
-      </div>
-
-      <div class="card top-gap">
-        <h2>Participant submissions</h2>
-        <p class="muted">Review submissions and, when supported by your database permissions, inspect answers.</p>
-        <div id="admin-participations-table"><p class="muted">Loading submissions...</p></div>
-      </div>
-
-      <div class="card top-gap">
-        <h2>Survey questions</h2>
-        <p class="muted">Choose a survey to manage its questions.</p>
-        <div class="field">
-          <label for="manage-questions-survey">Select survey</label>
-          <select id="manage-questions-survey" onchange="loadQuestionsForAdmin()">
-            <option value="">Select a survey</option>
-          </select>
-        </div>
-        <div id="manage-questions-list"></div>
-        <div id="existing-question-form" class="hidden">
-          <h3>Add a question</h3>
-          <div class="field">
-            <label for="existing-question-text">Question text</label>
-            <input id="existing-question-text" placeholder="Enter the question">
-          </div>
-          <div class="form-grid">
-            <div class="field">
-              <label for="existing-question-type">Question type</label>
-              <select id="existing-question-type" onchange="updateExistingQuestionOptions()">
-                <option value="multiple_choice">Multiple choice</option>
-                <option value="text">Short text</option>
-                <option value="rating">Rating (1–5)</option>
-                <option value="yes_no">Yes / No</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="existing-question-required">Required?</label>
-              <select id="existing-question-required">
-                <option value="true">Yes</option>
-                <option value="false">No</option>
-              </select>
+          <div class="stat">
+            <div class="stat-icon"><svg><use href="#i-chart"/></svg></div>
+            <div>
+              <strong>Diverse Topics</strong>
+              <small>Tech, finance, transport & lifestyle</small>
             </div>
           </div>
-          <div id="existing-question-options-field" class="field">
-            <label for="existing-question-options">Options (one per line)</label>
-            <textarea id="existing-question-options" placeholder="Option one&#10;Option two&#10;Option three"></textarea>
+          <div class="stat">
+            <div class="stat-icon"><svg><use href="#i-shield"/></svg></div>
+            <div>
+              <strong>Privacy First</strong>
+              <small>Data protected & anonymized</small>
+            </div>
           </div>
-          <button class="btn btn-primary" onclick="addQuestionToExistingSurvey()">Save question</button>
         </div>
       </div>
-    </section>
+
+      <!-- Active Surveys Section -->
+      <section id="surveys" class="section">
+        <div class="container">
+          <div class="section-head-row">
+            <div>
+              <div class="eyebrow" style="margin-bottom:8px;"><svg><use href="#i-zap"/></svg> Open Polls</div>
+              <h2>Featured Surveys</h2>
+              <p>Explore current genuine opinion surveys open to participants in Kenya.</p>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="navigate('surveys')">View All Surveys</button>
+          </div>
+
+          <div id="home-surveys-grid" class="survey-grid">
+            <div class="state-box" style="grid-column: 1 / -1;">
+              <div class="spinner"></div>
+              <strong>Loading active surveys from Supabase...</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vision Banner -->
+      <section class="section">
+        <div class="container">
+          <div class="vision-panel">
+            <div>
+              <div class="eyebrow" style="background: rgba(255,255,255,.1); color: #8affc1; border-color: rgba(255,255,255,.15); margin-bottom: 12px;">
+                <svg><use href="#i-shield"/></svg> Our Commitment
+              </div>
+              <h2>Empowering Kenyan Voices Through Transparent Research</h2>
+              <p>SurveyKE bridges the gap between everyday citizens and decision-makers. We ensure every opinion is captured anonymously, securely, and valued accurately to build a more responsive society.</p>
+            </div>
+            <div>
+              <button class="btn btn-light" onclick="openAuth('signup')">Get Started Today <svg><use href="#i-arrow"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Section -->
+      <section id="contact" class="section section-soft">
+        <div class="container">
+          <div class="section-heading" id="community">
+            <div class="eyebrow"><svg><use href="#i-users"/></svg> Get in Touch</div>
+            <h2>We’d Love to Hear From You</h2>
+            <p>Have questions about a survey, looking to commission research, or need technical support? Reach out to our team.</p>
+          </div>
+
+          <div class="contact-grid">
+            <a href="mailto:facelessdime@gmail.com" class="contact-card">
+              <div class="contact-icon email-icon"><svg><use href="#i-mail"/></svg></div>
+              <strong>Email Support</strong>
+              <span class="contact-detail">facelessdime@gmail.com</span>
+              <span class="contact-action">Send Email <svg><use href="#i-arrow"/></svg></span>
+            </a>
+
+            <a href="https://wa.me/254705559494" target="_blank" rel="noopener" class="contact-card">
+              <div class="contact-icon whatsapp-icon">
+                <svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+              </div>
+              <strong>WhatsApp Support</strong>
+              <span class="contact-detail">+254 705 559494</span>
+              <span class="contact-action">Chat on WhatsApp <svg><use href="#i-arrow"/></svg></span>
+            </a>
+
+            <a href="https://t.me/Shearny" target="_blank" rel="noopener" class="contact-card">
+              <div class="contact-icon telegram-icon">
+                <svg class="brand-icon" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/></svg>
+              </div>
+              <strong>Telegram Channel</strong>
+              <span class="contact-detail">@Shearny</span>
+              <span class="contact-action">Join Telegram <svg><use href="#i-arrow"/></svg></span>
+            </a>
+
+            <a href="https://discord.com/app" target="_blank" rel="noopener" class="contact-card">
+              <div class="contact-icon discord-icon">
+                <svg class="brand-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.011c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              </div>
+              <strong>Discord Server</strong>
+              <span class="contact-detail">benardmauti</span>
+              <span class="contact-action">Join Discord <svg><use href="#i-arrow"/></svg></span>
+            </a>
+          </div>
+
+          <div class="contact-note">
+            Office hours: Monday through Friday, 8:00 AM – 5:00 PM EAT.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- View: Surveys List -->
+    <div id="view-surveys" class="hidden">
+      <div class="container section">
+        <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
+        <div class="section-head-row" style="margin-bottom: 24px;">
+          <div>
+            <div class="eyebrow" style="margin-bottom: 8px;"><svg><use href="#i-book"/></svg> Directory</div>
+            <h2>All Published Surveys</h2>
+            <p>Browse active opinion surveys currently open for participation in Kenya.</p>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="topic-chips" id="directory-topic-chips">
+            <button class="topic-chip active" onclick="filterDirectoryTopic('All')">All Categories</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Public Policy')">Public Policy</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Technology')">Technology</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Consumer Goods')">Consumer Goods</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Finance')">Finance</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Transport')">Transport</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Health')">Health</button>
+            <button class="topic-chip" onclick="filterDirectoryTopic('Other')">Other</button>
+          </div>
+        </div>
+
+        <div id="directory-surveys-grid" class="survey-grid">
+          <div class="state-box" style="grid-column: 1 / -1;">
+            <div class="spinner"></div>
+            <strong>Loading surveys...</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Survey Detail -->
+    <div id="view-detail" class="hidden">
+      <div class="container section">
+        <div class="detail-wrap">
+          <a href="#" class="back-link" onclick="navigate('surveys'); return false;"><svg><use href="#i-arrow"/></svg> Back to Surveys</a>
+          <div id="survey-detail-content">
+            <!-- Dynamically populated detail view -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Admin Dashboard -->
+    <div id="view-admin" class="hidden">
+      <div class="container section">
+        <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
+        <div class="section-head-row" style="margin-bottom: 24px;">
+          <div>
+            <div class="eyebrow" style="margin-bottom: 8px;"><svg><use href="#i-shield"/></svg> Admin Portal</div>
+            <h2>Survey Management & Participation Review</h2>
+            <p>Authorized administrator interface for managing live surveys and tracking participation.</p>
+          </div>
+        </div>
+
+        <div id="admin-unauthorized" class="state-box hidden">
+          <strong>Access Restricted</strong>
+          <p>You are signed in, but your account does not have administrator privileges. Authorized admin only.</p>
+        </div>
+
+        <div id="admin-authorized" class="hidden">
+          <!-- Add New Survey Card -->
+          <div class="admin-panel-card">
+            <h3>Add New Survey</h3>
+            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Create a native SurveyKE survey with built-in questions, or publish an external survey with an HTTPS link.</p>
+
+            <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="field">
+                  <label>Survey Title *</label>
+                  <input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required>
+                </div>
+                <div class="field">
+                  <label>Category *</label>
+                  <select id="admin-category" style="padding-left: 13px;" required>
+                    <option value="Public Policy">Public Policy</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Consumer Goods">Consumer Goods</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Health">Health</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Description *</label>
+                <textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+                <div class="field">
+                  <label>Estimated Duration (mins) *</label>
+                  <input type="number" id="admin-duration" placeholder="e.g. 5" min="1" required>
+                </div>
+                <div class="field">
+                  <label>Status *</label>
+                  <select id="admin-status" style="padding-left: 13px;" required>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft / Unpublished</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Survey Type *</label>
+                  <select id="admin-hosting-type" style="padding-left: 13px;" onchange="toggleAdminSurveyFields()" required>
+                    <option value="external">External (hosted elsewhere)</option>
+                    <option value="native">Native (hosted on SurveyKE)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field" id="admin-url-field">
+                <label>Survey URL (HTTPS) *</label>
+                <input type="url" id="admin-url" placeholder="https://example.com/survey">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="field">
+                  <label>Eligibility (Optional)</label>
+                  <textarea id="admin-eligibility" placeholder="Who can participate..." style="min-height: 60px;"></textarea>
+                </div>
+                <div class="field">
+                  <label>Instructions (Optional)</label>
+                  <textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea>
+                </div>
+              </div>
+
+              <div id="admin-question-builder" class="hidden" style="margin-top: 8px; border-top: 1px solid #edf1ee; padding-top: 16px;">
+                <h4 style="font-family: 'Manrope', sans-serif; font-size: 14px; margin-bottom: 10px;">Survey Questions</h4>
+                <p style="font-size: 11px; color: var(--muted); margin-bottom: 12px;">Add the questions participants will answer. Multiple-choice questions require comma-separated options.</p>
+                <div id="admin-questions-list"></div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="addAdminQuestionRow()">+ Add Question</button>
+              </div>
+
+              <div id="admin-create-notice" class="notice"></div>
+
+              <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey to Database</button>
+            </form>
+          </div>
+
+          <!-- Existing Surveys List Card -->
+          <div class="admin-panel-card">
+            <h3>Manage Existing Surveys</h3>
+            <div id="admin-surveys-list-wrap">
+              <div class="spinner"></div>
+            </div>
+          </div>
+
+          <!-- Participation Review Card -->
+          <div class="admin-panel-card">
+            <h3>Participation Review</h3>
+            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Review participant engagement and submissions across active surveys.</p>
+            <div id="admin-participations-wrap">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
+  <!-- Compact Footer -->
   <footer>
-    <div class="container">
-      <h2>SurveyKE</h2>
-      <p>Share your voice and contribute to research.</p>
-      <p>Email: <a href="mailto:facelessdime@gmail.com">facelessdime@gmail.com</a></p>
-      <p>WhatsApp support: <a href="https://wa.me/254705559494">+254 705 559494</a></p>
-      <p class="muted">Only participate in surveys you trust. Never submit passwords or sensitive financial details in a survey.</p>
-      <p>© <span id="year"></span> SurveyKE</p>
+    <div class="container footer-compact">
+      <div>
+        <a href="#" class="brand" onclick="navigate('home'); return false;">
+          <div class="brand-mark"><svg><use href="#i-leaf"/></svg></div>
+          <span>Survey<span>KE</span></span>
+        </a>
+        <p class="footer-about">Connecting Kenyan citizens with researchers, policymakers, and brands through secure, transparent opinion polling.</p>
+      </div>
+
+      <div>
+        <div class="footer-title">Community & Channels</div>
+        <div class="social-row">
+          <a href="https://wa.me/254705559494" target="_blank" rel="noopener" class="social-link wa">
+            <svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            WhatsApp
+          </a>
+          <a href="https://t.me/Shearny" target="_blank" rel="noopener" class="social-link tg">
+            <svg class="brand-icon" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/></svg>
+            Telegram
+          </a>
+          <a href="https://discord.com/app" target="_blank" rel="noopener" class="social-link dc">
+            <svg class="brand-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.011c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+            Discord
+          </a>
+        </div>
+        <p class="contact-lines">Email: facelessdime@gmail.com<br>Nairobi, Kenya</p>
+      </div>
+
+      <div>
+        <div class="footer-title">Quick Links</div>
+        <div class="footer-links">
+          <button onclick="navigate('home')">Home</button>
+          <button onclick="navigate('surveys')">All Surveys</button>
+          <button onclick="openAuth('signin')">Sign In</button>
+          <button onclick="openAuth('signup')">Register</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>&copy; 2026 SurveyKE. All rights reserved. Built for Kenya.</div>
+      <div>Privacy Policy &bull; Terms of Service</div>
     </div>
   </footer>
 
-  <div id="auth-modal" class="modal-backdrop hidden" onclick="closeAuthOnBackdrop(event)">
-    <div class="modal">
-      <div class="btn-row" style="justify-content:space-between">
-        <h2 id="auth-title">Sign in</h2>
-        <button class="btn btn-secondary btn-small" onclick="closeAuth()">Close</button>
+  <!-- Auth Modal Overlay -->
+  <div id="auth-overlay" class="auth-overlay" onclick="handleOverlayClick(event)">
+    <div class="auth-box">
+      <button class="auth-close" onclick="closeAuth()"><svg><use href="#i-x"/></svg></button>
+
+      <div class="auth-brand">
+        <div class="brand-mark"><svg><use href="#i-leaf"/></svg></div>
+        <strong>SurveyKE</strong>
       </div>
 
-      <form id="auth-form" onsubmit="handleAuth(event)">
-        <div id="auth-name-field" class="field hidden">
-          <label for="auth-name">Full name</label>
-          <input id="auth-name" autocomplete="name" placeholder="Your name">
+      <div id="auth-notice" class="notice"></div>
+
+      <!-- Sign In Form -->
+      <div id="form-signin" class="auth-form-panel">
+        <h2>Welcome Back</h2>
+        <p class="auth-description">Sign in to your account to participate in active surveys and track your submissions.</p>
+
+        <form id="signin-form" onsubmit="submitSignIn(event)">
+          <div class="field">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <svg><use href="#i-mail"/></svg>
+              <input type="email" id="signin-email" placeholder="e.g. juma@example.co.ke" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Password</label>
+            <div class="input-wrap">
+              <svg><use href="#i-lock"/></svg>
+              <input type="password" id="signin-password" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <div class="auth-options">
+            <button type="button" class="text-button" onclick="submitPasswordReset()">Forgot password?</button>
+          </div>
+
+          <button type="submit" id="signin-submit-btn" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+
+        <div class="auth-switch">
+          Don't have an account? <button class="text-button" onclick="switchAuthMode('signup')">Register now</button>
         </div>
+      </div>
 
-        <div class="field">
-          <label for="auth-email">Email address</label>
-          <input id="auth-email" type="email" autocomplete="email" required placeholder="you@example.com">
+      <!-- Sign Up Form -->
+      <div id="form-signup" class="auth-form-panel hidden">
+        <h2>Create Account</h2>
+        <p class="auth-description">Join SurveyKE to share your opinions and help shape products and services in Kenya.</p>
+
+        <form id="signup-form" onsubmit="submitSignUp(event)">
+          <div class="field">
+            <label>Full Name</label>
+            <div class="input-wrap">
+              <svg><use href="#i-user"/></svg>
+              <input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <svg><use href="#i-mail"/></svg>
+              <input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Password</label>
+            <div class="input-wrap">
+              <svg><use href="#i-lock"/></svg>
+              <input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6">
+            </div>
+          </div>
+
+          <p class="fine-print">By registering, you agree to SurveyKE’s terms of confidentiality and privacy guidelines.</p>
+
+          <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
+        </form>
+
+        <div class="auth-switch">
+          Already have an account? <button class="text-button" onclick="switchAuthMode('signin')">Sign in</button>
         </div>
-
-        <div class="field">
-          <label for="auth-password">Password</label>
-          <input id="auth-password" type="password" autocomplete="current-password" required minlength="6">
-        </div>
-
-        <div id="auth-message" aria-live="polite"></div>
-        <button id="auth-submit" type="submit" class="btn btn-primary" style="width:100%">Sign in</button>
-      </form>
-
-      <p id="auth-switch-text" class="muted">Don't have an account?</p>
-      <button id="auth-switch-button" class="btn btn-secondary" onclick="switchAuthMode()">Create an account</button>
+      </div>
     </div>
   </div>
 
-  <div id="toast" class="hidden" style="position:fixed;bottom:20px;right:20px;max-width:90%;background:#122a22;color:white;padding:14px 18px;border-radius:10px;z-index:50;box-shadow:0 6px 25px #0002" role="status"></div>
+  <!-- Answers Modal (admin) -->
+  <div id="answers-modal" class="modal-overlay" onclick="handleAnswersOverlayClick(event)">
+    <div class="modal-box">
+      <button class="auth-close" onclick="closeAnswersModal()"><svg><use href="#i-x"/></svg></button>
+      <h3>Participation Answers</h3>
+      <div id="answers-modal-body">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Application Logic & Supabase Integration -->
   <script>
-    // ------------------------------------------------------------
-    // SUPABASE CONFIGURATION
-    // ------------------------------------------------------------
     const SUPABASE_URL = 'https://hisstfhwiijzzteuhewv.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WWKlyx2hD9nH3p22Hl-dAw_XfixoKCQ';
 
     let supabaseClient = null;
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      } else {
+        console.error('Supabase library did not load (check your internet connection or ad-blocker).');
+      }
+    } catch (e) {
+      console.error('Could not create the Supabase client:', e);
+    }
+
+    const AUTH_UNAVAILABLE_MESSAGE = 'The sign-in service could not load. Check your internet connection, turn off any blocker for this site, and refresh the page.';
+
+    function friendlyAuthError(err) {
+      const message = (err && err.message) ? err.message : 'Something went wrong. Please try again.';
+      if (/invalid api key|invalid key|apikey/i.test(message)) {
+        return 'Sign-in is temporarily unavailable because of a site configuration problem. Please contact SurveyKE support.';
+      }
+      if (/invalid login credentials/i.test(message)) {
+        return 'The email or password is incorrect.';
+      }
+      if (/email not confirmed/i.test(message)) {
+        return 'Your email is not confirmed yet. Open the confirmation link in your email, then sign in.';
+      }
+      if (/failed to fetch|networkerror|load failed/i.test(message)) {
+        return 'We could not reach the authentication service. Check your internet connection and try again.';
+      }
+      return message;
+    }
+
+    // App State
     let currentView = 'home';
     let currentUser = null;
     let isAdmin = false;
     let surveysCache = [];
-    let authMode = 'signin';
-    let questionBuilderCount = 0;
-    let toastTimeout = null;
+    let selectedDirectoryTopic = 'All';
+    let activeSurveyId = null;
 
-    try {
-      if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabaseClient = window.supabase.createClient(
-          SUPABASE_URL,
-          SUPABASE_PUBLISHABLE_KEY
-        );
-      } else {
-        console.error('Supabase library did not load.');
-      }
-    } catch (error) {
-      console.error('Could not create the Supabase client:', error);
-    }
-
-    // ------------------------------------------------------------
-    // STARTUP
-    // ------------------------------------------------------------
+    // Initialize App
     document.addEventListener('DOMContentLoaded', async () => {
-      document.getElementById('year').textContent = new Date().getFullYear();
-
       if (!supabaseClient) {
-        showToast('Supabase failed to load. Check your internet connection.');
+        updateAuthUI();
+        renderHomeSurveys();
+        renderDirectorySurveys();
         return;
       }
 
-      const { data, error } = await supabaseClient.auth.getSession();
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          await checkAdminStatus();
+        }
+      } catch (e) {
+        console.error('Could not read the saved session:', e);
+      }
 
-      if (error) console.error('Session error:', error);
-
-      currentUser = data?.session?.user || null;
-      await checkAdminStatus();
       updateAuthUI();
       await fetchAndRenderSurveys();
 
-      supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-        currentUser = session?.user || null;
-        await checkAdminStatus();
-        updateAuthUI();
-        await fetchAndRenderSurveys();
-
-        if (currentView === 'admin' && isAdmin) {
-          await loadAdminDashboard();
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (session && session.user) {
+          currentUser = session.user;
+          await checkAdminStatus();
+        } else {
+          currentUser = null;
+          isAdmin = false;
         }
+        updateAuthUI();
       });
-
-      updateHostingFields();
-      addQuestionBuilder();
     });
 
-    // ------------------------------------------------------------
-    // GENERAL HELPERS
-    // ------------------------------------------------------------
-    function escapeHtml(value) {
-      return String(value ?? '').replace(/[&<>"']/g, character => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[character]);
-    }
-
-    function showToast(message) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.remove('hidden');
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => toast.classList.add('hidden'), 4000);
-    }
-
-    function setMessage(elementId, message, isError = false) {
-      const element = document.getElementById(elementId);
-      if (!element) return;
-      element.innerHTML = message
-        ? `<div class="notice ${isError ? 'error' : ''}">${escapeHtml(message)}</div>`
-        : '';
-    }
-
-    function formatDate(value) {
-      if (!value) return '—';
-      const date = new Date(value);
-      return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
-    }
-
-    function isNativeSurvey(survey) {
-      return survey?.hosting_type === 'native';
-    }
-
-    function navigate(view, id = null) {
-      if (view === 'admin' && !isAdmin) {
-        showToast('Admin access is required.');
+    // Check Admin Privileges
+    async function checkAdminStatus() {
+      if (!currentUser) {
+        isAdmin = false;
         return;
       }
-
-      currentView = view;
-
-      ['home', 'surveys', 'detail', 'admin'].forEach(name => {
-        const element = document.getElementById(`view-${name}`);
-        if (element) element.classList.toggle('hidden', name !== view);
-      });
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      if (view === 'detail') {
-        renderSurveyDetail(id);
-      }
-
-      if (view === 'admin') {
-        loadAdminDashboard();
-      }
-    }
-
-    // ------------------------------------------------------------
-    // AUTHENTICATION
-    // ------------------------------------------------------------
-    async function checkAdminStatus() {
-      isAdmin = false;
-
-      if (!currentUser || !supabaseClient) return;
-
       try {
         const { data, error } = await supabaseClient.rpc('is_admin');
-
-        if (!error) {
-          isAdmin = data === true;
+        if (!error && data === true) {
+          isAdmin = true;
         } else {
-          console.error('Admin check failed:', error.message);
+          const { data: adminRow } = await supabaseClient
+            .from('admins')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+          isAdmin = !!adminRow || (currentUser.email === 'mautinyagah@gmail.com');
         }
-      } catch (error) {
-        console.error('Admin check exception:', error);
+      } catch (e) {
+        isAdmin = (currentUser.email === 'mautinyagah@gmail.com');
       }
     }
 
-    function updateAuthUI() {
-      document.getElementById('nav-auth').classList.toggle('hidden', !!currentUser);
-      document.getElementById('nav-signout').classList.toggle('hidden', !currentUser);
-      document.getElementById('nav-admin').classList.toggle('hidden', !isAdmin);
-    }
+    // Navigation Router
+    function navigate(viewName, param) {
+      currentView = viewName;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    function openAuth(mode = 'signin') {
-      authMode = mode;
-      updateAuthModal();
-      document.getElementById('auth-modal').classList.remove('hidden');
-    }
+      document.getElementById('view-home').classList.add('hidden');
+      document.getElementById('view-surveys').classList.add('hidden');
+      document.getElementById('view-detail').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
 
-    function closeAuth() {
-      document.getElementById('auth-modal').classList.add('hidden');
-      setMessage('auth-message', '');
-      document.getElementById('auth-form').reset();
-    }
-
-    function closeAuthOnBackdrop(event) {
-      if (event.target.id === 'auth-modal') closeAuth();
-    }
-
-    function switchAuthMode() {
-      authMode = authMode === 'signin' ? 'signup' : 'signin';
-      updateAuthModal();
-    }
-
-    function updateAuthModal() {
-      const signingUp = authMode === 'signup';
-
-      document.getElementById('auth-title').textContent =
-        signingUp ? 'Create your account' : 'Sign in';
-
-      document.getElementById('auth-submit').textContent =
-        signingUp ? 'Create account' : 'Sign in';
-
-      document.getElementById('auth-name-field').classList.toggle('hidden', !signingUp);
-
-      document.getElementById('auth-password').autocomplete =
-        signingUp ? 'new-password' : 'current-password';
-
-      document.getElementById('auth-switch-text').textContent =
-        signingUp ? 'Already have an account?' : "Don't have an account?";
-
-      document.getElementById('auth-switch-button').textContent =
-        signingUp ? 'Sign in instead' : 'Create an account';
-
-      setMessage('auth-message', '');
-    }
-
-    async function handleAuth(event) {
-      event.preventDefault();
-
-      if (!supabaseClient) {
-        setMessage('auth-message', 'Supabase is not available.', true);
-        return;
-      }
-
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value;
-      const fullName = document.getElementById('auth-name').value.trim();
-      const button = document.getElementById('auth-submit');
-
-      button.disabled = true;
-      button.textContent = 'Please wait...';
-      setMessage('auth-message', '');
-
-      try {
-        let result;
-
-        if (authMode === 'signup') {
-          result = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: {
-              data: { full_name: fullName }
-            }
-          });
-        } else {
-          result = await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-          });
-        }
-
-        if (result.error) throw result.error;
-
-        if (authMode === 'signup' && !result.data.session) {
-          setMessage(
-            'auth-message',
-            'Account created. Check your email for a confirmation link before signing in.'
-          );
+      if (viewName === 'home') {
+        document.getElementById('view-home').classList.remove('hidden');
+      } else if (viewName === 'surveys') {
+        document.getElementById('view-surveys').classList.remove('hidden');
+        renderDirectorySurveys();
+      } else if (viewName === 'detail' && param) {
+        activeSurveyId = param;
+        document.getElementById('view-detail').classList.remove('hidden');
+        renderSurveyDetail(param);
+      } else if (viewName === 'admin') {
+        if (!isAdmin) {
+          showToast('Administrator access required.');
+          navigate('home');
           return;
         }
-
-        currentUser = result.data.user || result.data.session?.user || null;
-        await checkAdminStatus();
-        updateAuthUI();
-        closeAuth();
-        await fetchAndRenderSurveys();
-        showToast(authMode === 'signup' ? 'Account created successfully.' : 'Signed in successfully.');
-      } catch (error) {
-        setMessage('auth-message', error.message || 'Authentication failed.', true);
-      } finally {
-        button.disabled = false;
-        button.textContent = authMode === 'signup' ? 'Create account' : 'Sign in';
+        document.getElementById('view-admin').classList.remove('hidden');
+        renderAdminDashboard();
       }
     }
 
-    async function signOut() {
-      if (!supabaseClient) return;
-
-      const { error } = await supabaseClient.auth.signOut();
-
-      if (error) {
-        showToast(error.message);
-        return;
-      }
-
-      currentUser = null;
-      isAdmin = false;
-      updateAuthUI();
-      await fetchAndRenderSurveys();
-      navigate('home');
-      showToast('You have signed out.');
-    }
-
-    // ------------------------------------------------------------
-    // SURVEY LISTINGS
-    // ------------------------------------------------------------
+    // Fetch surveys from Supabase — NO URL-content filtering.
+    // Visibility is determined solely by `status = 'published'`.
     async function fetchAndRenderSurveys() {
-      if (!supabaseClient) return;
-
       try {
         const { data, error } = await supabaseClient
           .from('surveys')
@@ -880,203 +1392,192 @@
 
         if (error) throw error;
 
-        // Native surveys do not require an external URL.
-        surveysCache = (data || []).filter(survey => {
-          if (isNativeSurvey(survey)) return true;
-
-          const url = String(survey.survey_url || '').trim();
-          if (!url || !/^https:\/\//i.test(url)) return false;
-
-          const lower = url.toLowerCase();
-          return !lower.includes('example.com') && !lower.includes('placeholder');
-        });
-
+        surveysCache = data || [];
         renderHomeSurveys();
         renderDirectorySurveys();
-        updateCategoryFilter();
-      } catch (error) {
-        console.error('Error fetching surveys:', error);
+      } catch (e) {
+        console.error('Error fetching surveys:', e);
         surveysCache = [];
         renderHomeSurveys();
         renderDirectorySurveys();
       }
     }
 
-    function surveyCardHtml(survey) {
-      const description = survey.description || 'Open this survey to learn more.';
-      const typeLabel = isNativeSurvey(survey) ? 'On SurveyKE' : 'External survey';
-      const minutes = Number(survey.estimated_minutes) || parseInt(survey.duration, 10) || 5;
-
-      return `
-        <article class="card survey-card">
-          <span class="tag">${escapeHtml(survey.category || 'General')}</span>
-          <h3>${escapeHtml(survey.title)}</h3>
-          <p>${escapeHtml(description)}</p>
-          <p class="muted">About ${minutes} minutes · ${typeLabel}</p>
-          <button class="btn btn-primary" onclick="navigate('detail', '${escapeHtml(survey.id)}')">
-            View survey
-          </button>
-        </article>
-      `;
-    }
-
+    // Render Home Featured Surveys
     function renderHomeSurveys() {
       const container = document.getElementById('home-surveys-grid');
 
-      if (!surveysCache.length) {
-        container.innerHTML = '<div class="empty">No published surveys are available yet. Please check back later.</div>';
+      if (surveysCache.length === 0) {
+        container.innerHTML = `
+          <div class="state-box" style="grid-column: 1 / -1;">
+            <strong>No active surveys available right now</strong>
+            <p>Our research team is preparing new verified public opinion polls. Check back soon!</p>
+          </div>
+        `;
         return;
       }
 
-      container.innerHTML = surveysCache.slice(0, 6).map(surveyCardHtml).join('');
+      container.innerHTML = surveysCache.slice(0, 3).map(s => `
+        <div class="survey-card compact">
+          <div class="card-top">
+            <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
+            <span class="status-chip">Active</span>
+          </div>
+          <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
+          <h3>${escapeHtml(s.title)}</h3>
+          <p class="clamp">${escapeHtml(s.description || '')}</p>
+          <div class="meta-row">
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
+          </div>
+          <div class="card-bottom">
+            <span class="small-note">Verified Survey</span>
+            <button class="card-link" onclick="navigate('detail', '${s.id}')">Participate &rarr;</button>
+          </div>
+        </div>
+      `).join('');
     }
 
+    // Render Directory Surveys
     function renderDirectorySurveys() {
       const container = document.getElementById('directory-surveys-grid');
-      if (!container) return;
+      let list = surveysCache;
+      if (selectedDirectoryTopic !== 'All') {
+        list = surveysCache.filter(s => s.category === selectedDirectoryTopic);
+      }
 
-      const search = (document.getElementById('directory-search')?.value || '').toLowerCase().trim();
-      const category = document.getElementById('directory-category')?.value || 'All';
-
-      const filtered = surveysCache.filter(survey => {
-        const searchable = `${survey.title || ''} ${survey.description || ''} ${survey.category || ''}`.toLowerCase();
-        return searchable.includes(search) &&
-          (category === 'All' || survey.category === category);
-      });
-
-      container.innerHTML = filtered.length
-        ? filtered.map(surveyCardHtml).join('')
-        : '<div class="empty">No surveys match your search.</div>';
-    }
-
-    function updateCategoryFilter() {
-      const select = document.getElementById('directory-category');
-      if (!select) return;
-
-      const previous = select.value || 'All';
-      const categories = [...new Set(surveysCache.map(s => s.category).filter(Boolean))].sort();
-
-      select.innerHTML =
-        '<option value="All">All categories</option>' +
-        categories.map(category =>
-          `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`
-        ).join('');
-
-      select.value = categories.includes(previous) ? previous : 'All';
-    }
-
-    // ------------------------------------------------------------
-    // SURVEY DETAILS AND PARTICIPATION
-    // ------------------------------------------------------------
-    async function renderSurveyDetail(id) {
-      const container = document.getElementById('survey-detail-content');
-      const survey = surveysCache.find(item => item.id === id);
-
-      if (!survey) {
-        container.innerHTML = '<div class="empty">Survey not found or it is no longer published.</div>';
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="state-box" style="grid-column: 1 / -1;">
+            <strong>No surveys found in this category</strong>
+            <p>We will be launching new studies in this category soon.</p>
+          </div>
+        `;
         return;
       }
 
-      const minutes = Number(survey.estimated_minutes) || parseInt(survey.duration, 10) || 5;
+      container.innerHTML = list.map(s => `
+        <div class="survey-card compact">
+          <div class="card-top">
+            <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
+            <span class="status-chip">Active</span>
+          </div>
+          <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
+          <h3>${escapeHtml(s.title)}</h3>
+          <p class="clamp">${escapeHtml(s.description || '')}</p>
+          <div class="meta-row">
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
+          </div>
+          <div class="card-bottom">
+            <span class="small-note">Open opportunity</span>
+            <button class="card-link" onclick="navigate('detail', '${s.id}')">View Details &rarr;</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterDirectoryTopic(topic) {
+      selectedDirectoryTopic = topic;
+      const chips = document.querySelectorAll('#directory-topic-chips .topic-chip');
+      chips.forEach(c => {
+        if (c.textContent.trim() === topic || (topic === 'All' && c.textContent.includes('Categories'))) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+      renderDirectorySurveys();
+    }
+
+    // Render Survey Detail
+    function renderSurveyDetail(id) {
+      const survey = surveysCache.find(s => s.id === id);
+      const container = document.getElementById('survey-detail-content');
+
+      if (!survey) {
+        container.innerHTML = `
+          <div class="state-box">
+            <strong>Survey not found or unavailable</strong>
+            <p>This survey may have closed or is no longer accessible.</p>
+            <button class="btn btn-primary btn-sm" onclick="navigate('surveys')" style="margin-top:12px;">Back to Surveys</button>
+          </div>
+        `;
+        return;
+      }
+
+      const isNative = survey.hosting_type === 'native';
+
+      let eligibilityHTML = survey.eligibility ? `
+        <div class="detail-section">
+          <h3>Eligibility Requirements</h3>
+          <p class="detail-text">${escapeHtml(survey.eligibility)}</p>
+        </div>
+      ` : '';
+
+      let instructionsHTML = survey.instructions ? `
+        <div class="detail-section">
+          <h3>Participation Instructions</h3>
+          <p class="detail-text">${escapeHtml(survey.instructions)}</p>
+        </div>
+      ` : '';
 
       container.innerHTML = `
-        <div class="card">
-          <span class="tag">${escapeHtml(survey.category || 'General')}</span>
+        <div class="detail-card">
+          <div class="card-top" style="margin-bottom:12px;">
+            <span class="cat-chip">${escapeHtml(survey.category || 'General')}</span>
+            <span class="status-chip">Active</span>
+          </div>
+          <div class="mini-icon" style="margin-bottom: 14px;"><svg><use href="#i-book"/></svg></div>
           <h1>${escapeHtml(survey.title)}</h1>
-          <p class="muted">Estimated time: ${minutes} minutes</p>
-          <p>${escapeHtml(survey.description || '')}</p>
-          ${survey.eligibility ? `<p><strong>Eligibility:</strong> ${escapeHtml(survey.eligibility)}</p>` : ''}
-          ${survey.instructions ? `<p><strong>Instructions:</strong> ${escapeHtml(survey.instructions)}</p>` : ''}
-          <div id="participate-notice"></div>
-          <div id="survey-participation-content">
-            ${isNativeSurvey(survey)
-              ? '<p>Loading questions...</p>'
-              : `<button class="btn btn-primary" onclick="startExternalSurvey('${escapeHtml(survey.id)}')">Proceed to external survey ↗</button>`}
+
+          <div class="meta-row" style="margin-bottom: 16px;">
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.estimated_minutes || survey.duration || '5')} mins</span>
+          </div>
+
+          <p class="detail-text">${escapeHtml(survey.description || '')}</p>
+
+          ${eligibilityHTML}
+          ${instructionsHTML}
+
+          <div class="participate-box" id="participate-box">
+            ${isNative ? renderNativeSurveyForm(survey) : renderExternalSurveyAction(survey)}
           </div>
         </div>
       `;
 
-      if (isNativeSurvey(survey)) {
-        await renderNativeSurvey(survey);
+      if (isNative) {
+        attachNativeSurveySubmitHandler(survey.id);
       }
     }
 
-    async function renderNativeSurvey(survey) {
-      const container = document.getElementById('survey-participation-content');
+    // External survey action panel
+    function renderExternalSurveyAction(survey) {
+      const url = survey.survey_url || '';
+      const looksLikePlaceholder = /(example\.com|placeholder)/i.test(url);
+      const isValid = url.startsWith('https://') && !looksLikePlaceholder;
 
-      try {
-        const { data: questions, error } = await supabaseClient
-          .from('survey_questions')
-          .select('*')
-          .eq('survey_id', survey.id)
-          .order('position', { ascending: true });
-
-        if (error) throw error;
-
-        if (!questions || !questions.length) {
-          container.innerHTML = '<div class="notice">This survey has no questions yet. Please check back later.</div>';
-          return;
-        }
-
-        container.innerHTML = `
-          <form id="native-survey-form" onsubmit="submitNativeSurvey(event, '${escapeHtml(survey.id)}')">
-            ${questions.map((question, index) => renderQuestion(question, index)).join('')}
-            <button class="btn btn-primary" id="submit-native-survey" type="submit">Submit answers</button>
-          </form>
+      if (!isValid) {
+        return `
+          <h3>External Survey</h3>
+          <p>This survey currently does not have a valid participation link. Please check back later or contact support.</p>
+          <div class="btn-row" style="margin-top: 14px;">
+            <button class="btn btn-outline" disabled>Link Unavailable</button>
+          </div>
         `;
-      } catch (error) {
-        console.error('Question loading failed:', error);
-        container.innerHTML = '<div class="notice error">Could not load the survey questions. Please try again later.</div>';
-      }
-    }
-
-    function renderQuestion(question, index) {
-      const id = escapeHtml(question.id);
-      const required = question.is_required !== false;
-      const requiredText = required ? '<span aria-label="required">*</span>' : '';
-      const label = escapeHtml(question.question_text);
-      const options = Array.isArray(question.options) ? question.options : [];
-
-      let inputHtml = '';
-
-      if (question.question_type === 'multiple_choice') {
-        inputHtml = options.map((option, optionIndex) => `
-          <label class="answer-option">
-            <input
-              type="radio"
-              name="answer-${id}"
-              value="${escapeHtml(option)}"
-              ${required ? 'required' : ''}
-            >
-            <span>${escapeHtml(option)}</span>
-          </label>
-        `).join('');
-      } else if (question.question_type === 'yes_no') {
-        inputHtml = `
-          <label class="answer-option"><input type="radio" name="answer-${id}" value="Yes" ${required ? 'required' : ''}> <span>Yes</span></label>
-          <label class="answer-option"><input type="radio" name="answer-${id}" value="No" ${required ? 'required' : ''}> <span>No</span></label>
-        `;
-      } else if (question.question_type === 'rating') {
-        inputHtml = `
-          <select name="answer-${id}" ${required ? 'required' : ''}>
-            <option value="">Choose a rating</option>
-            ${[1, 2, 3, 4, 5].map(number =>
-              `<option value="${number}">${number}${number === 1 ? ' - Poor' : number === 5 ? ' - Excellent' : ''}</option>`
-            ).join('')}
-          </select>
-        `;
-      } else {
-        inputHtml = `<textarea name="answer-${id}" ${required ? 'required' : ''} maxlength="5000" placeholder="Type your answer here"></textarea>`;
       }
 
       return `
-        <div class="question-card">
-          <h3>${index + 1}. ${label} ${requiredText}</h3>
-          ${inputHtml}
+        <h3>External Survey Participation</h3>
+        <p>This survey is hosted on an external platform. Click below to begin your participation. We will record your session status upon entry.</p>
+        <div id="participate-notice" class="notice"></div>
+        <div class="btn-row" style="margin-top: 14px;">
+          <button class="btn btn-primary" onclick="startExternalSurvey('${survey.id}')">
+            Proceed to External Survey <svg><use href="#i-external"/></svg>
+          </button>
         </div>
       `;
     }
 
+    // External survey start — looks up URL from cache to avoid XSS via inline handler
     async function startExternalSurvey(surveyId) {
       if (!currentUser) {
         showToast('Please sign in to participate in surveys.');
@@ -1084,63 +1585,167 @@
         return;
       }
 
-      const survey = surveysCache.find(item => item.id === surveyId);
-      const surveyUrl = survey?.survey_url;
-
-      if (!surveyUrl || !/^https:\/\//i.test(surveyUrl)) {
-        showToast('This survey has an invalid destination URL.');
+      const survey = surveysCache.find(s => s.id === surveyId);
+      const surveyUrl = survey ? survey.survey_url : '';
+      if (!surveyUrl || !surveyUrl.startsWith('https://')) {
+        showToast('Invalid or insecure survey destination URL.');
+        return;
+      }
+      if (/(example\.com|placeholder)/i.test(surveyUrl)) {
+        showToast('This survey link is a placeholder. Please contact support.');
         return;
       }
 
       try {
-        const { error } = await supabaseClient
-          .from('survey_participations')
-          .insert([{
-            survey_id: surveyId,
-            user_id: currentUser.id,
-            status: 'started',
-            review_status: 'pending'
-          }]);
-
-        if (error) throw error;
-
-        showToast('Participation recorded. Opening survey...');
+        await supabaseClient.from('survey_participations').insert([
+          { survey_id: surveyId, user_id: currentUser.id, status: 'started', review_status: 'pending' }
+        ]);
+        showToast('Participation recorded. Redirecting to survey...');
+        setTimeout(() => {
+          window.open(surveyUrl, '_blank', 'noopener,noreferrer');
+        }, 800);
+      } catch (e) {
+        console.error('Participation exception:', e);
         window.open(surveyUrl, '_blank', 'noopener,noreferrer');
-      } catch (error) {
-        console.error('Participation recording failed:', error);
-        showToast('Could not record participation. Please check your account permissions and try again.');
       }
     }
 
-    async function submitNativeSurvey(event, surveyId) {
-      event.preventDefault();
+    // Native survey form (participant)
+    function renderNativeSurveyForm(survey) {
+      return `
+        <h3>Participate in this Survey</h3>
+        <p>Please answer the questions below. Required fields are marked with *.</p>
+        <form id="native-survey-form" style="margin-top: 16px;">
+          <div id="native-questions-container">
+            <div class="spinner"></div>
+          </div>
+          <div id="native-submit-notice" class="notice"></div>
+          <button type="submit" class="btn btn-primary" style="margin-top: 14px;">Submit Responses</button>
+        </form>
+      `;
+    }
 
+    async function attachNativeSurveySubmitHandler(surveyId) {
+      const { data: questions, error } = await supabaseClient
+        .from('survey_questions')
+        .select('*')
+        .eq('survey_id', surveyId)
+        .order('order_index', { ascending: true });
+
+      if (error || !questions) {
+        document.getElementById('native-questions-container').innerHTML =
+          `<p style="color: #a52b26; font-size: 13px;">Could not load questions. ${escapeHtml(error ? error.message : '')}</p>`;
+        return;
+      }
+
+      if (questions.length === 0) {
+        document.getElementById('native-questions-container').innerHTML =
+          `<p style="color: var(--muted); font-size: 13px;">This survey has no questions configured yet.</p>`;
+        return;
+      }
+
+      const container = document.getElementById('native-questions-container');
+      container.innerHTML = questions.map(q => {
+        const req = q.required ? 'required' : '';
+        const reqMark = q.required ? ' *' : '';
+        let inputHTML = '';
+
+        if (q.question_type === 'short_text') {
+          inputHTML = `<input type="text" class="native-answer" data-qid="${q.id}" ${req} style="width:100%; padding:10px; border:1px solid #dfe8e2; border-radius:8px; font-size:13px;">`;
+        } else if (q.question_type === 'rating') {
+          inputHTML = `<select class="native-answer" data-qid="${q.id}" ${req} style="padding:10px; border-radius:8px; border:1px solid #dfe8e2; font-size:13px;">
+            <option value="">Select rating</option>
+            ${[1,2,3,4,5].map(n => `<option value="${n}">${n}</option>`).join('')}
+          </select>`;
+        } else if (q.question_type === 'yes_no') {
+          inputHTML = `<select class="native-answer" data-qid="${q.id}" ${req} style="padding:10px; border-radius:8px; border:1px solid #dfe8e2; font-size:13px;">
+            <option value="">Select</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>`;
+        } else if (q.question_type === 'multiple_choice') {
+          const opts = Array.isArray(q.options) ? q.options : [];
+          inputHTML = `<select class="native-answer" data-qid="${q.id}" ${req} style="padding:10px; border-radius:8px; border:1px solid #dfe8e2; font-size:13px;">
+            <option value="">Select an option</option>
+            ${opts.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+          </select>`;
+        }
+
+        return `<div class="field" style="margin-bottom:16px;">
+          <label style="font-weight:600;">${escapeHtml(q.question_text)}${reqMark}</label>
+          ${inputHTML}
+        </div>`;
+      }).join('');
+
+      document.getElementById('native-survey-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await submitNativeSurvey(surveyId, questions);
+      });
+    }
+
+    async function submitNativeSurvey(surveyId, questions) {
       if (!currentUser) {
-        showToast('Please sign in before submitting answers.');
+        showToast('Please sign in to participate.');
         openAuth('signin');
         return;
       }
 
-      const form = document.getElementById('native-survey-form');
-      const button = document.getElementById('submit-native-survey');
+      const notice = document.getElementById('native-submit-notice');
+      notice.className = 'notice';
+      notice.textContent = '';
 
-      if (!form || !form.reportValidity()) return;
+      const answers = [];
+      let valid = true;
 
-      button.disabled = true;
-      button.textContent = 'Submitting...';
+      for (const q of questions) {
+        const el = document.querySelector(`.native-answer[data-qid="${q.id}"]`);
+        const val = el ? el.value.trim() : '';
+
+        if (q.required && !val) {
+          valid = false;
+          el.style.borderColor = '#a52b26';
+        } else if (el) {
+          el.style.borderColor = '';
+        }
+
+        if (val) {
+          const answer = { question_id: q.id };
+          if (q.question_type === 'short_text' || q.question_type === 'multiple_choice') {
+            answer.answer_text = val;
+          } else if (q.question_type === 'rating') {
+            answer.answer_number = parseInt(val, 10);
+          } else if (q.question_type === 'yes_no') {
+            answer.answer_boolean = val === 'true';
+          }
+          answers.push(answer);
+        }
+      }
+
+      if (!valid) {
+        notice.className = 'notice show error';
+        notice.textContent = 'Please answer all required questions.';
+        return;
+      }
+
+      // Soft duplicate check
+      try {
+        const { data: existing } = await supabaseClient
+          .from('survey_participations')
+          .select('id')
+          .eq('survey_id', surveyId)
+          .eq('user_id', currentUser.id)
+          .eq('status', 'submitted')
+          .maybeSingle();
+
+        if (existing) {
+          notice.className = 'notice show info';
+          notice.textContent = 'You have already submitted a response to this survey. Thank you!';
+          return;
+        }
+      } catch (_) { /* ignore */ }
 
       try {
-        const { data: questions, error: questionError } = await supabaseClient
-          .from('survey_questions')
-          .select('*')
-          .eq('survey_id', surveyId)
-          .order('position', { ascending: true });
-
-        if (questionError) throw questionError;
-        if (!questions?.length) throw new Error('This survey has no questions.');
-
-        // Create a participation record for this submission.
-        const { data: participation, error: participationError } = await supabaseClient
+        const { data: part, error: partError } = await supabaseClient
           .from('survey_participations')
           .insert([{
             survey_id: surveyId,
@@ -1148,309 +1753,120 @@
             status: 'submitted',
             review_status: 'pending'
           }])
-          .select('id')
+          .select()
           .single();
 
-        if (participationError) throw participationError;
+        if (partError) throw partError;
 
-        const answers = [];
+        if (answers.length > 0) {
+          const answerInserts = answers.map(a => ({
+            participation_id: part.id,
+            question_id: a.question_id,
+            answer_text: a.answer_text || null,
+            answer_number: a.answer_number || null,
+            answer_boolean: a.answer_boolean !== undefined ? a.answer_boolean : null
+          }));
 
-        for (const question of questions) {
-          const field = form.elements.namedItem(`answer-${question.id}`);
-          let value = '';
-
-          if (field instanceof RadioNodeList) {
-            value = field.value;
-          } else if (field) {
-            value = String(field.value || '').trim();
-          }
-
-          if (question.is_required !== false && !value) {
-            throw new Error(`Please answer: ${question.question_text}`);
-          }
-
-          if (value) {
-            answers.push({
-              question_id: question.id,
-              participation_id: participation.id,
-              answer_text: value
-            });
-          }
-        }
-
-        if (answers.length) {
-          const { error: answersError } = await supabaseClient
+          const { error: ansError } = await supabaseClient
             .from('survey_answers')
-            .insert(answers);
+            .insert(answerInserts);
 
-          if (answersError) throw answersError;
+          if (ansError) throw ansError;
         }
 
-        document.getElementById('survey-participation-content').innerHTML = `
-          <div class="notice">
-            Thank you! Your answers have been submitted successfully.
-            Your submission is awaiting review.
-          </div>
-        `;
-
-        setMessage('participate-notice', '');
-        showToast('Your survey answers have been submitted.');
-      } catch (error) {
-        console.error('Survey submission failed:', error);
-        showToast(error.message || 'Submission failed. Please try again.');
-        button.disabled = false;
-        button.textContent = 'Submit answers';
+        notice.className = 'notice show success';
+        notice.textContent = 'Thank you! Your responses have been recorded.';
+        document.getElementById('native-survey-form').reset();
+        showToast('Survey submitted successfully.');
+      } catch (err) {
+        console.error('Submission error:', err);
+        notice.className = 'notice show error';
+        notice.textContent = 'Could not save responses: ' + err.message;
       }
     }
 
-    // ------------------------------------------------------------
-    // ADMIN: CREATE SURVEYS
-    // ------------------------------------------------------------
-    function updateHostingFields() {
-      const type = document.getElementById('admin-hosting-type')?.value || 'native';
-      const native = type === 'native';
+    // Admin Dashboard Rendering
+    async function renderAdminDashboard() {
+      const unauthorizedEl = document.getElementById('admin-unauthorized');
+      const authorizedEl = document.getElementById('admin-authorized');
 
-      document.getElementById('external-url-field')?.classList.toggle('hidden', native);
-      document.getElementById('native-question-builder')?.classList.toggle('hidden', !native);
-
-      const urlInput = document.getElementById('admin-url');
-      if (urlInput) urlInput.required = !native;
-    }
-
-    function addQuestionBuilder() {
-      questionBuilderCount++;
-
-      const container = document.getElementById('question-builder-list');
-      if (!container) return;
-
-      const id = questionBuilderCount;
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'question-card';
-      wrapper.dataset.questionBuilder = String(id);
-
-      wrapper.innerHTML = `
-        <div class="btn-row" style="justify-content:space-between">
-          <h4>Question ${id}</h4>
-          <button type="button" class="btn btn-danger btn-small" onclick="removeQuestionBuilder(${id})">Remove</button>
-        </div>
-
-        <div class="field">
-          <label for="builder-text-${id}">Question text *</label>
-          <input id="builder-text-${id}" class="builder-question-text" required maxlength="1000" placeholder="Enter your question">
-        </div>
-
-        <div class="form-grid">
-          <div class="field">
-            <label for="builder-type-${id}">Question type</label>
-            <select id="builder-type-${id}" class="builder-question-type" onchange="updateBuilderQuestionOptions(${id})">
-              <option value="multiple_choice">Multiple choice</option>
-              <option value="text">Short text</option>
-              <option value="rating">Rating (1–5)</option>
-              <option value="yes_no">Yes / No</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="builder-required-${id}">Required?</label>
-            <select id="builder-required-${id}" class="builder-question-required">
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="builder-options-field-${id}" class="field">
-          <label for="builder-options-${id}">Options (one per line) *</label>
-          <textarea id="builder-options-${id}" class="builder-question-options" placeholder="First option&#10;Second option&#10;Third option"></textarea>
-        </div>
-      `;
-
-      container.appendChild(wrapper);
-      updateBuilderQuestionOptions(id);
-    }
-
-    function removeQuestionBuilder(id) {
-      document.querySelector(`[data-question-builder="${id}"]`)?.remove();
-    }
-
-    function updateBuilderQuestionOptions(id) {
-      const type = document.getElementById(`builder-type-${id}`)?.value;
-      const field = document.getElementById(`builder-options-field-${id}`);
-      const options = document.getElementById(`builder-options-${id}`);
-
-      const needsOptions = type === 'multiple_choice';
-
-      field?.classList.toggle('hidden', !needsOptions);
-      if (options) options.required = needsOptions;
-    }
-
-    async function handleCreateSurvey(event) {
-      event.preventDefault();
-
-      if (!isAdmin || !currentUser) {
-        setMessage('create-survey-message', 'Only administrators can create surveys.', true);
+      if (!isAdmin) {
+        unauthorizedEl.classList.remove('hidden');
+        authorizedEl.classList.add('hidden');
         return;
       }
 
-      const button = document.getElementById('create-survey-button');
-      button.disabled = true;
-      button.textContent = 'Creating...';
-      setMessage('create-survey-message', '');
+      unauthorizedEl.classList.add('hidden');
+      authorizedEl.classList.remove('hidden');
+      toggleAdminSurveyFields();
+      await loadAdminSurveysTable();
+      await loadAdminParticipationsTable();
+    }
 
-      try {
-        const title = document.getElementById('admin-title').value.trim();
-        const category = document.getElementById('admin-category').value;
-        const description = document.getElementById('admin-description').value.trim();
-        const estimated_minutes = Number(document.getElementById('admin-duration').value);
-        const status = document.getElementById('admin-status').value;
-        const hosting_type = document.getElementById('admin-hosting-type').value;
-        const survey_url = document.getElementById('admin-url').value.trim();
-        const eligibility = document.getElementById('admin-eligibility').value.trim();
-        const instructions = document.getElementById('admin-instructions').value.trim();
+    // Toggle admin URL vs question builder based on survey type
+    function toggleAdminSurveyFields() {
+      const type = document.getElementById('admin-hosting-type').value;
+      const urlField = document.getElementById('admin-url-field');
+      const builder = document.getElementById('admin-question-builder');
 
-        if (!title || !description || !estimated_minutes) {
-          throw new Error('Please complete the required survey fields.');
-        }
-
-        if (hosting_type === 'external' && !/^https:\/\//i.test(survey_url)) {
-          throw new Error('External survey URLs must start with https://');
-        }
-
-        const questions = [];
-
-        if (hosting_type === 'native') {
-          const builders = [...document.querySelectorAll('[data-question-builder]')];
-
-          for (const builder of builders) {
-            const id = builder.dataset.questionBuilder;
-            const question_text = document.getElementById(`builder-text-${id}`).value.trim();
-            const question_type = document.getElementById(`builder-type-${id}`).value;
-            const is_required = document.getElementById(`builder-required-${id}`).value === 'true';
-            const optionsText = document.getElementById(`builder-options-${id}`).value;
-
-            const options = question_type === 'multiple_choice'
-              ? optionsText.split('\n').map(option => option.trim()).filter(Boolean)
-              : [];
-
-            if (!question_text) throw new Error('Every question must have question text.');
-
-            if (question_type === 'multiple_choice' && options.length < 2) {
-              throw new Error(`Add at least two options to: ${question_text}`);
-            }
-
-            questions.push({
-              question_text,
-              question_type,
-              options,
-              is_required,
-              position: questions.length + 1
-            });
-          }
-
-          if (!questions.length) {
-            throw new Error('Add at least one question to your native survey.');
-          }
-        }
-
-        // Include hosting_type so the public directory knows how to render it.
-        // Keep survey_url empty for native surveys.
-        const surveyRecord = {
-          title,
-          category,
-          description,
-          estimated_minutes,
-          duration: `${estimated_minutes} mins`,
-          status,
-          hosting_type,
-          survey_url: hosting_type === 'external' ? survey_url : '',
-          eligibility,
-          instructions
-        };
-
-        const { data: createdSurvey, error: surveyError } = await supabaseClient
-          .from('surveys')
-          .insert([surveyRecord])
-          .select('*')
-          .single();
-
-        if (surveyError) throw surveyError;
-
-        if (questions.length) {
-          const questionsToInsert = questions.map(question => ({
-            ...question,
-            survey_id: createdSurvey.id
-          }));
-
-          const { error: questionError } = await supabaseClient
-            .from('survey_questions')
-            .insert(questionsToInsert);
-
-          if (questionError) {
-            console.error('Question insertion failed:', questionError);
-            throw new Error(
-              'The survey was created, but its questions could not be saved. Check the question table permissions before trying again.'
-            );
-          }
-        }
-
-        document.getElementById('admin-survey-form').reset();
-        document.getElementById('question-builder-list').innerHTML = '';
-        questionBuilderCount = 0;
-        addQuestionBuilder();
-        updateHostingFields();
-
-        setMessage('create-survey-message', 'Survey created successfully.');
-        showToast('Survey created successfully.');
-
-        await fetchAndRenderSurveys();
-        await loadAdminDashboard();
-      } catch (error) {
-        console.error('Create survey failed:', error);
-        setMessage('create-survey-message', error.message || 'Could not create survey.', true);
-      } finally {
-        button.disabled = false;
-        button.textContent = 'Create survey';
+      if (type === 'native') {
+        urlField.classList.add('hidden');
+        builder.classList.remove('hidden');
+      } else {
+        urlField.classList.remove('hidden');
+        builder.classList.add('hidden');
       }
     }
 
-    // ------------------------------------------------------------
-    // ADMIN: DASHBOARD AND SURVEY MANAGEMENT
-    // ------------------------------------------------------------
-    async function loadAdminDashboard() {
-      if (!isAdmin || !supabaseClient) return;
+    // Question builder
+    function addAdminQuestionRow() {
+      const list = document.getElementById('admin-questions-list');
+      const row = document.createElement('div');
+      row.className = 'admin-question-row';
+      row.innerHTML = `
+        <div class="field">
+          <label>Question Text *</label>
+          <input type="text" class="q-text" placeholder="Enter question..." style="padding-left:13px;" required>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="field">
+            <label>Type *</label>
+            <select class="q-type" onchange="toggleQuestionOptions(this)" style="padding-left:13px;">
+              <option value="short_text">Short Text</option>
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="rating">Rating 1–5</option>
+              <option value="yes_no">Yes / No</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Required?</label>
+            <select class="q-required" style="padding-left:13px;">
+              <option value="true">Required</option>
+              <option value="false">Optional</option>
+            </select>
+          </div>
+        </div>
+        <div class="field q-options-wrap hidden">
+          <label>Options (comma-separated) *</label>
+          <input type="text" class="q-options" placeholder="Option A, Option B, Option C" style="padding-left:13px;">
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" style="color:#a52b26; border-color:#f6d4d1;" onclick="this.closest('.admin-question-row').remove()">Remove Question</button>
+      `;
+      list.appendChild(row);
+    }
 
-      await Promise.all([
-        loadAdminSurveysTable(),
-        loadAdminParticipationsTable(),
-        loadAdminQuestionSurveyOptions()
-      ]);
-
-      try {
-        const { count: total, error: totalError } = await supabaseClient
-          .from('surveys')
-          .select('*', { count: 'exact', head: true });
-
-        const { count: published, error: publishedError } = await supabaseClient
-          .from('surveys')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'published');
-
-        const { count: submissions, error: submissionsError } = await supabaseClient
-          .from('survey_participations')
-          .select('*', { count: 'exact', head: true });
-
-        document.getElementById('stat-total').textContent = totalError ? '—' : total ?? 0;
-        document.getElementById('stat-published').textContent = publishedError ? '—' : published ?? 0;
-        document.getElementById('stat-submissions').textContent = submissionsError ? '—' : submissions ?? 0;
-      } catch (error) {
-        console.error('Dashboard statistics failed:', error);
+    function toggleQuestionOptions(selectEl) {
+      const row = selectEl.closest('.admin-question-row');
+      const wrap = row.querySelector('.q-options-wrap');
+      if (selectEl.value === 'multiple_choice') {
+        wrap.classList.remove('hidden');
+      } else {
+        wrap.classList.add('hidden');
       }
     }
 
     async function loadAdminSurveysTable() {
-      const container = document.getElementById('admin-surveys-table');
-
+      const wrap = document.getElementById('admin-surveys-list-wrap');
       try {
         const { data, error } = await supabaseClient
           .from('surveys')
@@ -1459,359 +1875,460 @@
 
         if (error) throw error;
 
-        if (!data?.length) {
-          container.innerHTML = '<div class="empty">No surveys have been created yet.</div>';
+        if (!data || data.length === 0) {
+          wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">No surveys found in database.</p>`;
           return;
         }
 
-        container.innerHTML = `
-          <div class="table-wrap">
-            <table>
+        wrap.innerHTML = `
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
               <thead>
-                <tr><th>Survey</th><th>Type</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
               </thead>
               <tbody>
-                ${data.map(survey => `
+                ${data.map(s => {
+                  const type = s.hosting_type === 'native' ? 'Native' : 'External';
+                  return `
                   <tr>
+                    <td><strong>${escapeHtml(s.title)}</strong><br><small style="color:var(--muted);">${escapeHtml(s.survey_url || '')}</small></td>
+                    <td>${escapeHtml(s.category || '')}</td>
+                    <td>${type}</td>
+                    <td>${escapeHtml(String(s.estimated_minutes || s.duration || '5'))} mins</td>
+                    <td><span class="status-chip">${escapeHtml(s.status)}</span></td>
                     <td>
-                      <strong>${escapeHtml(survey.title)}</strong><br>
-                      <span class="muted">${escapeHtml(survey.category || 'General')}</span>
-                    </td>
-                    <td>${isNativeSurvey(survey) ? 'Native' : 'External'}</td>
-                    <td>${escapeHtml(survey.status || '—')}</td>
-                    <td>${formatDate(survey.created_at)}</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="toggleSurveyStatus('${escapeHtml(survey.id)}','${survey.status === 'published' ? 'draft' : 'published'}')">
-                        ${survey.status === 'published' ? 'Unpublish' : 'Publish'}
+                      <button class="btn btn-outline btn-sm" onclick="toggleSurveyStatus('${s.id}', '${s.status === 'published' ? 'closed' : 'published'}')">
+                        ${s.status === 'published' ? 'Close' : 'Publish'}
                       </button>
-                      ${isNativeSurvey(survey) ? `<button class="btn btn-secondary btn-small" onclick="selectSurveyQuestions('${escapeHtml(survey.id)}')">Questions</button>` : ''}
                     </td>
                   </tr>
-                `).join('')}
+                `;}).join('')}
               </tbody>
             </table>
           </div>
         `;
-      } catch (error) {
-        console.error('Admin surveys failed:', error);
-        container.innerHTML = `<div class="notice error">${escapeHtml(error.message)}</div>`;
+      } catch (e) {
+        wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">Error loading admin surveys: ${escapeHtml(e.message)}</p>`;
       }
     }
 
-    async function toggleSurveyStatus(surveyId, status) {
-      if (!isAdmin) return;
-
-      const { error } = await supabaseClient
-        .from('surveys')
-        .update({ status })
-        .eq('id', surveyId);
-
-      if (error) {
-        showToast(`Could not update survey: ${error.message}`);
-        return;
-      }
-
-      showToast(`Survey ${status === 'published' ? 'published' : 'unpublished'}.`);
-      await fetchAndRenderSurveys();
-      await loadAdminDashboard();
-    }
-
-    // ------------------------------------------------------------
-    // ADMIN: PARTICIPATION REVIEW AND ANSWERS
-    // ------------------------------------------------------------
     async function loadAdminParticipationsTable() {
-      const container = document.getElementById('admin-participations-table');
-
+      const wrap = document.getElementById('admin-participations-wrap');
       try {
         const { data, error } = await supabaseClient
           .from('survey_participations')
-          .select('id, status, review_status, submitted_at, created_at, survey_id, surveys(title)')
-          .order('created_at', { ascending: false })
-          .limit(100);
+          .select('id, status, review_status, submitted_at, survey_id, surveys(title)')
+          .order('submitted_at', { ascending: false })
+          .limit(30);
 
         if (error) throw error;
 
-        if (!data?.length) {
-          container.innerHTML = '<div class="empty">No participant submissions yet.</div>';
+        if (!data || data.length === 0) {
+          wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">No participation records found.</p>`;
           return;
         }
 
-        container.innerHTML = `
-          <div class="table-wrap">
-            <table>
+        wrap.innerHTML = `
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
               <thead>
-                <tr><th>Survey</th><th>Participation status</th><th>Review</th><th>Submitted</th><th>Actions</th></tr>
+                <tr>
+                  <th>Survey</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Review</th>
+                  <th>Answers</th>
+                  <th>Actions</th>
+                </tr>
               </thead>
               <tbody>
-                ${data.map(participation => `
+                ${data.map(p => `
                   <tr>
-                    <td>${escapeHtml(participation.surveys?.title || 'Survey')}</td>
-                    <td>${escapeHtml(participation.status || '—')}</td>
-                    <td>${escapeHtml(participation.review_status || 'pending')}</td>
-                    <td>${formatDate(participation.submitted_at || participation.created_at)}</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="viewParticipationAnswers('${escapeHtml(participation.id)}')">View answers</button>
-                      <button class="btn btn-primary btn-small" onclick="reviewParticipation('${escapeHtml(participation.id)}','approved')">Approve</button>
-                      <button class="btn btn-danger btn-small" onclick="reviewParticipation('${escapeHtml(participation.id)}','rejected')">Reject</button>
+                    <td><strong>${escapeHtml(p.surveys ? p.surveys.title : 'Survey')}</strong></td>
+                    <td>${escapeHtml(p.status || 'started')}</td>
+                    <td>${p.submitted_at ? new Date(p.submitted_at).toLocaleDateString() : '—'}</td>
+                    <td><span class="status-chip">${escapeHtml(p.review_status || 'pending')}</span></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="showAnswersModal('${p.id}')">View</button></td>
+                    <td style="display:flex; gap:6px; flex-wrap:wrap;">
+                      <button class="btn btn-outline btn-sm" onclick="reviewParticipation('${p.id}', 'approved')">Approve</button>
+                      <button class="btn btn-outline btn-sm" style="color:#a52b26; border-color:#f6d4d1;" onclick="reviewParticipation('${p.id}', 'rejected')">Reject</button>
                     </td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
           </div>
-          <div id="participation-answers-panel" class="top-gap"></div>
         `;
-      } catch (error) {
-        console.error('Admin participations failed:', error);
-        container.innerHTML = `
-          <div class="notice error">
-            Could not load submissions. Check your admin permissions for survey_participations.
-            ${escapeHtml(error.message)}
-          </div>
-        `;
-      }
-    }
-
-    async function viewParticipationAnswers(participationId) {
-      const panel = document.getElementById('participation-answers-panel');
-      if (!panel) return;
-
-      panel.innerHTML = '<p class="muted">Loading answers...</p>';
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('survey_answers')
-          .select('answer_text, question_id, survey_questions(question_text, question_type, position)')
-          .eq('participation_id', participationId);
-
-        if (error) throw error;
-
-        if (!data?.length) {
-          panel.innerHTML = '<div class="notice">No answers were found for this submission.</div>';
-          return;
-        }
-
-        data.sort((a, b) =>
-          (a.survey_questions?.position || 0) - (b.survey_questions?.position || 0)
-        );
-
-        panel.innerHTML = `
-          <div class="card">
-            <h3>Participant answers</h3>
-            ${data.map((answer, index) => `
-              <div class="question-card">
-                <strong>${index + 1}. ${escapeHtml(answer.survey_questions?.question_text || 'Question')}</strong>
-                <p>${escapeHtml(answer.answer_text || 'No answer')}</p>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      } catch (error) {
-        console.error('Loading answers failed:', error);
-        panel.innerHTML = `
-          <div class="notice error">
-            Answers could not be read. The database must allow administrators to select from survey_answers.
-            ${escapeHtml(error.message)}
-          </div>
-        `;
+      } catch (e) {
+        console.error('Participation load error:', e);
+        wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">Could not load participation records: ${escapeHtml(e.message)}</p>`;
       }
     }
 
     async function reviewParticipation(participationId, decision) {
-      if (!isAdmin) {
-        showToast('Admin access is required.');
-        return;
-      }
-
-      const confirmed = confirm(`Are you sure you want to mark this submission as ${decision}?`);
-      if (!confirmed) return;
-
       try {
         const { error } = await supabaseClient.rpc('admin_review_participation', {
           p_participation_id: participationId,
           p_decision: decision
         });
-
         if (error) throw error;
-
-        showToast(`Submission ${decision}.`);
-        await loadAdminDashboard();
-      } catch (error) {
-        console.error('Review action failed:', error);
-        showToast(`Could not review submission: ${error.message}`);
+        showToast(`Participation ${decision} successfully.`);
+        await loadAdminParticipationsTable();
+      } catch (e) {
+        showToast('Review failed: ' + e.message);
       }
     }
 
-    // ------------------------------------------------------------
-    // ADMIN: ADD AND MANAGE QUESTIONS
-    // ------------------------------------------------------------
-    async function loadAdminQuestionSurveyOptions() {
-      const select = document.getElementById('manage-questions-survey');
-      if (!select) return;
-
-      const previous = select.value;
+    // Answers modal
+    async function showAnswersModal(participationId) {
+      const overlay = document.getElementById('answers-modal');
+      const body = document.getElementById('answers-modal-body');
+      overlay.classList.add('open');
+      body.innerHTML = '<div class="spinner"></div>';
 
       try {
         const { data, error } = await supabaseClient
-          .from('surveys')
-          .select('id, title, hosting_type')
-          .order('created_at', { ascending: false });
+          .from('survey_answers')
+          .select('answer_text, answer_number, answer_boolean, survey_questions(question_text, question_type)')
+          .eq('participation_id', participationId);
 
         if (error) throw error;
 
-        const nativeSurveys = (data || []).filter(isNativeSurvey);
-
-        select.innerHTML =
-          '<option value="">Select a native survey</option>' +
-          nativeSurveys.map(survey =>
-            `<option value="${escapeHtml(survey.id)}">${escapeHtml(survey.title)}</option>`
-          ).join('');
-
-        if (nativeSurveys.some(s => s.id === previous)) {
-          select.value = previous;
+        if (!data || data.length === 0) {
+          body.innerHTML = '<p style="color:var(--muted);font-size:13px;">No answers recorded for this participation (may be an external survey).</p>';
+          return;
         }
 
-        document.getElementById('existing-question-form')
-          .classList.toggle('hidden', !select.value);
-
-        if (select.value) await loadQuestionsForAdmin();
-      } catch (error) {
-        console.error('Loading question survey options failed:', error);
+        body.innerHTML = data.map(a => {
+          let display = '—';
+          if (a.survey_questions) {
+            const t = a.survey_questions.question_type;
+            if (t === 'short_text' || t === 'multiple_choice') display = a.answer_text || '—';
+            else if (t === 'rating') display = a.answer_number != null ? `${a.answer_number} / 5` : '—';
+            else if (t === 'yes_no') display = a.answer_boolean === true ? 'Yes' : a.answer_boolean === false ? 'No' : '—';
+          }
+          return `<div class="answer-item">
+            <strong>${escapeHtml(a.survey_questions ? a.survey_questions.question_text : 'Question')}</strong>
+            <span>${escapeHtml(display)}</span>
+          </div>`;
+        }).join('');
+      } catch (e) {
+        body.innerHTML = `<p style="color:#a52b26;font-size:13px;">Could not load answers: ${escapeHtml(e.message)}</p>`;
       }
     }
 
-    function selectSurveyQuestions(surveyId) {
-      const select = document.getElementById('manage-questions-survey');
-      select.value = surveyId;
-      document.getElementById('existing-question-form').classList.remove('hidden');
-      loadQuestionsForAdmin();
-      document.getElementById('manage-questions-survey').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    function closeAnswersModal() {
+      document.getElementById('answers-modal').classList.remove('open');
     }
 
-    async function loadQuestionsForAdmin() {
-      const surveyId = document.getElementById('manage-questions-survey').value;
-      const container = document.getElementById('manage-questions-list');
-      const form = document.getElementById('existing-question-form');
+    function handleAnswersOverlayClick(event) {
+      if (event.target === document.getElementById('answers-modal')) closeAnswersModal();
+    }
 
-      form.classList.toggle('hidden', !surveyId);
+    async function handleCreateSurvey(e) {
+      e.preventDefault();
+      const title = document.getElementById('admin-title').value.trim();
+      const category = document.getElementById('admin-category').value;
+      const description = document.getElementById('admin-description').value.trim();
+      const estimated_minutes = parseInt(document.getElementById('admin-duration').value, 10);
+      const status = document.getElementById('admin-status').value;
+      const hostingType = document.getElementById('admin-hosting-type').value;
+      const survey_url = document.getElementById('admin-url').value.trim();
+      const eligibility = document.getElementById('admin-eligibility').value.trim();
+      const instructions = document.getElementById('admin-instructions').value.trim();
+      const noticeEl = document.getElementById('admin-create-notice');
+      const submitBtn = document.getElementById('admin-submit-btn');
 
-      if (!surveyId) {
-        container.innerHTML = '';
+      noticeEl.className = 'notice';
+      noticeEl.textContent = '';
+
+      if (hostingType === 'external' && !survey_url.startsWith('https://')) {
+        noticeEl.className = 'notice show error';
+        noticeEl.textContent = 'External surveys require a valid HTTPS URL.';
         return;
       }
+      if (isNaN(estimated_minutes) || estimated_minutes <= 0) {
+        noticeEl.className = 'notice show error';
+        noticeEl.textContent = 'Estimated duration must be a positive number of minutes.';
+        return;
+      }
+
+      // Collect questions for native surveys
+      let questions = [];
+      if (hostingType === 'native') {
+        const rows = document.querySelectorAll('#admin-questions-list .admin-question-row');
+        for (const [i, row] of [...rows].entries()) {
+          const qtext = row.querySelector('.q-text').value.trim();
+          const qtype = row.querySelector('.q-type').value;
+          const qreq = row.querySelector('.q-required').value === 'true';
+          const optsRaw = row.querySelector('.q-options').value.trim();
+
+          if (!qtext) {
+            noticeEl.className = 'notice show error';
+            noticeEl.textContent = 'All questions must have text.';
+            return;
+          }
+          if (qtype === 'multiple_choice' && !optsRaw) {
+            noticeEl.className = 'notice show error';
+            noticeEl.textContent = 'Multiple-choice questions require at least one option.';
+            return;
+          }
+          const options = qtype === 'multiple_choice'
+            ? optsRaw.split(',').map(o => o.trim()).filter(Boolean)
+            : [];
+          questions.push({ text: qtext, type: qtype, required: qreq, options, order_index: i });
+        }
+        if (questions.length === 0) {
+          noticeEl.className = 'notice show error';
+          noticeEl.textContent = 'Native surveys must have at least one question.';
+          return;
+        }
+      }
+
+      submitBtn.disabled = true;
 
       try {
-        const { data, error } = await supabaseClient
-          .from('survey_questions')
-          .select('*')
-          .eq('survey_id', surveyId)
-          .order('position', { ascending: true });
-
-        if (error) throw error;
-
-        container.innerHTML = data?.length
-          ? data.map((question, index) => `
-            <div class="question-card">
-              <strong>${index + 1}. ${escapeHtml(question.question_text)}</strong>
-              <p class="muted">${escapeHtml(question.question_type)} · ${question.is_required ? 'Required' : 'Optional'}</p>
-              ${Array.isArray(question.options) && question.options.length
-                ? `<p>${question.options.map(escapeHtml).join(' · ')}</p>`
-                : ''}
-              <button class="btn btn-danger btn-small" onclick="deleteQuestion('${escapeHtml(question.id)}')">Delete question</button>
-            </div>
-          `).join('')
-          : '<div class="empty">No questions added to this survey yet.</div>';
-      } catch (error) {
-        console.error('Loading survey questions failed:', error);
-        container.innerHTML = `<div class="notice error">${escapeHtml(error.message)}</div>`;
-      }
-    }
-
-    function updateExistingQuestionOptions() {
-      const type = document.getElementById('existing-question-type').value;
-      const needsOptions = type === 'multiple_choice';
-      const field = document.getElementById('existing-question-options-field');
-      const input = document.getElementById('existing-question-options');
-
-      field.classList.toggle('hidden', !needsOptions);
-      input.required = needsOptions;
-    }
-
-    async function addQuestionToExistingSurvey() {
-      if (!isAdmin) return;
-
-      const surveyId = document.getElementById('manage-questions-survey').value;
-      const question_text = document.getElementById('existing-question-text').value.trim();
-      const question_type = document.getElementById('existing-question-type').value;
-      const is_required = document.getElementById('existing-question-required').value === 'true';
-      const optionsText = document.getElementById('existing-question-options').value;
-
-      if (!surveyId || !question_text) {
-        showToast('Select a survey and enter question text.');
-        return;
-      }
-
-      const options = question_type === 'multiple_choice'
-        ? optionsText.split('\n').map(option => option.trim()).filter(Boolean)
-        : [];
-
-      if (question_type === 'multiple_choice' && options.length < 2) {
-        showToast('Add at least two answer options.');
-        return;
-      }
-
-      try {
-        const { data: currentQuestions, error: listError } = await supabaseClient
-          .from('survey_questions')
-          .select('position')
-          .eq('survey_id', surveyId);
-
-        if (listError) throw listError;
-
-        const position = Math.max(0, ...(currentQuestions || []).map(q => Number(q.position) || 0)) + 1;
-
-        const { error } = await supabaseClient
-          .from('survey_questions')
+        const { data: surveyData, error: surveyError } = await supabaseClient
+          .from('surveys')
           .insert([{
-            survey_id: surveyId,
-            question_text,
-            question_type,
-            options,
-            is_required,
-            position
-          }]);
+            title,
+            category,
+            description,
+            estimated_minutes,
+            duration: `${estimated_minutes} mins`,
+            status,
+            survey_url: hostingType === 'external' ? survey_url : null,
+            eligibility,
+            instructions,
+            hosting_type: hostingType
+          }])
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (surveyError) throw surveyError;
 
-        document.getElementById('existing-question-text').value = '';
-        document.getElementById('existing-question-options').value = '';
-        showToast('Question added.');
-        await loadQuestionsForAdmin();
-      } catch (error) {
-        console.error('Adding question failed:', error);
-        showToast(`Could not add question: ${error.message}`);
+        if (hostingType === 'native' && questions.length > 0) {
+          const questionInserts = questions.map(q => ({
+            survey_id: surveyData.id,
+            question_text: q.text,
+            question_type: q.type,
+            required: q.required,
+            options: q.options,
+            order_index: q.order_index
+          }));
+          const { error: qError } = await supabaseClient
+            .from('survey_questions')
+            .insert(questionInserts);
+          if (qError) throw qError;
+        }
+
+        noticeEl.className = 'notice show success';
+        noticeEl.textContent = 'Survey successfully created and saved to database!';
+        showToast('Survey published successfully.');
+
+        e.target.reset();
+        document.getElementById('admin-questions-list').innerHTML = '';
+        toggleAdminSurveyFields();
+        await fetchAndRenderSurveys();
+        await loadAdminSurveysTable();
+      } catch (err) {
+        noticeEl.className = 'notice show error';
+        noticeEl.textContent = 'Error creating survey: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
       }
     }
 
-    async function deleteQuestion(questionId) {
-      if (!isAdmin || !confirm('Delete this question? Existing answers for this question may also be deleted.')) {
-        return;
-      }
-
+    async function toggleSurveyStatus(surveyId, newStatus) {
       try {
         const { error } = await supabaseClient
-          .from('survey_questions')
-          .delete()
-          .eq('id', questionId);
+          .from('surveys')
+          .update({ status: newStatus })
+          .eq('id', surveyId);
+        if (error) throw error;
+        showToast(`Survey status updated to ${newStatus}`);
+        await fetchAndRenderSurveys();
+        await loadAdminSurveysTable();
+      } catch (e) {
+        showToast('Failed to update status: ' + e.message);
+      }
+    }
+
+    // Auth modals
+    function openAuth(mode) {
+      document.getElementById('auth-overlay').classList.add('open');
+      switchAuthMode(mode);
+      clearAuthNotices();
+    }
+
+    function closeAuth() {
+      document.getElementById('auth-overlay').classList.remove('open');
+    }
+
+    function handleOverlayClick(event) {
+      if (event.target === document.getElementById('auth-overlay')) closeAuth();
+    }
+
+    function switchAuthMode(mode) {
+      clearAuthNotices();
+      const signinForm = document.getElementById('form-signin');
+      const signupForm = document.getElementById('form-signup');
+      if (mode === 'signin') {
+        signinForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+      } else {
+        signinForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+      }
+    }
+
+    function showNotice(msg, type) {
+      const n = document.getElementById('auth-notice');
+      n.className = `notice show ${type}`;
+      n.textContent = msg;
+    }
+
+    function clearAuthNotices() {
+      const n = document.getElementById('auth-notice');
+      n.className = 'notice';
+      n.textContent = '';
+    }
+
+    async function submitSignIn(e) {
+      e.preventDefault();
+      if (!supabaseClient) { showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error'); return; }
+      const email = document.getElementById('signin-email').value.trim();
+      const password = document.getElementById('signin-password').value;
+      const submitBtn = document.getElementById('signin-submit-btn');
+
+      submitBtn.disabled = true;
+      clearAuthNotices();
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        currentUser = data.user;
+        await checkAdminStatus();
+        updateAuthUI();
+        closeAuth();
+        showToast(`Welcome back, ${currentUser.email}!`);
+      } catch (err) {
+        showNotice(friendlyAuthError(err), 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    }
+
+    async function submitSignUp(e) {
+      e.preventDefault();
+      if (!supabaseClient) { showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error'); return; }
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const submitBtn = document.getElementById('signup-submit-btn');
+
+      submitBtn.disabled = true;
+      clearAuthNotices();
+
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name, name: name } }
+        });
 
         if (error) throw error;
 
-        showToast('Question deleted.');
-        await loadQuestionsForAdmin();
-      } catch (error) {
-        console.error('Delete question failed:', error);
-        showToast(`Could not delete question: ${error.message}`);
+        if (data && data.session) {
+          currentUser = data.session.user;
+          await checkAdminStatus();
+          updateAuthUI();
+          closeAuth();
+          showToast(`Account created successfully. Karibu, ${name}!`);
+        } else {
+          showNotice('Account created successfully! Please check your email inbox to confirm your registration before signing in.', 'success');
+          showToast('Registration verification email sent.');
+        }
+      } catch (err) {
+        showNotice(friendlyAuthError(err), 'error');
+      } finally {
+        submitBtn.disabled = false;
       }
+    }
+
+    async function submitPasswordReset() {
+      if (!supabaseClient) { showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error'); return; }
+      const email = document.getElementById('signin-email').value.trim();
+      if (!email) { showNotice('Please enter your email address above to reset password.', 'error'); return; }
+      try {
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.href
+        });
+        if (error) throw error;
+        showNotice('Password recovery instructions sent to your email.', 'info');
+      } catch (err) {
+        showNotice(friendlyAuthError(err), 'error');
+      }
+    }
+
+    async function signOut() {
+      try {
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        currentUser = null;
+        isAdmin = false;
+        updateAuthUI();
+        navigate('home');
+        showToast('Signed out successfully.');
+      } catch (e) {
+        console.error('Sign out error:', e);
+      }
+    }
+
+    async function updateAuthUI() {
+      const guestActions = document.getElementById('auth-guest-actions');
+      const userActions = document.getElementById('auth-user-actions');
+      const greeting = document.getElementById('user-greeting');
+      const adminLink = document.getElementById('nav-admin-link');
+
+      if (currentUser) {
+        guestActions.classList.add('hidden');
+        guestActions.style.display = 'none';
+        userActions.classList.remove('hidden');
+        userActions.style.display = 'flex';
+        greeting.textContent = `Hi, ${currentUser.email.split('@')[0]}`;
+        if (isAdmin) adminLink.classList.remove('hidden');
+        else adminLink.classList.add('hidden');
+      } else {
+        userActions.classList.add('hidden');
+        userActions.style.display = 'none';
+        guestActions.classList.remove('hidden');
+        guestActions.style.display = 'flex';
+        adminLink.classList.add('hidden');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(message) {
+      const t = document.getElementById('toast');
+      t.textContent = message;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
     }
   </script>
 </body>
