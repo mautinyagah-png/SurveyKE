@@ -1391,11 +1391,47 @@
 
   <!-- Application Logic & Supabase Integration -->
   <script>
-    // Initialize Supabase Client with your genuine project URL and publishable anon key from Supabase Dashboard
+    // Supabase project settings.
+    // FIX: the previous value here was a placeholder JWT (its signature ended in "EXAMPLE_KEY_ANON" and its
+    // embedded project reference "histfhwiijzzteuhewv" did not match this project "hisstfhwiijzzteuhewv"),
+    // so Supabase rejected every request with "Invalid API key".
+    // This is the publishable key that was already in your original SurveyKE page.
+    // Compare it with: Supabase Dashboard -> Project Settings -> API Keys -> Publishable key.
+    // Never put a secret / service_role key in this file.
     const SUPABASE_URL = 'https://hisstfhwiijzzteuhewv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc3RmaHdpaWp6enRldWhld3YiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyNDMxMDAwMCwiZXhwIjoyMDM5ODg2MDAwfQ.EXAMPLE_KEY_ANON';
-    
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WWKlyx2hD9nH3p22Hl-dAw_XfixoKCQ';
+
+    // One single client, used by every function below. It is created only if the library loaded.
+    let supabaseClient = null;
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      } else {
+        console.error('Supabase library did not load (check your internet connection or ad-blocker).');
+      }
+    } catch (e) {
+      console.error('Could not create the Supabase client:', e);
+    }
+
+    const AUTH_UNAVAILABLE_MESSAGE = 'The sign-in service could not load. Check your internet connection, turn off any blocker for this site, and refresh the page.';
+
+    // Turns Supabase auth errors into clear messages (never prints the key).
+    function friendlyAuthError(err) {
+      const message = (err && err.message) ? err.message : 'Something went wrong. Please try again.';
+      if (/invalid api key|invalid key|apikey/i.test(message)) {
+        return 'Sign-in is temporarily unavailable because of a site configuration problem. Please contact SurveyKE support.';
+      }
+      if (/invalid login credentials/i.test(message)) {
+        return 'The email or password is incorrect.';
+      }
+      if (/email not confirmed/i.test(message)) {
+        return 'Your email is not confirmed yet. Open the confirmation link in your email, then sign in.';
+      }
+      if (/failed to fetch|networkerror|load failed/i.test(message)) {
+        return 'We could not reach the authentication service. Check your internet connection and try again.';
+      }
+      return message;
+    }
 
     // App State
     let currentView = 'home';
@@ -1407,10 +1443,21 @@
 
     // Initialize App
     document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session && session.user) {
-        currentUser = session.user;
-        await checkAdminStatus();
+      if (!supabaseClient) {
+        updateAuthUI();
+        renderHomeSurveys();
+        renderDirectorySurveys();
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          await checkAdminStatus();
+        }
+      } catch (e) {
+        console.error('Could not read the saved session:', e);
       }
 
       updateAuthUI();
@@ -1937,6 +1984,10 @@
 
     async function submitSignIn(e) {
       e.preventDefault();
+      if (!supabaseClient) {
+        showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error');
+        return;
+      }
       const email = document.getElementById('signin-email').value.trim();
       const password = document.getElementById('signin-password').value;
       const submitBtn = document.getElementById('signin-submit-btn');
@@ -1955,7 +2006,7 @@
         closeAuth();
         showToast(`Welcome back, ${currentUser.email}!`);
       } catch (err) {
-        showNotice(err.message, 'error');
+        showNotice(friendlyAuthError(err), 'error');
       } finally {
         submitBtn.disabled = false;
         submitBtn.classList.remove('loading');
@@ -1964,6 +2015,10 @@
 
     async function submitSignUp(e) {
       e.preventDefault();
+      if (!supabaseClient) {
+        showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error');
+        return;
+      }
       const name = document.getElementById('signup-name').value.trim();
       const email = document.getElementById('signup-email').value.trim();
       const password = document.getElementById('signup-password').value;
@@ -1995,7 +2050,7 @@
           showToast('Registration verification email sent.');
         }
       } catch (err) {
-        showNotice(err.message, 'error');
+        showNotice(friendlyAuthError(err), 'error');
       } finally {
         submitBtn.disabled = false;
         submitBtn.classList.remove('loading');
@@ -2003,6 +2058,10 @@
     }
 
     async function submitPasswordReset() {
+      if (!supabaseClient) {
+        showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error');
+        return;
+      }
       const email = document.getElementById('signin-email').value.trim();
       if (!email) {
         showNotice('Please enter your email address above to reset password.', 'error');
@@ -2015,13 +2074,13 @@
         if (error) throw error;
         showNotice('Password recovery instructions sent to your email.', 'info');
       } catch (err) {
-        showNotice(err.message, 'error');
+        showNotice(friendlyAuthError(err), 'error');
       }
     }
 
     async function signOut() {
       try {
-        await supabaseClient.auth.signOut();
+        if (supabaseClient) await supabaseClient.auth.signOut();
         currentUser = null;
         isAdmin = false;
         updateAuthUI();
@@ -2074,7 +2133,6 @@
     function showToast(message) {
       const t = document.getElementById('toast');
       t.textContent = message;
-      t.classList.toggled = true;
       t.classList.add('show');
       setTimeout(() => {
         t.classList.remove('show');
