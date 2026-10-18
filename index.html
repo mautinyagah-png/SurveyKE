@@ -1380,8 +1380,7 @@
       }
     }
 
-    // Fetch surveys from Supabase — NO URL-content filtering.
-    // Visibility is determined solely by `status = 'published'`.
+    // Fetch surveys from Supabase — visibility is driven by status only.
     async function fetchAndRenderSurveys() {
       try {
         const { data, error } = await supabaseClient
@@ -1427,7 +1426,7 @@
           <h3>${escapeHtml(s.title)}</h3>
           <p class="clamp">${escapeHtml(s.description || '')}</p>
           <div class="meta-row">
-            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || '5')} mins</span>
           </div>
           <div class="card-bottom">
             <span class="small-note">Verified Survey</span>
@@ -1465,7 +1464,7 @@
           <h3>${escapeHtml(s.title)}</h3>
           <p class="clamp">${escapeHtml(s.description || '')}</p>
           <div class="meta-row">
-            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || '5')} mins</span>
           </div>
           <div class="card-bottom">
             <span class="small-note">Open opportunity</span>
@@ -1530,7 +1529,7 @@
           <h1>${escapeHtml(survey.title)}</h1>
 
           <div class="meta-row" style="margin-bottom: 16px;">
-            <span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.estimated_minutes || survey.duration || '5')} mins</span>
+            <span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.estimated_minutes || '5')} mins</span>
           </div>
 
           <p class="detail-text">${escapeHtml(survey.description || '')}</p>
@@ -1901,7 +1900,7 @@
                     <td><strong>${escapeHtml(s.title)}</strong><br><small style="color:var(--muted);">${escapeHtml(s.survey_url || '')}</small></td>
                     <td>${escapeHtml(s.category || '')}</td>
                     <td>${type}</td>
-                    <td>${escapeHtml(String(s.estimated_minutes || s.duration || '5'))} mins</td>
+                    <td>${escapeHtml(String(s.estimated_minutes || '5'))} mins</td>
                     <td><span class="status-chip">${escapeHtml(s.status)}</span></td>
                     <td>
                       <button class="btn btn-outline btn-sm" onclick="toggleSurveyStatus('${s.id}', '${s.status === 'published' ? 'closed' : 'published'}')">
@@ -2095,6 +2094,7 @@
       submitBtn.disabled = true;
 
       try {
+        // FIX: only `estimated_minutes` is sent — no `duration` column exists on public.surveys.
         const { data: surveyData, error: surveyError } = await supabaseClient
           .from('surveys')
           .insert([{
@@ -2102,7 +2102,6 @@
             category,
             description,
             estimated_minutes,
-            duration: `${estimated_minutes} mins`,
             status,
             survey_url: hostingType === 'external' ? survey_url : null,
             eligibility,
