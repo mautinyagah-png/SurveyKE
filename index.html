@@ -1002,7 +1002,7 @@
           <!-- Add New Survey Card -->
           <div class="admin-panel-card">
             <h3>Add New Survey</h3>
-            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Create a native SurveyKE survey with built-in questions, or publish an external survey with an HTTPS link.</p>
+            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Create an internal SurveyKE survey with built-in questions, or publish an external survey with an HTTPS link.</p>
 
             <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
@@ -1046,7 +1046,7 @@
                   <label>Survey Type *</label>
                   <select id="admin-hosting-type" style="padding-left: 13px;" onchange="toggleAdminSurveyFields()" required>
                     <option value="external">External (hosted elsewhere)</option>
-                    <option value="native">Native (hosted on SurveyKE)</option>
+                    <option value="internal">Internal (hosted on SurveyKE)</option>
                   </select>
                 </div>
               </div>
@@ -1503,7 +1503,8 @@
         return;
       }
 
-      const isNative = survey.hosting_type === 'native';
+      // FIX: internal surveys now use the DB-allowed value 'internal' (not 'native').
+      const isInternal = survey.hosting_type === 'internal';
 
       let eligibilityHTML = survey.eligibility ? `
         <div class="detail-section">
@@ -1538,12 +1539,12 @@
           ${instructionsHTML}
 
           <div class="participate-box" id="participate-box">
-            ${isNative ? renderNativeSurveyForm(survey) : renderExternalSurveyAction(survey)}
+            ${isInternal ? renderNativeSurveyForm(survey) : renderExternalSurveyAction(survey)}
           </div>
         </div>
       `;
 
-      if (isNative) {
+      if (isInternal) {
         attachNativeSurveySubmitHandler(survey.id);
       }
     }
@@ -1609,7 +1610,7 @@
       }
     }
 
-    // Native survey form (participant)
+    // Internal survey form (participant)
     function renderNativeSurveyForm(survey) {
       return `
         <h3>Participate in this Survey</h3>
@@ -1802,13 +1803,13 @@
       await loadAdminParticipationsTable();
     }
 
-    // Toggle admin URL vs question builder based on survey type
+    // FIX: the dropdown now uses value="internal" to match the DB check constraint.
     function toggleAdminSurveyFields() {
       const type = document.getElementById('admin-hosting-type').value;
       const urlField = document.getElementById('admin-url-field');
       const builder = document.getElementById('admin-question-builder');
 
-      if (type === 'native') {
+      if (type === 'internal') {
         urlField.classList.add('hidden');
         builder.classList.remove('hidden');
       } else {
@@ -1894,7 +1895,7 @@
               </thead>
               <tbody>
                 ${data.map(s => {
-                  const type = s.hosting_type === 'native' ? 'Native' : 'External';
+                  const type = s.hosting_type === 'internal' ? 'Internal' : 'External';
                   return `
                   <tr>
                     <td><strong>${escapeHtml(s.title)}</strong><br><small style="color:var(--muted);">${escapeHtml(s.survey_url || '')}</small></td>
@@ -2048,6 +2049,13 @@
       noticeEl.className = 'notice';
       noticeEl.textContent = '';
 
+      // Guard: DB constraint only allows 'internal' and 'external'.
+      if (!['internal', 'external'].includes(hostingType)) {
+        noticeEl.className = 'notice show error';
+        noticeEl.textContent = 'Invalid survey type selected.';
+        return;
+      }
+
       if (hostingType === 'external' && !survey_url.startsWith('https://')) {
         noticeEl.className = 'notice show error';
         noticeEl.textContent = 'External surveys require a valid HTTPS URL.';
@@ -2059,9 +2067,9 @@
         return;
       }
 
-      // Collect questions for native surveys
+      // Collect questions for internal surveys
       let questions = [];
-      if (hostingType === 'native') {
+      if (hostingType === 'internal') {
         const rows = document.querySelectorAll('#admin-questions-list .admin-question-row');
         for (const [i, row] of [...rows].entries()) {
           const qtext = row.querySelector('.q-text').value.trim();
@@ -2086,7 +2094,7 @@
         }
         if (questions.length === 0) {
           noticeEl.className = 'notice show error';
-          noticeEl.textContent = 'Native surveys must have at least one question.';
+          noticeEl.textContent = 'Internal surveys must have at least one question.';
           return;
         }
       }
@@ -2094,7 +2102,7 @@
       submitBtn.disabled = true;
 
       try {
-        // FIX: only `estimated_minutes` is sent — no `duration` column exists on public.surveys.
+        // FIX: only `estimated_minutes` is sent, and hosting_type is now 'internal' or 'external'.
         const { data: surveyData, error: surveyError } = await supabaseClient
           .from('surveys')
           .insert([{
@@ -2113,7 +2121,7 @@
 
         if (surveyError) throw surveyError;
 
-        if (hostingType === 'native' && questions.length > 0) {
+        if (hostingType === 'internal' && questions.length > 0) {
           const questionInserts = questions.map(q => ({
             survey_id: surveyData.id,
             question_text: q.text,
