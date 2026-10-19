@@ -1625,7 +1625,7 @@
     }
 
     async function attachNativeSurveySubmitHandler(surveyId) {
-      // FIX: survey_questions has no order_index / required columns.
+      // survey_questions has no order_index / required columns.
       // required + order_index are packed inside `options` JSONB.
       const { data: rawQuestions, error } = await supabaseClient
         .from('survey_questions')
@@ -1748,7 +1748,7 @@
           .select('id')
           .eq('survey_id', surveyId)
           .eq('user_id', currentUser.id)
-          .eq('status', 'submitted')
+          .eq('status', 'under_review')
           .maybeSingle();
 
         if (existing) {
@@ -1764,7 +1764,7 @@
           .insert([{
             survey_id: surveyId,
             user_id: currentUser.id,
-            status: 'submitted',
+            status: 'under_review',
             review_status: 'pending'
           }])
           .select()
@@ -2134,7 +2134,7 @@
         if (surveyError) throw surveyError;
 
         if (hostingType === 'internal' && questions.length > 0) {
-          // FIX: survey_questions has only (id, survey_id, question_text, question_type, options).
+          // survey_questions has only (id, survey_id, question_text, question_type, options).
           // Pack `required` and `order_index` into the JSONB `options` column.
           const questionInserts = questions.map(q => ({
             survey_id: surveyData.id,
