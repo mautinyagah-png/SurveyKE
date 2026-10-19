@@ -1503,7 +1503,6 @@
         return;
       }
 
-      // FIX: internal surveys now use the DB-allowed value 'internal' (not 'native').
       const isInternal = survey.hosting_type === 'internal';
 
       let eligibilityHTML = survey.eligibility ? `
@@ -1626,23 +1625,38 @@
     }
 
     async function attachNativeSurveySubmitHandler(surveyId) {
-      const { data: questions, error } = await supabaseClient
+      // FIX: survey_questions has no order_index / required columns.
+      // required + order_index are packed inside `options` JSONB.
+      const { data: rawQuestions, error } = await supabaseClient
         .from('survey_questions')
         .select('*')
-        .eq('survey_id', surveyId)
-        .order('order_index', { ascending: true });
+        .eq('survey_id', surveyId);
 
-      if (error || !questions) {
+      if (error || !rawQuestions) {
         document.getElementById('native-questions-container').innerHTML =
           `<p style="color: #a52b26; font-size: 13px;">Could not load questions. ${escapeHtml(error ? error.message : '')}</p>`;
         return;
       }
 
-      if (questions.length === 0) {
+      if (rawQuestions.length === 0) {
         document.getElementById('native-questions-container').innerHTML =
           `<p style="color: var(--muted); font-size: 13px;">This survey has no questions configured yet.</p>`;
         return;
       }
+
+      const questions = rawQuestions.map(q => {
+        const meta = (q.options && typeof q.options === 'object' && !Array.isArray(q.options))
+          ? q.options
+          : { choices: Array.isArray(q.options) ? q.options : [], required: true, order_index: 0 };
+        return {
+          id: q.id,
+          question_text: q.question_text,
+          question_type: q.question_type,
+          required: meta.required !== false,
+          options: Array.isArray(meta.choices) ? meta.choices : [],
+          order_index: typeof meta.order_index === 'number' ? meta.order_index : 0
+        };
+      }).sort((a, b) => a.order_index - b.order_index);
 
       const container = document.getElementById('native-questions-container');
       container.innerHTML = questions.map(q => {
@@ -1803,7 +1817,6 @@
       await loadAdminParticipationsTable();
     }
 
-    // FIX: the dropdown now uses value="internal" to match the DB check constraint.
     function toggleAdminSurveyFields() {
       const type = document.getElementById('admin-hosting-type').value;
       const urlField = document.getElementById('admin-url-field');
@@ -2049,7 +2062,6 @@
       noticeEl.className = 'notice';
       noticeEl.textContent = '';
 
-      // Guard: DB constraint only allows 'internal' and 'external'.
       if (!['internal', 'external'].includes(hostingType)) {
         noticeEl.className = 'notice show error';
         noticeEl.textContent = 'Invalid survey type selected.';
@@ -2102,7 +2114,7 @@
       submitBtn.disabled = true;
 
       try {
-        // FIX: only `estimated_minutes` is sent, and hosting_type is now 'internal' or 'external'.
+        // Only `estimated_minutes` is sent — no `duration` column exists on public.surveys.
         const { data: surveyData, error: surveyError } = await supabaseClient
           .from('surveys')
           .insert([{
@@ -2122,13 +2134,17 @@
         if (surveyError) throw surveyError;
 
         if (hostingType === 'internal' && questions.length > 0) {
+          // FIX: survey_questions has only (id, survey_id, question_text, question_type, options).
+          // Pack `required` and `order_index` into the JSONB `options` column.
           const questionInserts = questions.map(q => ({
             survey_id: surveyData.id,
             question_text: q.text,
             question_type: q.type,
-            required: q.required,
-            options: q.options,
-            order_index: q.order_index
+            options: {
+              choices: q.type === 'multiple_choice' ? q.options : [],
+              required: q.required,
+              order_index: q.order_index
+            }
           }));
           const { error: qError } = await supabaseClient
             .from('survey_questions')
