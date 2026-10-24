@@ -1,5 +1,5 @@
 // ================================================================
-// SurveyKE — admin user management, participation tabs, no admin participation
+// SurveyKE — admin user column + profile notifications
 // ================================================================
 
 const STORE_USERS          = 'surveyke_users';
@@ -104,6 +104,51 @@ function shareReferralLink() {
   const text = "Join me on SurveyKE — share your voice and shape Kenya's future!";
   if (navigator.share) { navigator.share({ title: 'SurveyKE', text: text, url: link }).catch(function() {}); }
   else { fallbackCopy(link); showToast('Link copied to share.'); }
+}
+
+// ---------- Notifications ----------
+function getUnreadNotificationsCount() {
+  if (!currentUser) return 0;
+  const users = readStore(STORE_USERS, []);
+  const user = users.find(function(u) { return u.id === currentUser.id; });
+  if (!user) return 0;
+  const readAt = user.notifications_read_at || 0;
+  const parts = readStore(STORE_PARTICIPATIONS, []);
+  return parts.filter(function(p) {
+    if (p.user_id !== currentUser.id) return false;
+    if (p.review_status !== 'approved' && p.review_status !== 'rejected') return false;
+    return (p.reviewed_at || 0) > readAt;
+  }).length;
+}
+function markNotificationsRead() {
+  if (!currentUser) return;
+  const users = readStore(STORE_USERS, []);
+  const idx = users.findIndex(function(u) { return u.id === currentUser.id; });
+  if (idx === -1) return;
+  users[idx].notifications_read_at = Date.now();
+  writeStore(STORE_USERS, users);
+}
+function getRecentReviews(limit) {
+  if (!currentUser) return [];
+  limit = limit || 5;
+  const allSurveys = readStore(STORE_SURVEYS, []);
+  const parts = readStore(STORE_PARTICIPATIONS, []);
+  return parts
+    .filter(function(p) {
+      return p.user_id === currentUser.id && (p.review_status === 'approved' || p.review_status === 'rejected');
+    })
+    .sort(function(a, b) { return (b.reviewed_at || 0) - (a.reviewed_at || 0); })
+    .slice(0, limit)
+    .map(function(p) {
+      const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
+      return {
+        id: p.id,
+        title: s ? s.title : 'Deleted survey',
+        status: p.review_status,
+        reward: s ? (s.reward || 0) : 0,
+        reviewedAt: p.reviewed_at
+      };
+    });
 }
 
 // ---------- Daily tracking ----------
@@ -231,6 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
   restoreSession();
   ensureDailyReset();
   fetchAndRenderSurveys();
+  refreshNavBadges();
 });
 
 // ---------- Navigation ----------
@@ -254,10 +300,28 @@ function navigate(viewName, param) {
     renderAdminDashboard(); updateBottomNav(null);
   }
 }
+function getCurrentTab() {
+  if (currentView === 'home') return 'home';
+  if (currentView === 'surveys' || currentView === 'detail' || currentView === 'take-survey') return 'surveys';
+  if (currentView === 'wallet') return 'wallet';
+  if (currentView === 'profile' || currentView === 'settings') return 'profile';
+  return null;
+}
+function refreshNavBadges() {
+  updateBottomNav(getCurrentTab());
+}
 function updateBottomNav(tab) {
   document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
     if (item.dataset.tab === tab) item.classList.add('active');
     else item.classList.remove('active');
+    if (item.dataset.tab === 'profile') {
+      const count = getUnreadNotificationsCount();
+      let badge = item.querySelector('.nav-badge');
+      if (count > 0) {
+        if (!badge) { badge = document.createElement('span'); badge.className = 'nav-badge'; item.appendChild(badge); }
+        badge.textContent = count > 9 ? '9+' : String(count);
+      } else if (badge) { badge.remove(); }
+    }
   });
 }
 
@@ -658,6 +722,8 @@ function renderProfile() {
     container.innerHTML = '<div class="profile-card"><div class="profile-avatar-container guest"><span class="initial">?</span></div><h2>Welcome to SurveyKE</h2><p class="profile-description">Sign in or create an account to start earning. New accounts start on the free Basic plan.</p><div class="profile-actions"><button class="btn btn-primary btn-block" onclick="openAuth(\'signin\')">Sign In</button><button class="btn btn-outline btn-block" onclick="openAuth(\'signup\')">Create Account</button></div><div class="profile-actions"><button class="btn btn-outline btn-block" onclick="navigate(\'settings\')"><svg style="width:16px;height:16px;"><use href="#i-settings"/></svg>Settings</button></div></div>';
     return;
   }
+
+  const unreadCount = getUnreadNotificationsCount();
   const users = readStore(STORE_USERS, []);
   const stored = users.find(function(u) { return u.id === currentUser.id; }) || {};
   const avatar = stored.avatar || null;
@@ -670,6 +736,34 @@ function renderProfile() {
   const initial = (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase();
   const avatarHTML = avatar ? '<img src="' + escapeHtml(avatar) + '" alt="Avatar">' : '<span class="initial">' + escapeHtml(initial) + '</span>';
 
+  const reviews = getRecentReviews(5);
+
+  let notificationsHTML = '';
+  if (!isAdmin) {
+    if (unreadCount > 0) {
+      notificationsHTML += '<div class="profile-notif-banner"><svg><use href="#i-zap"/></svg><div><strong>You have ' + unreadCount + ' new ' + (unreadCount === 1 ? 'review' : 'reviews') + '!</strong><small>Your survey submissions have been updated. Check the list below.</small></div></div>';
+    }
+    notificationsHTML += '<div class="notifications-card">';
+    notificationsHTML += '<div class="notifications-header"><strong>Recent Reviews</strong>' + (unreadCount > 0 ? '<span class="new-pill">' + unreadCount + ' new</span>' : '') + '</div>';
+    if (reviews.length === 0) {
+      notificationsHTML += '<div class="notifications-empty">Your reviews will appear here once an admin approves or rejects your submissions.</div>';
+    } else {
+      notificationsHTML += '<div class="notification-list">';
+      reviews.forEach(function(r) {
+        const isApproved = r.status === 'approved';
+        const iconId = isApproved ? 'i-check-circle' : 'i-x-circle';
+        const dateStr = r.reviewedAt ? new Date(r.reviewedAt).toLocaleDateString() : '—';
+        const statusText = isApproved ? ('Approved · +KSh ' + r.reward) : 'Rejected';
+        notificationsHTML += '<div class="notification-item notification-' + r.status + '">' +
+          '<div class="notification-icon"><svg><use href="#' + iconId + '"/></svg></div>' +
+          '<div class="notification-info"><strong>' + escapeHtml(r.title) + '</strong><small>' + statusText + ' &bull; ' + dateStr + '</small></div>' +
+        '</div>';
+      });
+      notificationsHTML += '</div>';
+    }
+    notificationsHTML += '</div>';
+  }
+
   container.innerHTML = '<div class="profile-card">' +
     '<div class="profile-avatar-container">' + avatarHTML + '</div>' +
     '<h2>' + escapeHtml(currentUser.name || 'User') + '</h2>' +
@@ -677,11 +771,15 @@ function renderProfile() {
     '<span class="profile-tier-badge tier-' + tier + '"><svg style="width:14px;height:14px;"><use href="#' + plan.icon + '"/></svg>' + plan.label + '</span>' +
     (isAdmin ? '<div style="margin-bottom:18px;padding:12px;background:var(--green-soft);border-radius:10px;font-size:12px;color:var(--muted-strong);">You are signed in as administrator.</div>' : '') +
     '<div class="profile-stats"><div class="profile-stat"><span class="profile-stat-val">' + parts.length + '</span><span class="profile-stat-label">Surveys taken</span></div><div class="profile-stat"><span class="profile-stat-val">' + approved + '</span><span class="profile-stat-label">Approved</span></div></div>' +
+    notificationsHTML +
     '<div class="profile-actions"><button class="btn btn-primary btn-block" onclick="openEditProfile()"><svg style="width:16px;height:16px;"><use href="#i-edit"/></svg>Edit Profile</button>' + (isAdmin ? '' : '<button class="btn btn-outline btn-block" onclick="openPlanModal()"><svg style="width:16px;height:16px;"><use href="#i-crown"/></svg>Change Plan</button>') + '</div>' +
     (isAdmin ? '' : '<div class="referral-card"><div class="referral-header"><svg><use href="#i-gift"/></svg><strong>Referral Programme</strong></div><p class="referral-desc">Invite friends and earn rewards when they join SurveyKE.</p><div class="referral-code-box"><span class="referral-code-label">Your code</span><span class="referral-code-val">' + escapeHtml(code) + '</span></div><div class="referral-stats"><div class="referral-stat"><strong>' + referrals.length + '</strong><small>Friends invited</small></div></div><div class="referral-actions"><button class="btn btn-outline btn-sm" onclick="copyReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-copy"/></svg>Copy Link</button><button class="btn btn-outline btn-sm" onclick="shareReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-share"/></svg>Share</button></div></div>') +
     '<div class="profile-actions">' + (isAdmin ? '<button class="btn btn-primary btn-block" onclick="navigate(\'admin\')">Admin Dashboard</button>' : '') + '<button class="btn btn-outline btn-block" onclick="navigate(\'settings\')"><svg style="width:16px;height:16px;"><use href="#i-settings"/></svg>Settings</button><button class="btn btn-outline btn-block" onclick="signOut()">Sign Out</button></div>' +
     '<div class="danger-zone"><button class="btn btn-outline btn-block danger-btn" onclick="deleteAccount()"><svg style="width:16px;height:16px;"><use href="#i-trash"/></svg>Delete Account</button><p class="danger-note">Permanently delete your account and data from this browser.</p></div>' +
   '</div>';
+
+  markNotificationsRead();
+  refreshNavBadges();
 }
 
 // ---------- Edit Profile ----------
@@ -792,7 +890,7 @@ function renderSettings() {
     '<div class="settings-group"><div class="settings-group-title">Notifications</div><div class="settings-item"><div class="settings-item-left"><strong>Email Notifications</strong><small>Get notified about new surveys</small></div><button class="toggle-switch ' + (notifications ? 'on' : '') + '" onclick="toggleNotifications()"><span class="toggle-knob"></span></button></div></div>' +
     (currentUser ? '<div class="settings-group"><div class="settings-group-title">Account</div><button class="settings-item settings-item-btn" onclick="navigate(\'profile\')"><div class="settings-item-left"><strong>Profile</strong><small>Edit name, avatar, and more</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button>' + (isAdmin ? '' : '<button class="settings-item settings-item-btn" onclick="openPlanModal()"><div class="settings-item-left"><strong>Change Plan</strong><small>Current: ' + plan.label + '</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button>') + '</div>' : '') +
     '<div class="settings-group"><div class="settings-group-title">Privacy & Data</div><div class="settings-item"><div class="settings-item-left"><strong>Clear App Data</strong><small>Remove all data from this browser</small></div><button class="btn btn-outline btn-sm" onclick="clearAppData()">Clear</button></div></div>' +
-    '<div class="settings-group"><div class="settings-group-title">About</div><div class="settings-item settings-item-static"><div class="settings-item-left"><strong>SurveyKE</strong><small>Version 1.4.0 &bull; Built for Kenya</small></div></div></div>' +
+    '<div class="settings-group"><div class="settings-group-title">About</div><div class="settings-item settings-item-static"><div class="settings-item-left"><strong>SurveyKE</strong><small>Version 1.5.0 &bull; Built for Kenya</small></div></div></div>' +
     (currentUser ? '<div class="settings-group"><div class="settings-group-title">Danger Zone</div><div class="settings-item"><div class="settings-item-left"><strong>Delete Account</strong><small>Permanently remove your account</small></div><button class="btn btn-outline btn-sm danger-btn" onclick="deleteAccount()">Delete</button></div></div>' : '') +
   '</div>';
 }
@@ -840,10 +938,7 @@ function setAdminSurveyType(type) {
   if (urlInput) urlInput.required = (type === 'external');
   if (type === 'internal' && adminQuestions.length === 0) addAdminQuestion();
 }
-function addAdminQuestion() {
-  adminQuestions.push({ id: uid('q'), type: 'mcq', question: '', options: ['', ''], required: true });
-  renderAdminQuestions();
-}
+function addAdminQuestion() { adminQuestions.push({ id: uid('q'), type: 'mcq', question: '', options: ['', ''], required: true }); renderAdminQuestions(); }
 function removeAdminQuestion(qId) { adminQuestions = adminQuestions.filter(function(q) { return q.id !== qId; }); renderAdminQuestions(); }
 function updateAdminQuestion(qId, field, value) { const q = adminQuestions.find(function(x) { return x.id === qId; }); if (q) q[field] = value; }
 function updateAdminQuestionOption(qId, index, value) { const q = adminQuestions.find(function(x) { return x.id === qId; }); if (q && q.options) q.options[index] = value; }
@@ -905,6 +1000,7 @@ async function loadAdminParticipationsTable() {
   const wrap = document.getElementById('admin-participations-wrap');
   const allParts = readStore(STORE_PARTICIPATIONS, []).slice().sort(function(a, b) { return (b.submitted_at || 0) - (a.submitted_at || 0); });
   const allSurveys = readStore(STORE_SURVEYS, []);
+  const allUsers = readStore(STORE_USERS, []);
 
   const counts = { pending: 0, reviewed: 0, approved: 0, rejected: 0 };
   allParts.forEach(function(p) {
@@ -925,15 +1021,18 @@ async function loadAdminParticipationsTable() {
   if (filtered.length === 0) {
     html += '<div class="state-box" style="padding:30px 20px;"><strong>No ' + adminParticipationTab + ' participations</strong><p>Nothing to show here yet.</p></div>';
   } else {
-    html += '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Survey</th><th>Type</th><th>Date</th><th>Actions</th></tr></thead><tbody>' +
+    html += '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>User</th><th>Survey</th><th>Type</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>' +
       filtered.map(function(p) {
         const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
         const title = s ? s.title : 'Deleted survey';
         const isInternal = s && s.type === 'internal';
         const typeLabel = isInternal ? '📝' : '🔗';
         const dateStr = p.submitted_at ? new Date(p.submitted_at).toLocaleDateString() : '—';
+        const user = allUsers.find(function(u) { return u.id === p.user_id; });
+        const userName = user ? (user.name || user.email) : 'Unknown user';
+        const userEmail = user ? user.email : '—';
         const actions = renderParticipationActions(p, isInternal);
-        return '<tr><td><strong>' + escapeHtml(title) + '</strong></td><td>' + typeLabel + '</td><td>' + dateStr + '</td><td>' + actions + '</td></tr>';
+        return '<tr><td><strong>' + escapeHtml(userName) + '</strong><br><small style="color:var(--muted);">' + escapeHtml(userEmail) + '</small></td><td><strong>' + escapeHtml(title) + '</strong></td><td>' + typeLabel + '</td><td>' + dateStr + '</td><td>' + actions + '</td></tr>';
       }).join('') + '</tbody></table></div>';
   }
 
@@ -1160,6 +1259,7 @@ async function submitSignIn(e) {
     if (currentView === 'profile') renderProfile();
     if (currentView === 'wallet') renderWallet();
     if (currentView === 'settings') renderSettings();
+    refreshNavBadges();
   } catch (err) { showNotice(err.message, 'error'); }
   finally { submitBtn.disabled = false; }
 }
@@ -1178,7 +1278,7 @@ async function submitSignUp(e) {
     const users = readStore(STORE_USERS, []);
     if (users.some(function(u) { return u.email.toLowerCase() === email; })) throw new Error('Account with this email already exists. Sign in instead.');
     const passwordHash = await hashPassword(password);
-    const newUser = { id: uid('user'), name: name, email: email, passwordHash: passwordHash, avatar: null, tier: 'basic', referralCode: null, referrals: [], daily: { date: todayStr(), surveyCount: 0, totalRewards: 0 }, created_at: Date.now() };
+    const newUser = { id: uid('user'), name: name, email: email, passwordHash: passwordHash, avatar: null, tier: 'basic', referralCode: null, referrals: [], daily: { date: todayStr(), surveyCount: 0, totalRewards: 0 }, notifications_read_at: Date.now(), created_at: Date.now() };
     newUser.referralCode = generateReferralCode(newUser.id);
     users.push(newUser);
     writeStore(STORE_USERS, users);
@@ -1203,6 +1303,7 @@ async function submitSignUp(e) {
     if (currentView === 'profile') renderProfile();
     if (currentView === 'wallet') renderWallet();
     if (currentView === 'settings') renderSettings();
+    refreshNavBadges();
   } catch (err) { showNotice(err.message, 'error'); }
   finally { submitBtn.disabled = false; }
 }
@@ -1217,6 +1318,7 @@ async function signOut() {
   else if (currentView === 'wallet') renderWallet();
   else if (currentView === 'settings') renderSettings();
   else navigate('home');
+  refreshNavBadges();
   showToast('Signed out.');
 }
 
