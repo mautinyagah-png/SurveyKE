@@ -1,5 +1,5 @@
 // ================================================================
-// SurveyKE — wizard v2 (screening MCQs, paste-block, floating pill)
+// SurveyKE — notifications view, signup fields, boot cache
 // ================================================================
 
 const STORE_USERS          = 'surveyke_users';
@@ -41,8 +41,8 @@ let adminSurveyType = 'external';
 let adminQuestions = [];
 let adminParticipationTab = 'pending';
 let adminSection = 'add';
+let notifFilter = 'all';
 
-// Wizard state
 let wizard = {
   active: false,
   survey: null,
@@ -69,6 +69,94 @@ async function hashPassword(pw) {
     return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
   } catch (e) { return 'plain::' + btoa(pw); }
 }
+
+// ---------- Boot ----------
+function detectBotEnvironment() {
+  try {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return true;
+    if (typeof navigator === 'undefined' || !navigator.userAgent) return true;
+    // Test localStorage
+    const testKey = '__surveyke_boot__';
+    localStorage.setItem(testKey, '1');
+    if (localStorage.getItem(testKey) !== '1') return true;
+    localStorage.removeItem(testKey);
+    // Test crypto
+    if (!window.crypto) return true;
+    return false;
+  } catch (e) {
+    return true;
+  }
+}
+
+function markBootStep(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('active', 'done');
+  if (state) el.classList.add(state);
+}
+
+async function runBootSequence() {
+  const sleep = function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
+
+  // Step 1
+  markBootStep('boot-1', 'active');
+  await sleep(450);
+  try {
+    const test = localStorage.getItem(STORE_THEME);
+    if (test === null) localStorage.setItem(STORE_THEME, document.documentElement.getAttribute('data-theme') || 'light');
+  } catch (e) {}
+  markBootStep('boot-1', 'done');
+
+  // Step 2 — bot check
+  markBootStep('boot-2', 'active');
+  await sleep(500);
+  const isBot = detectBotEnvironment();
+  if (isBot) {
+    document.getElementById('boot-error').classList.remove('hidden');
+    document.querySelectorAll('.boot-step').forEach(function(s) { s.style.opacity = '0.3'; });
+    return;
+  }
+  markBootStep('boot-2', 'done');
+
+  // Step 3
+  markBootStep('boot-3', 'active');
+  await sleep(450);
+  markBootStep('boot-3', 'done');
+
+  // Finish
+  await sleep(300);
+  finishBoot();
+}
+
+function finishBoot() {
+  document.body.classList.remove('booting');
+  const loader = document.getElementById('app-loading');
+  if (loader) loader.style.display = 'none';
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) localStorage.setItem(STORE_PENDING_REF, ref);
+  } catch (e) {}
+
+  migrate();
+  seedSurveysIfEmpty();
+  restoreSession();
+  ensureDailyReset();
+  fetchAndRenderSurveys();
+  updateNotifBadges();
+
+  // If not logged in, nudge toward sign in
+  if (!currentUser && currentView === 'home') {
+    setTimeout(function() {
+      if (!currentUser) openAuth('signup');
+    }, 900);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  runBootSequence();
+});
 
 // ---------- Theme ----------
 function toggleTheme() {
@@ -113,6 +201,30 @@ function shareReferralLink() {
 }
 
 // ---------- Notifications ----------
+function getAllReviews() {
+  if (!currentUser) return [];
+  const allSurveys = readStore(STORE_SURVEYS, []);
+  const parts = readStore(STORE_PARTICIPATIONS, []);
+  return parts
+    .filter(function(p) {
+      return p.user_id === currentUser.id &&
+        (p.review_status === 'approved' || p.review_status === 'rejected' || p.review_status === 'screened_out' || p.status === 'screened_out');
+    })
+    .sort(function(a, b) { return (b.reviewed_at || b.submitted_at || 0) - (a.reviewed_at || a.submitted_at || 0); })
+    .map(function(p) {
+      const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
+      const status = (p.review_status === 'screened_out' || p.status === 'screened_out') ? 'screened_out' : p.review_status;
+      return {
+        id: p.id,
+        title: s ? s.title : 'Deleted survey',
+        status: status,
+        reward: s ? (s.reward || 0) : 0,
+        reviewedAt: p.reviewed_at || p.submitted_at,
+        userName: currentUser.username || currentUser.name || currentUser.email
+      };
+    });
+}
+
 function getUnreadNotificationsCount() {
   if (!currentUser || isAdmin) return 0;
   const users = readStore(STORE_USERS, []);
@@ -122,7 +234,7 @@ function getUnreadNotificationsCount() {
   const parts = readStore(STORE_PARTICIPATIONS, []);
   return parts.filter(function(p) {
     if (p.user_id !== currentUser.id) return false;
-    if (p.review_status !== 'approved' && p.review_status !== 'rejected') return false;
+    if (p.review_status !== 'approved' && p.review_status !== 'rejected' && p.review_status !== 'screened_out' && p.status !== 'screened_out') return false;
     return (p.reviewed_at || 0) > readAt;
   }).length;
 }
@@ -134,19 +246,97 @@ function markNotificationsRead() {
   users[idx].notifications_read_at = Date.now();
   writeStore(STORE_USERS, users);
 }
-function getRecentReviews(limit) {
-  if (!currentUser) return [];
-  limit = limit || 5;
-  const allSurveys = readStore(STORE_SURVEYS, []);
-  const parts = readStore(STORE_PARTICIPATIONS, []);
-  return parts
-    .filter(function(p) { return p.user_id === currentUser.id && (p.review_status === 'approved' || p.review_status === 'rejected'); })
-    .sort(function(a, b) { return (b.reviewed_at || 0) - (a.reviewed_at || 0); })
-    .slice(0, limit)
-    .map(function(p) {
-      const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
-      return { id: p.id, title: s ? s.title : 'Deleted survey', status: p.review_status, reward: s ? (s.reward || 0) : 0, reviewedAt: p.reviewed_at };
+
+function updateNotifBadges() {
+  const count = getUnreadNotificationsCount();
+
+  // Header bell badge
+  const headerBadge = document.getElementById('header-bell-badge');
+  if (headerBadge) {
+    if (count > 0) {
+      headerBadge.textContent = count > 9 ? '9+' : String(count);
+      headerBadge.classList.remove('hidden');
+    } else {
+      headerBadge.classList.add('hidden');
+    }
+  }
+
+  // Bottom nav notifications badge
+  document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
+    if (item.dataset.tab === 'notifications') {
+      let badge = item.querySelector('.nav-badge');
+      if (count > 0) {
+        if (!badge) { badge = document.createElement('span'); badge.className = 'nav-badge'; item.appendChild(badge); }
+        badge.textContent = count > 9 ? '9+' : String(count);
+      } else if (badge) { badge.remove(); }
+    }
+  });
+}
+
+function renderNotifications() {
+  const container = document.getElementById('notifications-content');
+  if (!currentUser) {
+    container.innerHTML = '<div class="notif-empty"><div class="notif-empty-icon"><svg><use href="#i-bell"/></svg></div><h3>Sign in to view notifications</h3><p>Your approved and rejected surveys will appear here.</p><div class="btn-row" style="justify-content:center;margin-top:20px;"><button class="btn btn-primary" onclick="openAuth(\'signin\')">Sign In</button></div></div>';
+    return;
+  }
+
+  const all = getAllReviews();
+  const counts = { all: all.length, approved: 0, rejected: 0, screened_out: 0 };
+  all.forEach(function(n) {
+    if (n.status === 'approved') counts.approved++;
+    else if (n.status === 'rejected') counts.rejected++;
+    else if (n.status === 'screened_out') counts.screened_out++;
+  });
+
+  let filtered = all;
+  if (notifFilter !== 'all') filtered = all.filter(function(n) { return n.status === notifFilter; });
+
+  const filters = [
+    { key: 'all', label: 'All', count: counts.all },
+    { key: 'approved', label: 'Approved', count: counts.approved },
+    { key: 'rejected', label: 'Rejected', count: counts.rejected },
+    { key: 'screened_out', label: 'Screened Out', count: counts.screened_out }
+  ];
+
+  let html = '<div class="notifications-page">';
+  html += '<div class="notifications-page-header"><h2>Notifications</h2><p>Your survey reviews, approvals, and rejections.</p></div>';
+  html += '<div class="notif-filters">' + filters.map(function(f) {
+    return '<button class="notif-filter ' + (notifFilter === f.key ? 'active' : '') + '" onclick="setNotifFilter(\'' + f.key + '\')">' + f.label + ' <span class="count">' + f.count + '</span></button>';
+  }).join('') + '</div>';
+
+  if (filtered.length === 0) {
+    html += '<div class="notif-empty"><div class="notif-empty-icon"><svg><use href="#i-bell"/></svg></div><h3>No notifications</h3><p>' + (notifFilter === 'all' ? 'Your notifications will appear here after admin review.' : 'No ' + notifFilter.replace('_',' ') + ' notifications.') + '</p></div>';
+  } else {
+    html += '<div class="notif-list">';
+    filtered.forEach(function(n) {
+      const isApproved = n.status === 'approved';
+      const isScreened = n.status === 'screened_out';
+      const iconId = isApproved ? 'i-check-circle' : (isScreened ? 'i-zap' : 'i-x-circle');
+      const statusLabel = isApproved ? 'Approved' : (isScreened ? 'Screened Out' : 'Rejected');
+      const dateStr = n.reviewedAt ? new Date(n.reviewedAt).toLocaleString() : '—';
+      const rewardLine = isApproved ? 'Reward: +KSh ' + n.reward : (isScreened ? 'You were screened out of this survey' : 'No reward for rejected surveys');
+      html += '<div class="notif-card notif-' + n.status + '">' +
+        '<div class="notif-card-icon"><svg><use href="#' + iconId + '"/></svg></div>' +
+        '<div class="notif-card-info">' +
+          '<strong>' + escapeHtml(n.title) + '</strong>' +
+          '<small>' + rewardLine + '</small>' +
+          '<small style="margin-top:4px;">' + dateStr + '</small>' +
+          '<div class="notif-card-status">' + statusLabel + '</div>' +
+        '</div>' +
+      '</div>';
     });
+    html += '</div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+
+  markNotificationsRead();
+  updateNotifBadges();
+}
+
+function setNotifFilter(filter) {
+  notifFilter = filter;
+  renderNotifications();
 }
 
 // ---------- Daily ----------
@@ -242,6 +432,12 @@ function migrate() {
       if (!u.referralCode) { u.referralCode = generateReferralCode(u.id); changed = true; }
       if (!Array.isArray(u.referrals)) { u.referrals = []; changed = true; }
       if (!u.daily || u.daily.date !== todayStr()) { u.daily = { date: todayStr(), surveyCount: 0, totalRewards: 0 }; changed = true; }
+      // Migrate: add username if missing
+      if (!u.username) {
+        const base = (u.name || u.email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 15);
+        u.username = base || 'user' + Math.floor(Math.random() * 9999);
+        changed = true;
+      }
     });
     if (changed) writeStore(STORE_USERS, users);
   }
@@ -267,26 +463,18 @@ function restoreSession() {
     const users = readStore(STORE_USERS, []);
     const user = users.find(function(u) { return u.id === session.userId; });
     if (user) {
-      currentUser = { id: user.id, email: user.email, name: user.name || user.email.split('@')[0], avatar: user.avatar || null, tier: user.tier || 'basic', referralCode: user.referralCode || ensureReferralCode(user), referrals: user.referrals || [] };
+      currentUser = {
+        id: user.id, email: user.email, name: user.name || user.email.split('@')[0],
+        username: user.username || user.email.split('@')[0],
+        avatar: user.avatar || null, tier: user.tier || 'basic',
+        referralCode: user.referralCode || ensureReferralCode(user),
+        referrals: user.referrals || []
+      };
       isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
     } else { writeStore(STORE_SESSION, null); }
   }
   updateAuthUI();
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get('ref');
-    if (ref) localStorage.setItem(STORE_PENDING_REF, ref);
-  } catch (e) {}
-  migrate();
-  seedSurveysIfEmpty();
-  restoreSession();
-  ensureDailyReset();
-  fetchAndRenderSurveys();
-  refreshNavBadges();
-});
 
 // ---------- Navigation ----------
 function clearWizardTimer() { if (wizard.timerInterval) { clearInterval(wizard.timerInterval); wizard.timerInterval = null; } }
@@ -295,7 +483,7 @@ function navigate(viewName, param) {
   clearWizardTimer();
   currentView = viewName;
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  ['view-home','view-surveys','view-detail','view-take-survey','view-wallet','view-profile','view-settings','view-admin'].forEach(function(id) {
+  ['view-home','view-surveys','view-detail','view-take-survey','view-wallet','view-notifications','view-profile','view-settings','view-admin'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
@@ -304,6 +492,7 @@ function navigate(viewName, param) {
   else if (viewName === 'detail' && param) { document.getElementById('view-detail').classList.remove('hidden'); renderSurveyDetail(param); updateBottomNav('surveys'); }
   else if (viewName === 'take-survey' && param) { document.getElementById('view-take-survey').classList.remove('hidden'); startOrResumeWizard(param); updateBottomNav('surveys'); }
   else if (viewName === 'wallet') { document.getElementById('view-wallet').classList.remove('hidden'); renderWallet(); updateBottomNav('wallet'); }
+  else if (viewName === 'notifications') { document.getElementById('view-notifications').classList.remove('hidden'); renderNotifications(); updateBottomNav('notifications'); }
   else if (viewName === 'profile') { document.getElementById('view-profile').classList.remove('hidden'); renderProfile(); updateBottomNav('profile'); }
   else if (viewName === 'settings') { document.getElementById('view-settings').classList.remove('hidden'); renderSettings(); updateBottomNav('profile'); }
   else if (viewName === 'admin') {
@@ -316,6 +505,7 @@ function getCurrentTab() {
   if (currentView === 'home') return 'home';
   if (currentView === 'surveys' || currentView === 'detail' || currentView === 'take-survey') return 'surveys';
   if (currentView === 'wallet') return 'wallet';
+  if (currentView === 'notifications') return 'notifications';
   if (currentView === 'profile' || currentView === 'settings') return 'profile';
   return null;
 }
@@ -324,15 +514,8 @@ function updateBottomNav(tab) {
   document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
     if (item.dataset.tab === tab) item.classList.add('active');
     else item.classList.remove('active');
-    if (item.dataset.tab === 'profile') {
-      const count = getUnreadNotificationsCount();
-      let badge = item.querySelector('.nav-badge');
-      if (count > 0) {
-        if (!badge) { badge = document.createElement('span'); badge.className = 'nav-badge'; item.appendChild(badge); }
-        badge.textContent = count > 9 ? '9+' : String(count);
-      } else if (badge) { badge.remove(); }
-    }
   });
+  updateNotifBadges();
 }
 
 // ---------- Tier helpers ----------
@@ -436,18 +619,18 @@ function renderSurveyDetail(id) {
   if (isAdmin) {
     participateHTML = '<div class="admin-notice"><strong>Admin view</strong><p>Administrators cannot participate in surveys.</p><button class="btn btn-primary" onclick="navigate(\'admin\')">Manage Surveys</button></div>';
   } else if (!currentUser) {
-    participateHTML = '<div class="participate-box"><h3>Take the Survey</h3><p>Sign in to participate. New accounts get the free Basic plan.</p><div class="btn-row"><button class="btn btn-primary" onclick="openAuth(\'signin\')">Sign In</button><button class="btn btn-outline" onclick="openAuth(\'signup\')">Create Account</button></div></div>';
+    participateHTML = '<div class="participate-box"><h3>Take the Survey</h3><p>Sign in to participate.</p><div class="btn-row"><button class="btn btn-primary" onclick="openAuth(\'signin\')">Sign In</button><button class="btn btn-outline" onclick="openAuth(\'signup\')">Create Account</button></div></div>';
   } else if (!canAccessSurvey(tier)) {
     const neededPlan = PLANS[tier];
     participateHTML = '<div class="upgrade-notice"><h3>' + neededPlan.label + ' plan required</h3><p>Upgrade to access this survey.</p><button class="btn btn-primary" onclick="openPlanModal()">View Plans</button></div>';
   } else if (state === 'screened_out') {
-    participateHTML = '<div class="participate-box" style="border-color:var(--danger-border);background:var(--danger-bg);"><h3 style="color:var(--danger);">Screened out</h3><p>You were screened out of this survey. You cannot retake it.</p></div>';
+    participateHTML = '<div class="participate-box" style="border-color:var(--amber-border);background:var(--amber-bg);"><h3 style="color:var(--amber);">Screened out</h3><p>You were screened out of this survey. You cannot retake it.</p></div>';
   } else if (state === 'completed') {
     participateHTML = '<div class="participate-box" style="border-color:var(--green);background:var(--green-soft);"><h3 style="display:flex;align-items:center;gap:8px;"><svg style="width:20px;height:20px;color:var(--green);"><use href="#i-check-circle"/></svg>Survey Completed</h3><p>You have already completed this survey.</p></div>';
   } else if (state === 'in_progress') {
-    participateHTML = '<div class="participate-box"><h3>Continue Your Survey</h3><p>You started this survey but haven\'t finished it. Pick up where you left off.</p>' + demoNotice + '<div class="btn-row"><button class="btn btn-primary" onclick="navigate(\'take-survey\', \'' + survey.id + '\')">Continue Survey <svg><use href="#i-arrow"/></svg></button></div></div>';
+    participateHTML = '<div class="participate-box"><h3>Continue Your Survey</h3><p>You started this survey but haven\'t finished it.</p>' + demoNotice + '<div class="btn-row"><button class="btn btn-primary" onclick="navigate(\'take-survey\', \'' + survey.id + '\')">Continue Survey <svg><use href="#i-arrow"/></svg></button></div></div>';
   } else if (state === 'started_external') {
-    participateHTML = '<div class="participate-box"><h3>Survey In Progress</h3><p>You previously opened this survey. Click below to reopen it.</p>' + demoNotice + '<div class="btn-row"><button class="btn btn-primary" onclick="reopenExternal(\'' + survey.id + '\')">Reopen Survey <svg><use href="#i-external"/></svg></button></div></div>';
+    participateHTML = '<div class="participate-box"><h3>Survey In Progress</h3><p>You previously opened this survey.</p>' + demoNotice + '<div class="btn-row"><button class="btn btn-primary" onclick="reopenExternal(\'' + survey.id + '\')">Reopen Survey <svg><use href="#i-external"/></svg></button></div></div>';
   } else {
     const dailyCheck = canStartSurvey(survey);
     if (!dailyCheck.allowed) {
@@ -479,7 +662,7 @@ function startSurvey(surveyId) {
   if (existing) {
     if (existing.status === 'in_progress') { navigate('take-survey', surveyId); return; }
     if (existing.status === 'started') { reopenExternal(surveyId); return; }
-    showToast('You have already completed this survey.'); return;
+    showToast('You cannot retake this survey.'); return;
   }
   if (survey.type === 'internal') {
     const dailyCheck = canStartSurvey(survey);
@@ -571,11 +754,10 @@ function renderWizard() {
 
   if (q.type === 'mcq') {
     qTypeLabel = 'Multiple Choice';
-    // Reset state for new question
     wizard.selectedOption = (savedAnswer !== undefined && savedAnswer !== '') ? savedAnswer : null;
     wizard.locked = false;
     answerInputs = '<div class="wizard-options-vertical">' + (q.options || []).map(function(opt, idx) {
-      const letter = String.fromCharCode(65 + idx); // A, B, C...
+      const letter = String.fromCharCode(65 + idx);
       const selected = wizard.selectedOption === opt ? ' selected' : '';
       return '<button type="button" class="wizard-option-btn' + selected + '" data-value="' + escapeHtml(opt) + '" onclick="wizardPickOption(this)">' +
         '<span class="wizard-opt-bullet">' + letter + '</span>' +
@@ -629,21 +811,15 @@ function renderWizard() {
     '</div>' +
   '</div>';
 
-  // Attach paste/copy handlers on text inputs
   const textInput = document.getElementById('wizard-text-input');
   if (textInput) {
     blockPaste(textInput);
     textInput.addEventListener('input', updateNextBtnState);
   }
 
-  // If MCQ/rating: initialize next-button state based on whether an answer was already saved
   if (q.type === 'mcq' || q.type === 'rating') {
-    if (wizard.selectedOption !== null) {
-      // Re-select visual + start confirm timer
-      wizardStartConfirmTimer(q, wizard.selectedOption);
-    }
+    if (wizard.selectedOption !== null) wizardStartConfirmTimer(q, wizard.selectedOption);
   } else {
-    // For text/paragraph: start reading timer on load
     wizardStartReadingTimer(q);
   }
 
@@ -669,7 +845,6 @@ function blockPaste(el) {
   el.addEventListener('cut', function(e) { e.preventDefault(); });
 }
 
-// ----- Timers -----
 function wizardStartConfirmTimer(q, selectedValue) {
   clearWizardTimer();
   wizard.locked = false;
@@ -682,17 +857,6 @@ function wizardStartConfirmTimer(q, selectedValue) {
       clearWizardTimer();
       wizard.locked = true;
       updateFloatTimer(0, 'ready');
-      // Lock all option buttons
-      document.querySelectorAll('.wizard-option-btn, .wizard-rating-btn').forEach(function(btn) { btn.classList.add('locked'); });
-      // For screening MCQ: kick out immediately if wrong
-      if (q.type === 'mcq' && q.screenOut) {
-        const correct = (q.correctOptions || []);
-        const selectedIdx = (q.options || []).indexOf(selectedValue);
-        if (correct.indexOf(selectedIdx) === -1) {
-          wizardScreenOut(q, selectedValue);
-          return;
-        }
-      }
       updateNextBtnState();
     } else {
       updateFloatTimer(remaining, 'counting');
@@ -735,22 +899,18 @@ function updateFloatTimer(seconds, mode) {
   }
 }
 
-// ----- Interaction -----
 function wizardPickOption(btn) {
   if (wizard.locked) return;
   const value = btn.dataset.value;
-  // Deselect all
   document.querySelectorAll('.wizard-option-btn').forEach(function(b) { b.classList.remove('selected'); });
   btn.classList.add('selected');
   wizard.selectedOption = value;
-  // Restart confirm timer (so user can change their mind)
   wizardStartConfirmTimer(wizard.survey.questions[wizard.currentIndex], value);
 }
 
 function wizardPickRating(value) {
   if (wizard.locked) return;
   document.querySelectorAll('.wizard-rating-btn').forEach(function(b) { b.classList.remove('selected'); });
-  // Select the chosen one
   const btns = document.querySelectorAll('.wizard-rating-btn');
   if (btns[value - 1]) btns[value - 1].classList.add('selected');
   wizard.selectedOption = value;
@@ -761,9 +921,8 @@ function updateNextBtnState() {
   const btn = document.getElementById('wizard-next-btn');
   if (!btn) return;
   const q = wizard.survey.questions[wizard.currentIndex];
-  const ready = wizard.locked; // timer must be finished
+  const ready = wizard.locked;
   let hasAnswer = false;
-
   if (q.type === 'mcq' || q.type === 'rating') {
     hasAnswer = wizard.selectedOption !== null && wizard.selectedOption !== undefined && wizard.selectedOption !== '';
   } else {
@@ -771,15 +930,9 @@ function updateNextBtnState() {
     const val = input ? input.value.trim() : '';
     hasAnswer = val.length > 0 || !q.required;
   }
-
-  if (ready && hasAnswer) {
-    btn.disabled = false;
-  } else {
-    btn.disabled = true;
-  }
+  btn.disabled = !(ready && hasAnswer);
 }
 
-// ----- Navigation -----
 function saveWizardProgress() {
   const parts = readStore(STORE_PARTICIPATIONS, []);
   const idx = parts.findIndex(function(p) { return p.survey_id === wizard.survey.id && p.user_id === currentUser.id; });
@@ -792,7 +945,6 @@ function saveWizardProgress() {
 
 function wizardPrev() {
   if (wizard.currentIndex === 0) return;
-  // Save current
   const q = wizard.survey.questions[wizard.currentIndex];
   if (q.type === 'mcq' || q.type === 'rating') {
     if (wizard.selectedOption !== null) wizard.answers[q.id] = wizard.selectedOption;
@@ -810,7 +962,7 @@ function wizardPrev() {
 
 function wizardNext() {
   const q = wizard.survey.questions[wizard.currentIndex];
-  // Collect answer
+
   if (q.type === 'mcq' || q.type === 'rating') {
     wizard.answers[q.id] = wizard.selectedOption;
   } else {
@@ -818,17 +970,38 @@ function wizardNext() {
     wizard.answers[q.id] = input ? input.value.trim() : '';
   }
 
-  // Validate required
   if (q.required && (wizard.answers[q.id] === '' || wizard.answers[q.id] === null || wizard.answers[q.id] === undefined)) {
     showToast('Please answer this question before continuing.');
     return;
   }
 
   saveWizardProgress();
+
+  // If this is a screening MCQ, check on Next click with a delay
+  if (q.type === 'mcq' && q.screenOut) {
+    const btn = document.getElementById('wizard-next-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner"></span>Checking answer...';
+    }
+    setTimeout(function() {
+      const correct = (q.correctOptions || []);
+      const selectedIdx = (q.options || []).indexOf(wizard.answers[q.id]);
+      if (correct.indexOf(selectedIdx) === -1) {
+        wizardScreenOut(q, wizard.answers[q.id]);
+      } else {
+        advanceWizard();
+      }
+    }, 900);
+  } else {
+    advanceWizard();
+  }
+}
+
+function advanceWizard() {
   wizard.currentIndex++;
   wizard.selectedOption = null;
   wizard.locked = false;
-
   if (wizard.currentIndex >= wizard.survey.questions.length) {
     wizardFinish();
   } else {
@@ -836,13 +1009,11 @@ function wizardNext() {
   }
 }
 
-// ----- Screen-out -----
 function wizardScreenOut(q, wrongAnswer) {
   clearWizardTimer();
   wizard.active = false;
   const survey = wizard.survey;
 
-  // Mark participation as screened_out
   const parts = readStore(STORE_PARTICIPATIONS, []);
   const idx = parts.findIndex(function(p) { return p.survey_id === survey.id && p.user_id === currentUser.id; });
   if (idx !== -1) {
@@ -863,7 +1034,6 @@ function wizardScreenOut(q, wrongAnswer) {
   '</div></div>';
 }
 
-// ----- Finish -----
 function wizardFinish() {
   clearWizardTimer();
   const survey = wizard.survey;
@@ -989,13 +1159,13 @@ function renderAdminWallet() {
     const u = item.user; const initial = (u.name || u.email || '?').charAt(0).toUpperCase();
     const avatarHTML = u.avatar ? '<img src="' + escapeHtml(u.avatar) + '" alt="">' : escapeHtml(initial);
     const tier = u.tier || 'basic'; const plan = PLANS[tier]; const joined = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
-    return '<div class="user-item"><div class="user-avatar">' + avatarHTML + '</div><div class="user-info"><strong>' + escapeHtml(u.name || 'User') + '</strong><small>' + escapeHtml(u.email) + '</small><small>' + plan.label + ' &bull; Joined ' + joined + '</small></div><div class="user-stats"><div class="user-stat"><span class="user-stat-val">' + item.surveysTaken + '</span><span class="user-stat-lbl">Surveys</span></div><div class="user-stat"><span class="user-stat-val">KSh ' + item.earned + '</span><span class="user-stat-lbl">Earned</span></div></div></div>';
+    return '<div class="user-item"><div class="user-avatar">' + avatarHTML + '</div><div class="user-info"><strong>' + escapeHtml(u.name || 'User') + '</strong><small>@' + escapeHtml(u.username || 'user') + ' &bull; ' + escapeHtml(u.email) + '</small><small>' + plan.label + ' &bull; Joined ' + joined + '</small></div><div class="user-stats"><div class="user-stat"><span class="user-stat-val">' + item.surveysTaken + '</span><span class="user-stat-lbl">Surveys</span></div><div class="user-stat"><span class="user-stat-val">KSh ' + item.earned + '</span><span class="user-stat-lbl">Earned</span></div></div></div>';
   }).join('') + '</div>';
   container.innerHTML = '<div class="wallet-header"><h2>Users Overview</h2><p>Platform stats and registered users.</p></div>' + statsHTML + '<div class="wallet-transactions"><h3>Registered Users</h3>' + usersHTML + '</div>';
 }
 
 // ================================================================
-// PROFILE
+// PROFILE (notifications removed, small link only)
 // ================================================================
 function renderProfile() {
   const container = document.getElementById('profile-content');
@@ -1014,27 +1184,13 @@ function renderProfile() {
   const approved = parts.filter(function(p) { return p.review_status === 'approved'; }).length;
   const initial = (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase();
   const avatarHTML = avatar ? '<img src="' + escapeHtml(avatar) + '" alt="Avatar">' : '<span class="initial">' + escapeHtml(initial) + '</span>';
-  const reviews = getRecentReviews(5);
   const unreadCount = getUnreadNotificationsCount();
 
-  let notificationsHTML = '';
-  if (!isAdmin) {
-    if (unreadCount > 0) notificationsHTML += '<div class="profile-notif-banner"><svg><use href="#i-zap"/></svg><div><strong>You have ' + unreadCount + ' new ' + (unreadCount === 1 ? 'review' : 'reviews') + '!</strong><small>Your survey submissions have been updated.</small></div></div>';
-    notificationsHTML += '<div class="notifications-card"><div class="notifications-header"><strong>Recent Reviews</strong>' + (unreadCount > 0 ? '<span class="new-pill">' + unreadCount + ' new</span>' : '') + '</div>';
-    if (reviews.length === 0) notificationsHTML += '<div class="notifications-empty">Your reviews will appear here.</div>';
-    else {
-      notificationsHTML += '<div class="notification-list">';
-      reviews.forEach(function(r) {
-        const isApproved = r.status === 'approved';
-        const iconId = isApproved ? 'i-check-circle' : 'i-x-circle';
-        const dateStr = r.reviewedAt ? new Date(r.reviewedAt).toLocaleDateString() : '—';
-        const statusText = isApproved ? ('Approved · +KSh ' + r.reward) : 'Rejected';
-        notificationsHTML += '<div class="notification-item notification-' + r.status + '"><div class="notification-icon"><svg><use href="#' + iconId + '"/></svg></div><div class="notification-info"><strong>' + escapeHtml(r.title) + '</strong><small>' + statusText + ' &bull; ' + dateStr + '</small></div></div>';
-      });
-      notificationsHTML += '</div>';
-    }
-    notificationsHTML += '</div>';
-  }
+  // Notification link
+  const notifLink = '<button class="profile-notif-link" onclick="navigate(\'notifications\')">' +
+    '<span class="profile-notif-link-left"><svg><use href="#i-bell"/></svg><span>Notifications</span></span>' +
+    (unreadCount > 0 ? '<span class="badge">' + unreadCount + '</span>' : '<svg style="width:16px;height:16px;color:var(--muted);"><use href="#i-chevron-right"/></svg>') +
+  '</button>';
 
   let tierHTML = '', statsHTML = '', planAction = '', referralHTML = '';
   if (isAdmin) {
@@ -1047,10 +1203,9 @@ function renderProfile() {
     referralHTML = '<div class="referral-card"><div class="referral-header"><svg><use href="#i-gift"/></svg><strong>Referral Programme</strong></div><p class="referral-desc">Invite friends and earn rewards.</p><div class="referral-code-box"><span class="referral-code-label">Your code</span><span class="referral-code-val">' + escapeHtml(code) + '</span></div><div class="referral-stats"><div class="referral-stat"><strong>' + referrals.length + '</strong><small>Friends invited</small></div></div><div class="referral-actions"><button class="btn btn-outline btn-sm" onclick="copyReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-copy"/></svg>Copy Link</button><button class="btn btn-outline btn-sm" onclick="shareReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-share"/></svg>Share</button></div></div>';
   }
 
-  container.innerHTML = '<div class="profile-card"><div class="profile-avatar-container">' + avatarHTML + '</div><h2>' + escapeHtml(currentUser.name || 'User') + '</h2><p class="profile-email">' + escapeHtml(currentUser.email) + '</p>' + tierHTML + statsHTML + notificationsHTML + '<div class="profile-actions"><button class="btn btn-primary btn-block" onclick="openEditProfile()"><svg style="width:16px;height:16px;"><use href="#i-edit"/></svg>Edit Profile</button>' + planAction + '</div>' + referralHTML + '<div class="profile-actions"><button class="btn btn-outline btn-block" onclick="navigate(\'settings\')"><svg style="width:16px;height:16px;"><use href="#i-settings"/></svg>Settings</button><button class="btn btn-outline btn-block" onclick="signOut()">Sign Out</button></div><div class="danger-zone"><button class="btn btn-outline btn-block danger-btn" onclick="deleteAccount()"><svg style="width:16px;height:16px;"><use href="#i-trash"/></svg>Delete Account</button><p class="danger-note">Permanently delete your account.</p></div></div>';
+  container.innerHTML = '<div class="profile-card"><div class="profile-avatar-container">' + avatarHTML + '</div><h2>' + escapeHtml(currentUser.name || 'User') + '</h2><p class="profile-email">@' + escapeHtml(currentUser.username || 'user') + ' &bull; ' + escapeHtml(currentUser.email) + '</p>' + tierHTML + statsHTML + notifLink + '<div class="profile-actions"><button class="btn btn-primary btn-block" onclick="openEditProfile()"><svg style="width:16px;height:16px;"><use href="#i-edit"/></svg>Edit Profile</button>' + planAction + '</div>' + referralHTML + '<div class="profile-actions"><button class="btn btn-outline btn-block" onclick="navigate(\'settings\')"><svg style="width:16px;height:16px;"><use href="#i-settings"/></svg>Settings</button><button class="btn btn-outline btn-block" onclick="signOut()">Sign Out</button></div><div class="danger-zone"><button class="btn btn-outline btn-block danger-btn" onclick="deleteAccount()"><svg style="width:16px;height:16px;"><use href="#i-trash"/></svg>Delete Account</button><p class="danger-note">Permanently delete your account.</p></div></div>';
 
-  if (!isAdmin) markNotificationsRead();
-  refreshNavBadges();
+  updateNotifBadges();
 }
 
 // Edit Profile
@@ -1161,7 +1316,7 @@ function renderSettings() {
     '<div class="settings-group"><div class="settings-group-title">Notifications</div><div class="settings-item"><div class="settings-item-left"><strong>Email Notifications</strong><small>Get notified about new surveys</small></div><button class="toggle-switch ' + (notifications ? 'on' : '') + '" onclick="toggleNotifications()"><span class="toggle-knob"></span></button></div></div>' +
     (currentUser ? '<div class="settings-group"><div class="settings-group-title">Account</div><button class="settings-item settings-item-btn" onclick="navigate(\'profile\')"><div class="settings-item-left"><strong>Profile</strong><small>Edit name, avatar, and more</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button>' + (isAdmin ? '' : '<button class="settings-item settings-item-btn" onclick="openPlanModal()"><div class="settings-item-left"><strong>Change Plan</strong><small>Current: ' + plan.label + '</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button>') + '</div>' : '') +
     '<div class="settings-group"><div class="settings-group-title">Privacy & Data</div><div class="settings-item"><div class="settings-item-left"><strong>Clear App Data</strong><small>Remove all data from this browser</small></div><button class="btn btn-outline btn-sm" onclick="clearAppData()">Clear</button></div></div>' +
-    '<div class="settings-group"><div class="settings-group-title">About</div><div class="settings-item settings-item-static"><div class="settings-item-left"><strong>SurveyKE</strong><small>Version 1.7.0 &bull; Built for Kenya</small></div></div></div>' +
+    '<div class="settings-group"><div class="settings-group-title">About</div><div class="settings-item settings-item-static"><div class="settings-item-left"><strong>SurveyKE</strong><small>Version 2.0.0 &bull; Built for Kenya</small></div></div></div>' +
     (currentUser ? '<div class="settings-group"><div class="settings-group-title">Danger Zone</div><div class="settings-item"><div class="settings-item-left"><strong>Delete Account</strong><small>Permanently remove your account</small></div><button class="btn btn-outline btn-sm danger-btn" onclick="deleteAccount()">Delete</button></div></div>' : '') +
   '</div>';
 }
@@ -1218,11 +1373,7 @@ function changeQuestionType(qId, newType) {
 }
 function toggleAdminScreenOut(qId, checked) {
   const q = adminQuestions.find(function(x) { return x.id === qId; });
-  if (q) {
-    q.screenOut = checked;
-    if (!checked) q.correctOptions = [];
-    renderAdminQuestions();
-  }
+  if (q) { q.screenOut = checked; if (!checked) q.correctOptions = []; renderAdminQuestions(); }
 }
 function toggleCorrectOption(qId, optionIdx) {
   const q = adminQuestions.find(function(x) { return x.id === qId; });
@@ -1242,28 +1393,20 @@ function renderAdminQuestions() {
     let html = '<div class="question-builder"><div class="question-builder-header"><strong>Question ' + (idx + 1) + '</strong><button type="button" class="qb-remove" onclick="removeAdminQuestion(\'' + q.id + '\')">Remove</button></div>';
     html += '<div class="qb-field"><label>Type</label><select onchange="changeQuestionType(\'' + q.id + '\', this.value)"><option value="mcq"' + (q.type === 'mcq' ? ' selected' : '') + '>Multiple Choice</option><option value="text"' + (q.type === 'text' ? ' selected' : '') + '>Short Text</option><option value="paragraph"' + (q.type === 'paragraph' ? ' selected' : '') + '>Paragraph</option><option value="rating"' + (q.type === 'rating' ? ' selected' : '') + '>Rating (1-5)</option></select></div>';
     html += '<div class="qb-field"><label>Question text</label><input type="text" placeholder="e.g. How satisfied are you?" value="' + escapeHtml(q.question) + '" oninput="updateAdminQuestion(\'' + q.id + '\', \'question\', this.value)"></div>';
-
     if (q.type === 'mcq') {
-      // Screen-out toggle
-      html += '<div class="qb-screenout-toggle"><input type="checkbox"' + (q.screenOut ? ' checked' : '') + ' onchange="toggleAdminScreenOut(\'' + q.id + '\', this.checked)"><label>Screen-out question<small>Wrong answers kick the user out immediately</small></label></div>';
-
+      html += '<div class="qb-screenout-toggle"><input type="checkbox"' + (q.screenOut ? ' checked' : '') + ' onchange="toggleAdminScreenOut(\'' + q.id + '\', this.checked)"><label>Screen-out question<small>Wrong answers kick the user out when they click Continue</small></label></div>';
       html += '<div class="qb-field"><label>Options' + (q.screenOut ? ' — mark ✓ correct answers' : '') + '</label><div class="qb-options-list">';
       q.options.forEach(function(opt, oIdx) {
         const isCorrect = (q.correctOptions || []).indexOf(oIdx) !== -1;
         html += '<div class="qb-option-row">';
-        if (q.screenOut) {
-          html += '<label class="qb-opt-correct-label" title="Mark as correct"><input type="checkbox"' + (isCorrect ? ' checked' : '') + ' onchange="toggleCorrectOption(\'' + q.id + '\', ' + oIdx + ')"> ✓</label>';
-        }
+        if (q.screenOut) html += '<label class="qb-opt-correct-label" title="Mark as correct"><input type="checkbox"' + (isCorrect ? ' checked' : '') + ' onchange="toggleCorrectOption(\'' + q.id + '\', ' + oIdx + ')"> ✓</label>';
         html += '<input type="text" placeholder="Option ' + (oIdx + 1) + '" value="' + escapeHtml(opt) + '" oninput="updateAdminQuestionOption(\'' + q.id + '\', ' + oIdx + ', this.value)">';
         if (q.options.length > 2) html += '<button type="button" class="qb-remove-opt" onclick="removeQuestionOption(\'' + q.id + '\', ' + oIdx + ')">×</button>';
         html += '</div>';
       });
       html += '</div><button type="button" class="qb-add-option" onclick="addQuestionOption(\'' + q.id + '\')" style="margin-top:8px;">+ Add Option</button></div>';
-      if (q.screenOut && (q.correctOptions || []).length === 0) {
-        html += '<p style="font-size:11px;color:var(--danger);margin-top:6px;">⚠ Mark at least one option as correct, otherwise users will always be screened out.</p>';
-      }
+      if (q.screenOut && (q.correctOptions || []).length === 0) html += '<p style="font-size:11px;color:var(--danger);margin-top:6px;">⚠ Mark at least one option as correct, otherwise users will always be screened out.</p>';
     }
-
     html += '<div class="qb-field"><div class="qb-required-row"><input type="checkbox"' + (q.required ? ' checked' : '') + ' onchange="updateAdminQuestion(\'' + q.id + '\', \'required\', this.checked)"><span>Required</span></div></div>';
     html += '</div>';
     return html;
@@ -1305,7 +1448,6 @@ async function loadAdminParticipationsTable() {
   allParts.forEach(function(p) {
     const s = p.review_status || 'pending';
     if (counts[s] !== undefined) counts[s]++;
-    // screened_out → count as rejected
     if (s === 'screened_out') counts.rejected++;
   });
 
@@ -1336,7 +1478,7 @@ async function loadAdminParticipationsTable() {
         const dateStr = (p.submitted_at || p.updated_at) ? new Date(p.submitted_at || p.updated_at).toLocaleDateString() : '—';
         const user = allUsers.find(function(u) { return u.id === p.user_id; });
         const userName = user ? (user.name || user.email) : 'Unknown user';
-        const userEmail = user ? user.email : '—';
+        const userEmail = user ? ((user.username ? '@' + user.username + ' · ' : '') + user.email) : '—';
         const actions = renderParticipationActions(p, isInternal);
         return '<tr><td><strong>' + escapeHtml(userName) + '</strong><br><small style="color:var(--muted);">' + escapeHtml(userEmail) + '</small></td><td><strong>' + escapeHtml(title) + '</strong></td><td>' + typeLabel + '</td><td>' + dateStr + '</td><td>' + actions + '</td></tr>';
       }).join('') + '</tbody></table></div>';
@@ -1412,7 +1554,7 @@ function viewResponse(participationId) {
   }
 
   const content = document.getElementById('response-viewer-content');
-  let html = '<h2 style="margin:0 0 6px;font-size:20px;">' + escapeHtml(survey.title) + '</h2><p style="color:var(--muted);font-size:12px;margin:0 0 16px;">Submitted response</p><div class="response-user-info"><strong>' + escapeHtml(user ? (user.name || user.email) : 'Unknown user') + '</strong><br>' + escapeHtml(user ? user.email : '') + '<br>Submitted: ' + (part.submitted_at ? new Date(part.submitted_at).toLocaleString() : '—') + '</div>';
+  let html = '<h2 style="margin:0 0 6px;font-size:20px;">' + escapeHtml(survey.title) + '</h2><p style="color:var(--muted);font-size:12px;margin:0 0 16px;">Submitted response</p><div class="response-user-info"><strong>' + escapeHtml(user ? (user.name || user.email) : 'Unknown user') + '</strong>' + (user && user.username ? '<br>@' + escapeHtml(user.username) : '') + '<br>' + escapeHtml(user ? user.email : '') + '<br>Submitted: ' + (part.submitted_at ? new Date(part.submitted_at).toLocaleString() : '—') + '</div>';
   if (!response) html += '<p style="color:var(--muted);text-align:center;padding:20px 0;">No answers found.</p>';
   else {
     html += '<div class="response-list">';
@@ -1539,30 +1681,44 @@ function switchAuthMode(mode) {
 function showNotice(msg, type) { const n = document.getElementById('auth-notice'); n.className = 'notice show ' + type; n.textContent = msg; }
 function clearAuthNotices() { const n = document.getElementById('auth-notice'); n.className = 'notice'; n.textContent = ''; }
 
+function findUserByEmailOrUsername(input) {
+  const users = readStore(STORE_USERS, []);
+  const lower = input.toLowerCase();
+  return users.find(function(u) {
+    return u.email.toLowerCase() === lower || (u.username || '').toLowerCase() === lower;
+  });
+}
+
 async function submitSignIn(e) {
   e.preventDefault();
-  const email = document.getElementById('signin-email').value.trim().toLowerCase();
+  const identifier = document.getElementById('signin-email').value.trim();
   const password = document.getElementById('signin-password').value;
   const submitBtn = document.getElementById('signin-submit-btn');
   submitBtn.disabled = true; clearAuthNotices();
   try {
-    if (!email || !password) throw new Error('Enter email and password.');
-    const users = readStore(STORE_USERS, []);
-    const user = users.find(function(u) { return u.email.toLowerCase() === email; });
-    if (!user) throw new Error('No account found.');
+    if (!identifier || !password) throw new Error('Enter your email/username and password.');
+    const user = findUserByEmailOrUsername(identifier);
+    if (!user) throw new Error('No account found with those credentials.');
     const passwordHash = await hashPassword(password);
     if (user.passwordHash !== passwordHash) throw new Error('Incorrect password.');
-    currentUser = { id: user.id, email: user.email, name: user.name || user.email.split('@')[0], avatar: user.avatar || null, tier: user.tier || 'basic', referralCode: user.referralCode || ensureReferralCode(user), referrals: user.referrals || [] };
+    currentUser = {
+      id: user.id, email: user.email, name: user.name || user.email.split('@')[0],
+      username: user.username || user.email.split('@')[0],
+      avatar: user.avatar || null, tier: user.tier || 'basic',
+      referralCode: user.referralCode || ensureReferralCode(user),
+      referrals: user.referrals || []
+    };
     isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
     writeStore(STORE_SESSION, { userId: user.id });
     ensureDailyReset();
     updateAuthUI(); closeAuth();
-    showToast('Welcome back, ' + (currentUser.name || currentUser.email) + '!');
+    showToast('Welcome back, @' + (currentUser.username || currentUser.name) + '!');
     fetchAndRenderSurveys();
     if (currentView === 'profile') renderProfile();
     if (currentView === 'wallet') renderWallet();
     if (currentView === 'settings') renderSettings();
-    refreshNavBadges();
+    if (currentView === 'notifications') renderNotifications();
+    updateNotifBadges();
   } catch (err) { showNotice(err.message, 'error'); }
   finally { submitBtn.disabled = false; }
 }
@@ -1570,43 +1726,72 @@ async function submitSignIn(e) {
 async function submitSignUp(e) {
   e.preventDefault();
   const name = document.getElementById('signup-name').value.trim();
+  const username = document.getElementById('signup-username').value.trim().toLowerCase();
   const email = document.getElementById('signup-email').value.trim().toLowerCase();
   const password = document.getElementById('signup-password').value;
+  const referralInput = document.getElementById('signup-referral').value.trim().toUpperCase();
+  const rulesChecked = document.getElementById('signup-rules').checked;
   const submitBtn = document.getElementById('signup-submit-btn');
   submitBtn.disabled = true; clearAuthNotices();
+
   try {
-    if (!name || name.length < 2) throw new Error('Enter your full name.');
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Valid email required.');
-    if (!password || password.length < 6) throw new Error('Password must be 6+ characters.');
+    if (!name || name.length < 2) throw new Error('Please enter your official name.');
+    if (!username || username.length < 3 || username.length > 20) throw new Error('Username must be 3-20 characters.');
+    if (!/^[a-z0-9_]+$/.test(username)) throw new Error('Username can only contain lowercase letters, numbers, and underscores.');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Please enter a valid email address.');
+    if (!password || password.length < 6) throw new Error('Password must be at least 6 characters.');
+    if (!rulesChecked) throw new Error('You must agree to the Terms and Privacy Policy to register.');
+
     const users = readStore(STORE_USERS, []);
-    if (users.some(function(u) { return u.email.toLowerCase() === email; })) throw new Error('Email already exists.');
+    if (users.some(function(u) { return u.email.toLowerCase() === email; })) throw new Error('Email already registered. Sign in instead.');
+    if (users.some(function(u) { return (u.username || '').toLowerCase() === username; })) throw new Error('Username is already taken. Try a different one.');
+
+    // Validate referral code if provided
+    let referrer = null;
+    if (referralInput) {
+      referrer = users.find(function(u) { return (u.referralCode || '').toUpperCase() === referralInput; });
+      if (!referrer) throw new Error('Invalid referral code. Leave it blank or enter a valid one.');
+    }
+
     const passwordHash = await hashPassword(password);
-    const newUser = { id: uid('user'), name: name, email: email, passwordHash: passwordHash, avatar: null, tier: 'basic', referralCode: null, referrals: [], daily: { date: todayStr(), surveyCount: 0, totalRewards: 0 }, notifications_read_at: Date.now(), created_at: Date.now() };
+    const newUser = {
+      id: uid('user'), name: name, username: username, email: email, passwordHash: passwordHash,
+      avatar: null, tier: 'basic', referralCode: null, referrals: [],
+      daily: { date: todayStr(), surveyCount: 0, totalRewards: 0 },
+      notifications_read_at: Date.now(), created_at: Date.now(),
+      agreedToRules: true, agreedAt: Date.now()
+    };
     newUser.referralCode = generateReferralCode(newUser.id);
     users.push(newUser);
     writeStore(STORE_USERS, users);
-    const pendingRef = localStorage.getItem(STORE_PENDING_REF);
-    if (pendingRef) {
+
+    // Credit referrer
+    if (referrer) {
       const allUsers = readStore(STORE_USERS, []);
-      const referrer = allUsers.find(function(u) { return u.referralCode === pendingRef; });
-      if (referrer && referrer.id !== newUser.id) { const idx = allUsers.findIndex(function(u) { return u.id === referrer.id; }); if (idx !== -1) { allUsers[idx].referrals = allUsers[idx].referrals || []; allUsers[idx].referrals.push(newUser.id); writeStore(STORE_USERS, allUsers); } }
-      localStorage.removeItem(STORE_PENDING_REF);
+      const idx = allUsers.findIndex(function(u) { return u.id === referrer.id; });
+      if (idx !== -1) {
+        allUsers[idx].referrals = allUsers[idx].referrals || [];
+        allUsers[idx].referrals.push(newUser.id);
+        writeStore(STORE_USERS, allUsers);
+      }
     }
-    currentUser = { id: newUser.id, email: newUser.email, name: newUser.name, avatar: null, tier: 'basic', referralCode: newUser.referralCode, referrals: [] };
+    localStorage.removeItem(STORE_PENDING_REF);
+
+    currentUser = { id: newUser.id, email: newUser.email, name: newUser.name, username: newUser.username, avatar: null, tier: 'basic', referralCode: newUser.referralCode, referrals: [] };
     isAdmin = newUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
     writeStore(STORE_SESSION, { userId: newUser.id });
     updateAuthUI(); closeAuth();
-    showToast('Welcome, ' + name + '!');
+    showToast('Welcome, @' + username + '!');
     fetchAndRenderSurveys();
     if (currentView === 'profile') renderProfile();
     if (currentView === 'wallet') renderWallet();
     if (currentView === 'settings') renderSettings();
-    refreshNavBadges();
+    updateNotifBadges();
   } catch (err) { showNotice(err.message, 'error'); }
   finally { submitBtn.disabled = false; }
 }
 
-async function submitPasswordReset() { showNotice('Local-only mode: password reset is not available.', 'info'); }
+async function submitPasswordReset() { showNotice('Local-only mode: password reset is not available. Please remember your password.', 'info'); }
 
 async function signOut() {
   writeStore(STORE_SESSION, null);
@@ -1614,9 +1799,10 @@ async function signOut() {
   updateAuthUI();
   if (currentView === 'profile') renderProfile();
   else if (currentView === 'wallet') renderWallet();
+  else if (currentView === 'notifications') renderNotifications();
   else if (currentView === 'settings') renderSettings();
   else navigate('home');
-  refreshNavBadges();
+  updateNotifBadges();
   showToast('Signed out.');
 }
 
@@ -1628,7 +1814,7 @@ function updateAuthUI() {
   if (currentUser) {
     guestActions.classList.add('hidden'); guestActions.style.display = 'none';
     userActions.classList.remove('hidden'); userActions.style.display = 'flex';
-    greeting.textContent = 'Hi, ' + (currentUser.name || currentUser.email.split('@')[0]);
+    greeting.textContent = 'Hi, @' + (currentUser.username || currentUser.name || currentUser.email.split('@')[0]);
     if (isAdmin) adminLink.classList.remove('hidden'); else adminLink.classList.add('hidden');
   } else {
     userActions.classList.add('hidden'); userActions.style.display = 'none';
