@@ -1,0 +1,25 @@
+{
+  "name": "SurveyKE — Your Voice Matters",
+  "short_name": "SurveyKE",
+  "description": "Share your voice, shape Kenya's future. Earn rewards for surveys.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f5ef",
+  "theme_color": "#087f5b",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzA4N2Y1YiIgcng9IjMyIi8+PHBhdGggZD0iTTE0MCA0NGMtNTYgMC05OCAyMS05OCA3MGE0MiA0MiAwIDAgMCA0MiA0MmM0OSAwIDU2LTU2IDU2LTExMloiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNMzIgMTYwYzE0LTM1IDQyLTYzIDg0LTg0IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzA4N2Y1YiIgcng9Ijg2Ii8+PHBhdGggZD0iTTM3MyAxMTdjLTE0OSAwLTI2MSA1Ni0yNjEgMTg2YTExMiAxMTIgMCAwIDAgMTEyIDExMmMxMzAgMCAxNDktMTQ5IDE0OS0yOThaIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTg1IDQyN2MzNy05MyAxMTItMTY4IDIyNC0yMjQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
