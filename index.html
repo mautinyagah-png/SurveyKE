@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="booting">
   <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
     <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4c-8 0-14 3-14 10a6 6 0 0 0 6 6c7 0 8-8 8-16Z"/><path d="M4 21c2-5 6-9 12-12"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
@@ -51,8 +51,28 @@
     <symbol id="i-crown" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
-    <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="m13 2-3 8h7L8 22l3-9H4l9-11Z"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></symbol>
   </svg>
+
+  <!-- ===== BOOT LOADING SCREEN ===== -->
+  <div id="app-loading" class="app-loading">
+    <div class="loading-content">
+      <div class="loading-logo"><svg><use href="#i-leaf"/></svg></div>
+      <h2>SurveyKE</h2>
+      <p class="loading-sub">Preparing your experience…</p>
+      <div class="boot-steps">
+        <div class="boot-step" id="boot-1"><span class="boot-dot"></span><span>Loading cache</span></div>
+        <div class="boot-step" id="boot-2"><span class="boot-dot"></span><span>Verifying environment</span></div>
+        <div class="boot-step" id="boot-3"><span class="boot-dot"></span><span>Preparing app</span></div>
+      </div>
+      <div id="boot-error" class="boot-error hidden">
+        <strong>Cannot access app</strong>
+        <p>Your browser does not support the features this app needs. Please try a modern browser like Chrome or Firefox.</p>
+      </div>
+    </div>
+  </div>
 
   <div class="announcement">
     🇰🇪 <strong>SurveyKE is live!</strong> Shape future services, products, and policies across Kenya.
@@ -74,6 +94,10 @@
         <a id="nav-admin-link" href="#" class="hidden" onclick="navigate('admin'); return false;">Admin</a>
       </nav>
       <div class="nav-actions">
+        <button class="header-bell" id="header-bell" onclick="navigate('notifications')" aria-label="Notifications">
+          <svg><use href="#i-bell"/></svg>
+          <span class="header-bell-badge hidden" id="header-bell-badge">0</span>
+        </button>
         <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
           <svg class="icon-moon"><use href="#i-moon"/></svg>
           <svg class="icon-sun"><use href="#i-sun"/></svg>
@@ -194,6 +218,7 @@
     </div>
 
     <div id="view-wallet" class="hidden"><div class="container section"><div id="wallet-content"></div></div></div>
+    <div id="view-notifications" class="hidden"><div class="container section"><div id="notifications-content"></div></div></div>
     <div id="view-profile" class="hidden"><div class="container section"><div id="profile-content"></div></div></div>
     <div id="view-settings" class="hidden"><div class="container section"><div id="settings-content"></div></div></div>
 
@@ -212,27 +237,16 @@
           <p>You are signed in, but your account does not have administrator privileges.</p>
         </div>
         <div id="admin-authorized" class="hidden">
-
           <div class="admin-subtabs" id="admin-subtabs">
-            <button class="admin-subtab active" data-section="add" onclick="switchAdminSection('add')">
-              <svg><use href="#i-plus"/></svg>
-              <span>Add Survey</span>
-            </button>
-            <button class="admin-subtab" data-section="manage" onclick="switchAdminSection('manage')">
-              <svg><use href="#i-list"/></svg>
-              <span>Manage Surveys</span>
-            </button>
-            <button class="admin-subtab" data-section="review" onclick="switchAdminSection('review')">
-              <svg><use href="#i-check-circle"/></svg>
-              <span>Participation Review</span>
-            </button>
+            <button class="admin-subtab active" data-section="add" onclick="switchAdminSection('add')"><svg><use href="#i-plus"/></svg><span>Add Survey</span></button>
+            <button class="admin-subtab" data-section="manage" onclick="switchAdminSection('manage')"><svg><use href="#i-list"/></svg><span>Manage Surveys</span></button>
+            <button class="admin-subtab" data-section="review" onclick="switchAdminSection('review')"><svg><use href="#i-check-circle"/></svg><span>Participation Review</span></button>
           </div>
 
           <div id="admin-section-add" class="admin-section">
             <div class="admin-panel-card">
               <h3>Add New Survey</h3>
               <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create an external link survey or build an in-app survey with your own questions.</p>
-
               <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
                 <div class="field">
                   <label>Survey Type *</label>
@@ -241,14 +255,9 @@
                     <button type="button" class="admin-type-btn" data-type="internal" onclick="setAdminSurveyType('internal')">📝 Internal Survey</button>
                   </div>
                 </div>
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                  <div class="field">
-                    <label>Survey Title *</label>
-                    <input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required>
-                  </div>
-                  <div class="field">
-                    <label>Category *</label>
+                  <div class="field"><label>Survey Title *</label><input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required></div>
+                  <div class="field"><label>Category *</label>
                     <select id="admin-category" style="padding-left: 13px;" required>
                       <option value="Public Policy">Public Policy</option>
                       <option value="Technology">Technology</option>
@@ -260,23 +269,11 @@
                     </select>
                   </div>
                 </div>
-
-                <div class="field">
-                  <label>Description *</label>
-                  <textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea>
-                </div>
-
+                <div class="field"><label>Description *</label><textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea></div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px;">
-                  <div class="field">
-                    <label>Duration (mins) *</label>
-                    <input type="number" id="admin-duration" placeholder="5" min="1" required>
-                  </div>
-                  <div class="field">
-                    <label>Reward (KSh) *</label>
-                    <input type="number" id="admin-reward" placeholder="20" min="1" required>
-                  </div>
-                  <div class="field">
-                    <label>Tier *</label>
+                  <div class="field"><label>Duration (mins) *</label><input type="number" id="admin-duration" placeholder="5" min="1" required></div>
+                  <div class="field"><label>Reward (KSh) *</label><input type="number" id="admin-reward" placeholder="20" min="1" required></div>
+                  <div class="field"><label>Tier *</label>
                     <select id="admin-tier" style="padding-left: 13px;" required>
                       <option value="basic">Basic</option>
                       <option value="silver">Silver</option>
@@ -284,8 +281,7 @@
                       <option value="platinum">Platinum</option>
                     </select>
                   </div>
-                  <div class="field">
-                    <label>Status *</label>
+                  <div class="field"><label>Status *</label>
                     <select id="admin-status" style="padding-left: 13px;" required>
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>
@@ -293,14 +289,9 @@
                     </select>
                   </div>
                 </div>
-
                 <div id="admin-external-fields">
-                  <div class="field">
-                    <label>Survey URL (HTTPS) *</label>
-                    <input type="url" id="admin-url" placeholder="https://forms.gle/..." required>
-                  </div>
+                  <div class="field"><label>Survey URL (HTTPS) *</label><input type="url" id="admin-url" placeholder="https://forms.gle/..." required></div>
                 </div>
-
                 <div id="admin-internal-fields" class="hidden">
                   <div class="field">
                     <label>Questions *</label>
@@ -308,18 +299,10 @@
                     <button type="button" class="qb-add-question" onclick="addAdminQuestion()">+ Add Question</button>
                   </div>
                 </div>
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                  <div class="field">
-                    <label>Eligibility (Optional)</label>
-                    <textarea id="admin-eligibility" placeholder="Who can participate..." style="min-height: 60px;"></textarea>
-                  </div>
-                  <div class="field">
-                    <label>Instructions (Optional)</label>
-                    <textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea>
-                  </div>
+                  <div class="field"><label>Eligibility (Optional)</label><textarea id="admin-eligibility" placeholder="Who can participate..." style="min-height: 60px;"></textarea></div>
+                  <div class="field"><label>Instructions (Optional)</label><textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea></div>
                 </div>
-
                 <div id="admin-create-notice" class="notice"></div>
                 <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey</button>
               </form>
@@ -329,7 +312,7 @@
           <div id="admin-section-manage" class="admin-section hidden">
             <div class="admin-panel-card">
               <h3>Manage Existing Surveys</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Close, publish, or delete surveys. Deleted surveys also delete their participations.</p>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Close, publish, or delete surveys.</p>
               <div id="admin-surveys-list-wrap"><div class="spinner"></div></div>
             </div>
           </div>
@@ -337,11 +320,10 @@
           <div id="admin-section-review" class="admin-section hidden">
             <div class="admin-panel-card">
               <h3>Participation Review</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Review submissions by user, approve or reject. Once finalized, actions are locked.</p>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Review submissions by user. Once finalized, actions are locked.</p>
               <div id="admin-participations-wrap"><div class="spinner"></div></div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -372,6 +354,7 @@
           <button onclick="navigate('home')">Home</button>
           <button onclick="navigate('surveys')">All Surveys</button>
           <button onclick="navigate('wallet')">Wallet</button>
+          <button onclick="navigate('notifications')">Notifications</button>
           <button onclick="navigate('profile')">Profile</button>
           <button onclick="navigate('settings')">Settings</button>
         </div>
@@ -387,6 +370,7 @@
     <button class="bottom-nav-item active" data-tab="home" onclick="navigate('home')"><svg><use href="#i-home"/></svg><span>Home</span></button>
     <button class="bottom-nav-item" data-tab="surveys" onclick="navigate('surveys')"><svg><use href="#i-list"/></svg><span>Surveys</span></button>
     <button class="bottom-nav-item" data-tab="wallet" onclick="navigate('wallet')"><svg><use href="#i-wallet"/></svg><span>Wallet</span></button>
+    <button class="bottom-nav-item" data-tab="notifications" onclick="navigate('notifications')"><svg><use href="#i-bell"/></svg><span>Alerts</span></button>
     <button class="bottom-nav-item" data-tab="profile" onclick="navigate('profile')"><svg><use href="#i-user"/></svg><span>Profile</span></button>
   </nav>
 
@@ -420,51 +404,26 @@
       <button class="modal-close" onclick="closePlanModal()"><svg><use href="#i-x"/></svg></button>
       <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Choose Your Plan</h2>
       <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Higher plans unlock more surveys and let you earn more each day.</p>
-
       <div class="plan-card" data-plan="basic" onclick="selectPlan('basic')">
         <div class="plan-card-header"><div class="plan-name">Basic</div><span class="tier-badge tier-basic"><svg><use href="#i-star"/></svg>Free</span></div>
         <div class="plan-price"><span class="free-tag">Free forever</span></div>
-        <ul class="plan-features">
-          <li>Access to basic surveys only</li>
-          <li>Earn up to KSh 50 per day</li>
-          <li>Up to 3 surveys per day</li>
-          <li>Withdraw at KSh 2,500</li>
-        </ul>
+        <ul class="plan-features"><li>Access to basic surveys only</li><li>Earn up to KSh 50 per day</li><li>Up to 3 surveys per day</li><li>Withdraw at KSh 2,500</li></ul>
       </div>
-
       <div class="plan-card" data-plan="silver" onclick="selectPlan('silver')">
         <div class="plan-card-header"><div class="plan-name">Silver</div><span class="tier-badge tier-silver"><svg><use href="#i-star"/></svg>Silver</span></div>
         <div class="plan-price"><strong>KSh 100</strong> one-time</div>
-        <ul class="plan-features">
-          <li>Basic + Silver surveys</li>
-          <li>Earn up to KSh 100 per day</li>
-          <li>Up to 5 surveys per day</li>
-          <li>Withdraw at KSh 1,500</li>
-        </ul>
+        <ul class="plan-features"><li>Basic + Silver surveys</li><li>Earn up to KSh 100 per day</li><li>Up to 5 surveys per day</li><li>Withdraw at KSh 1,500</li></ul>
       </div>
-
       <div class="plan-card" data-plan="gold" onclick="selectPlan('gold')">
         <div class="plan-card-header"><div class="plan-name">Gold</div><span class="tier-badge tier-gold"><svg><use href="#i-star"/></svg>Gold</span></div>
         <div class="plan-price"><strong>KSh 300</strong> one-time</div>
-        <ul class="plan-features">
-          <li>Basic + Silver + Gold surveys</li>
-          <li>Earn up to KSh 200 per day</li>
-          <li>Up to 8 surveys per day</li>
-          <li>Withdraw at KSh 1,000</li>
-        </ul>
+        <ul class="plan-features"><li>Basic + Silver + Gold surveys</li><li>Earn up to KSh 200 per day</li><li>Up to 8 surveys per day</li><li>Withdraw at KSh 1,000</li></ul>
       </div>
-
       <div class="plan-card" data-plan="platinum" onclick="selectPlan('platinum')">
         <div class="plan-card-header"><div class="plan-name">Platinum</div><span class="tier-badge tier-platinum"><svg><use href="#i-crown"/></svg>Platinum</span></div>
         <div class="plan-price"><strong>KSh 500</strong> one-time</div>
-        <ul class="plan-features">
-          <li>All surveys unlocked</li>
-          <li>Earn up to KSh 300 per day</li>
-          <li>Up to 10 surveys per day</li>
-          <li>Withdraw at KSh 500</li>
-        </ul>
+        <ul class="plan-features"><li>All surveys unlocked</li><li>Earn up to KSh 300 per day</li><li>Up to 10 surveys per day</li><li>Withdraw at KSh 500</li></ul>
       </div>
-
       <div id="plan-notice" class="notice"></div>
       <div class="modal-actions">
         <button class="btn btn-outline" onclick="closePlanModal()">Cancel</button>
@@ -493,9 +452,9 @@
         <p class="auth-description">Sign in to participate in active surveys and track your submissions.</p>
         <form id="signin-form" onsubmit="submitSignIn(event)">
           <div class="field">
-            <label>Email Address</label>
+            <label>Email or Username</label>
             <div class="input-wrap"><svg><use href="#i-mail"/></svg>
-              <input type="email" id="signin-email" placeholder="e.g. juma@example.co.ke" required>
+              <input type="text" id="signin-email" placeholder="email or username" required>
             </div>
           </div>
           <div class="field">
@@ -514,24 +473,41 @@
         <p class="auth-description">Join SurveyKE — start with the free Basic plan and upgrade anytime.</p>
         <form id="signup-form" onsubmit="submitSignUp(event)">
           <div class="field">
-            <label>Full Name</label>
+            <label>Official Name *</label>
             <div class="input-wrap"><svg><use href="#i-user"/></svg>
               <input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required>
             </div>
           </div>
           <div class="field">
-            <label>Email Address</label>
+            <label>Username (Nickname) *</label>
+            <div class="input-wrap"><svg><use href="#i-user"/></svg>
+              <input type="text" id="signup-username" placeholder="e.g. amina_w" minlength="3" maxlength="20" required>
+            </div>
+            <small class="field-hint">3-20 chars · letters, numbers, underscore only · must be unique</small>
+          </div>
+          <div class="field">
+            <label>Email Address *</label>
             <div class="input-wrap"><svg><use href="#i-mail"/></svg>
               <input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required>
             </div>
           </div>
           <div class="field">
-            <label>Password</label>
+            <label>Password *</label>
             <div class="input-wrap"><svg><use href="#i-lock"/></svg>
               <input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6">
             </div>
           </div>
-          <p class="fine-print">By registering, you agree to SurveyKE's terms. You'll start on the free Basic plan.</p>
+          <div class="field">
+            <label>Referral Code (Optional)</label>
+            <div class="input-wrap"><svg><use href="#i-gift"/></svg>
+              <input type="text" id="signup-referral" placeholder="e.g. SK123ABC">
+            </div>
+            <small class="field-hint">Have a friend's referral code? Enter it here.</small>
+          </div>
+          <label class="rules-checkbox">
+            <input type="checkbox" id="signup-rules" required>
+            <span>I agree to the <a href="#" onclick="event.preventDefault(); showToast('Terms & Privacy coming soon.');">Terms of Service</a> and <a href="#" onclick="event.preventDefault(); showToast('Terms & Privacy coming soon.');">Privacy Policy</a>. I confirm the information I've provided is accurate.</span>
+          </label>
           <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
         </form>
         <div class="auth-switch">Already have an account? <button class="text-button" onclick="switchAuthMode('signin')">Sign in</button></div>
