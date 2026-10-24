@@ -4,18 +4,22 @@
 // Clearing site data wipes users, surveys, participations, session.
 // ================================================================
 
-const STORE_USERS         = 'surveyke_users';
-const STORE_SESSION       = 'surveyke_session';
-const STORE_SURVEYS       = 'surveyke_surveys';
+const STORE_USERS          = 'surveyke_users';
+const STORE_SESSION        = 'surveyke_session';
+const STORE_SURVEYS        = 'surveyke_surveys';
 const STORE_PARTICIPATIONS = 'surveyke_participations';
 
 const ADMIN_EMAIL = 'mautinyagah@gmail.com';
+
+// Safe fallback URL used by the seed surveys — loads without error.
+const DEMO_URL = 'https://docs.google.com/forms/';
 
 let currentUser = null;
 let isAdmin = false;
 let surveysCache = [];
 let selectedDirectoryTopic = 'All';
 let activeSurveyId = null;
+let currentView = 'home';
 
 // ---------- Storage helpers ----------
 function readStore(key, fallback) {
@@ -49,6 +53,22 @@ async function hashPassword(pw) {
   }
 }
 
+// ---------- Migrate any broken demo URLs already in localStorage ----------
+function migrateBrokenSeedUrls() {
+  const all = readStore(STORE_SURVEYS, null);
+  if (!Array.isArray(all)) return;
+
+  let changed = false;
+  all.forEach(function(s) {
+    if (s.survey_url && s.survey_url.indexOf('forms.gle/example-survey') !== -1) {
+      s.survey_url = DEMO_URL;
+      changed = true;
+    }
+  });
+
+  if (changed) writeStore(STORE_SURVEYS, all);
+}
+
 // ---------- Seed surveys on first load ----------
 function seedSurveysIfEmpty() {
   const existing = readStore(STORE_SURVEYS, null);
@@ -58,39 +78,39 @@ function seedSurveysIfEmpty() {
   const seeds = [
     {
       id: uid('sur'),
-      title: 'Digital ID Public Feedback',
+      title: 'Digital ID Public Feedback (Demo)',
       category: 'Public Policy',
-      description: 'Share your views on the proposed national digital identity system and how it may impact everyday Kenyans.',
+      description: 'Share your views on the proposed national digital identity system and how it may impact everyday Kenyans. This is a demo entry — the admin should delete it and add a real survey link.',
       estimated_minutes: 5,
       duration: '5 mins',
       status: 'published',
-      survey_url: 'https://forms.gle/example-survey-1',
+      survey_url: DEMO_URL,
       eligibility: 'Kenyan residents aged 18+.',
       instructions: 'Answer all questions honestly. Your responses are anonymous.',
       created_at: now - 300000
     },
     {
       id: uid('sur'),
-      title: 'Mobile Money Usage Study',
+      title: 'Mobile Money Usage Study (Demo)',
       category: 'Finance',
-      description: 'Help us understand how Kenyans use mobile money platforms for daily transactions, savings and small business.',
+      description: 'Help us understand how Kenyans use mobile money platforms for daily transactions, savings and small business. This is a demo entry — the admin should delete it and add a real survey link.',
       estimated_minutes: 7,
       duration: '7 mins',
       status: 'published',
-      survey_url: 'https://forms.gle/example-survey-2',
+      survey_url: DEMO_URL,
       eligibility: 'Anyone who has used mobile money in the last 30 days.',
       instructions: 'Respond based on your most recent month of activity.',
       created_at: now - 200000
     },
     {
       id: uid('sur'),
-      title: 'Matatu Commuter Experience',
+      title: 'Matatu Commuter Experience (Demo)',
       category: 'Transport',
-      description: 'Rate your experience with matatus, fares, safety and route coverage in Nairobi and other towns.',
+      description: 'Rate your experience with matatus, fares, safety and route coverage in Nairobi and other towns. This is a demo entry — the admin should delete it and add a real survey link.',
       estimated_minutes: 6,
       duration: '6 mins',
       status: 'published',
-      survey_url: 'https://forms.gle/example-survey-3',
+      survey_url: DEMO_URL,
       eligibility: 'Regular commuters using public transport.',
       instructions: 'Focus on the last 7 days of your commute.',
       created_at: now - 100000
@@ -118,6 +138,7 @@ function restoreSession() {
 
 // ---------- Boot ----------
 document.addEventListener('DOMContentLoaded', function() {
+  migrateBrokenSeedUrls();
   seedSurveysIfEmpty();
   restoreSession();
   fetchAndRenderSurveys();
@@ -153,8 +174,6 @@ function navigate(viewName, param) {
   }
 }
 
-let currentView = 'home';
-
 // ---------- Surveys ----------
 function fetchAndRenderSurveys() {
   try {
@@ -163,8 +182,8 @@ function fetchAndRenderSurveys() {
       if (s.status !== 'published') return false;
       if (!s.survey_url) return false;
       if (!s.survey_url.startsWith('https://')) return false;
-      const urlLower = s.survey_url.toLowerCase();
-      if (urlLower.includes('example.com') || urlLower.includes('placeholder')) return false;
+      if (s.survey_url.indexOf('example.com') !== -1) return false;
+      if (s.survey_url.indexOf('placeholder') !== -1) return false;
       return true;
     }).sort(function(a, b) {
       return (b.created_at || 0) - (a.created_at || 0);
@@ -282,6 +301,14 @@ function renderSurveyDetail(id) {
     return;
   }
 
+  const isDemo = survey.survey_url === DEMO_URL;
+
+  const demoNotice = isDemo ? `
+    <div class="notice show info" style="margin-bottom: 12px;">
+      <strong>Demo survey:</strong> This survey uses a placeholder link. The admin should delete it and create a real survey with a working Google Forms URL.
+    </div>
+  ` : '';
+
   const eligibilityHTML = survey.eligibility ? `
     <div class="detail-section">
       <h3>Eligibility Requirements</h3>
@@ -317,6 +344,8 @@ function renderSurveyDetail(id) {
       <div class="participate-box">
         <h3>External Survey Participation</h3>
         <p>This survey is hosted securely on an external research platform. Click below to begin your participation. We will record your session status upon entry.</p>
+
+        ${demoNotice}
 
         <div id="participate-notice" class="notice"></div>
 
@@ -401,7 +430,7 @@ async function loadAdminSurveysTable() {
   });
 
   if (all.length === 0) {
-    wrap.innerHTML = '<p style="font-size:12px; color:var(--muted);">No surveys found. Create one above.</p>';
+    wrap.innerHTML = '<p style="font-size:12px; color:var(--muted);">No surveys found. Create one above, or click <strong>Reset All Data</strong> to reseed demos.</p>';
     return;
   }
 
@@ -429,6 +458,7 @@ async function loadAdminSurveysTable() {
                 <td><span class="status-chip">${escapeHtml(s.status)}</span></td>
                 <td>
                   <button class="btn btn-outline btn-sm" onclick="toggleSurveyStatus('${s.id}', '${toggleTo}')">${toggleLabel}</button>
+                  <button class="btn btn-outline btn-sm" style="color:#a52b26; border-color:#f6d4d1;" onclick="deleteSurvey('${s.id}')">Delete</button>
                 </td>
               </tr>
             `;
@@ -530,6 +560,9 @@ async function handleCreateSurvey(e) {
     if (!survey_url.startsWith('https://')) {
       throw new Error('Survey URL must be a valid secure HTTPS destination.');
     }
+    if (survey_url.indexOf('forms.gle/example') !== -1) {
+      throw new Error('That link is a demo placeholder. Please paste a real Google Forms URL.');
+    }
     if (isNaN(estimated_minutes) || estimated_minutes <= 0) {
       throw new Error('Estimated duration must be a positive number of minutes.');
     }
@@ -578,6 +611,38 @@ async function toggleSurveyStatus(surveyId, newStatus) {
   } catch (e) {
     showToast('Failed to update status: ' + e.message);
   }
+}
+
+async function deleteSurvey(surveyId) {
+  if (!confirm('Delete this survey? This cannot be undone.')) return;
+  try {
+    let all = readStore(STORE_SURVEYS, []);
+    const lenBefore = all.length;
+    all = all.filter(function(s) { return s.id !== surveyId; });
+    if (all.length === lenBefore) throw new Error('Survey not found.');
+    writeStore(STORE_SURVEYS, all);
+
+    let parts = readStore(STORE_PARTICIPATIONS, []);
+    parts = parts.filter(function(p) { return p.survey_id !== surveyId; });
+    writeStore(STORE_PARTICIPATIONS, parts);
+
+    showToast('Survey deleted.');
+    fetchAndRenderSurveys();
+    await loadAdminSurveysTable();
+    await loadAdminParticipationsTable();
+  } catch (e) {
+    showToast('Failed to delete: ' + e.message);
+  }
+}
+
+function resetAllData() {
+  if (!confirm('This will delete ALL users, surveys, and participations from this browser. Continue?')) return;
+  localStorage.removeItem(STORE_USERS);
+  localStorage.removeItem(STORE_SESSION);
+  localStorage.removeItem(STORE_SURVEYS);
+  localStorage.removeItem(STORE_PARTICIPATIONS);
+  showToast('All data cleared. Reloading...');
+  setTimeout(function() { location.reload(); }, 700);
 }
 
 // ---------- Auth ----------
