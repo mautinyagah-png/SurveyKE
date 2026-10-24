@@ -128,7 +128,7 @@
           </div>
           <div class="steps-grid">
             <div class="step-card"><div class="step-num">1</div><h3>Browse &amp; Choose</h3><p>Pick from verified surveys on policy, technology, finance, transport, and more.</p></div>
-            <div class="step-card"><div class="step-num">2</div><h3>Share Your View</h3><p>Answer honestly on trusted external platforms. Your identity stays private.</p></div>
+            <div class="step-card"><div class="step-num">2</div><h3>Share Your View</h3><p>Answer honestly on trusted platforms. Your identity stays private.</p></div>
             <div class="step-card"><div class="step-num">3</div><h3>Earn &amp; Impact</h3><p>Get rewarded for your time while helping shape Kenya's future.</p></div>
           </div>
         </div>
@@ -184,6 +184,13 @@
       </div>
     </div>
 
+    <div id="view-take-survey" class="hidden">
+      <div class="container section">
+        <a href="#" class="back-link" onclick="navigate('surveys'); return false;"><svg><use href="#i-arrow"/></svg> Back to Surveys</a>
+        <div id="take-survey-content"></div>
+      </div>
+    </div>
+
     <div id="view-wallet" class="hidden"><div class="container section"><div id="wallet-content"></div></div></div>
     <div id="view-profile" class="hidden"><div class="container section"><div id="profile-content"></div></div></div>
     <div id="view-settings" class="hidden"><div class="container section"><div id="settings-content"></div></div></div>
@@ -205,8 +212,17 @@
         <div id="admin-authorized" class="hidden">
           <div class="admin-panel-card">
             <h3>Add New Survey</h3>
-            <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Publish a survey with an HTTPS destination link.</p>
+            <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create an external link survey or build an in-app survey with your own questions.</p>
+
             <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
+              <div class="field">
+                <label>Survey Type *</label>
+                <div class="admin-type-toggle">
+                  <button type="button" class="admin-type-btn active" data-type="external" onclick="setAdminSurveyType('external')">🔗 External Link</button>
+                  <button type="button" class="admin-type-btn" data-type="internal" onclick="setAdminSurveyType('internal')">📝 Internal Survey</button>
+                </div>
+              </div>
+
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="field">
                   <label>Survey Title *</label>
@@ -225,10 +241,12 @@
                   </select>
                 </div>
               </div>
+
               <div class="field">
                 <label>Description *</label>
                 <textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea>
               </div>
+
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px;">
                 <div class="field">
                   <label>Duration (mins) *</label>
@@ -256,10 +274,22 @@
                   </select>
                 </div>
               </div>
-              <div class="field">
-                <label>Survey URL (HTTPS) *</label>
-                <input type="url" id="admin-url" placeholder="https://forms.gle/..." required>
+
+              <div id="admin-external-fields">
+                <div class="field">
+                  <label>Survey URL (HTTPS) *</label>
+                  <input type="url" id="admin-url" placeholder="https://forms.gle/..." required>
+                </div>
               </div>
+
+              <div id="admin-internal-fields" class="hidden">
+                <div class="field">
+                  <label>Questions *</label>
+                  <div id="admin-questions-list"></div>
+                  <button type="button" class="qb-add-question" onclick="addAdminQuestion()">+ Add Question</button>
+                </div>
+              </div>
+
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="field">
                   <label>Eligibility (Optional)</label>
@@ -270,14 +300,17 @@
                   <textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea>
                 </div>
               </div>
+
               <div id="admin-create-notice" class="notice"></div>
               <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey</button>
             </form>
           </div>
+
           <div class="admin-panel-card">
             <h3>Manage Existing Surveys</h3>
             <div id="admin-surveys-list-wrap"><div class="spinner"></div></div>
           </div>
+
           <div class="admin-panel-card">
             <h3>Participation Review</h3>
             <div id="admin-participations-wrap"><div class="spinner"></div></div>
@@ -330,7 +363,6 @@
     <button class="bottom-nav-item" data-tab="profile" onclick="navigate('profile')"><svg><use href="#i-user"/></svg><span>Profile</span></button>
   </nav>
 
-  <!-- Edit Profile Modal -->
   <div id="edit-profile-overlay" class="modal-overlay" onclick="handleEditProfileOverlayClick(event)">
     <div class="modal-box">
       <button class="modal-close" onclick="closeEditProfile()"><svg><use href="#i-x"/></svg></button>
@@ -356,7 +388,6 @@
     </div>
   </div>
 
-  <!-- Plan Chooser Modal -->
   <div id="plan-overlay" class="modal-overlay" onclick="handlePlanOverlayClick(event)">
     <div class="modal-box wide">
       <button class="modal-close" onclick="closePlanModal()"><svg><use href="#i-x"/></svg></button>
@@ -427,7 +458,13 @@
     </div>
   </div>
 
-  <!-- Auth Modal -->
+  <div id="response-viewer-overlay" class="modal-overlay" onclick="handleResponseViewerOverlayClick(event)">
+    <div class="modal-box response-viewer-card">
+      <button class="modal-close" onclick="closeResponseViewer()"><svg><use href="#i-x"/></svg></button>
+      <div id="response-viewer-content"></div>
+    </div>
+  </div>
+
   <div id="auth-overlay" class="auth-overlay" onclick="handleOverlayClick(event)">
     <div class="auth-box">
       <button class="auth-close" onclick="closeAuth()"><svg><use href="#i-x"/></svg></button>
