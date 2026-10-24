@@ -1,5 +1,5 @@
 // ================================================================
-// SurveyKE — with internal survey builder + response collection
+// SurveyKE — admin user management, participation tabs, no admin participation
 // ================================================================
 
 const STORE_USERS          = 'surveyke_users';
@@ -35,6 +35,7 @@ let editingName = '';
 let selectedPlan = null;
 let adminSurveyType = 'external';
 let adminQuestions = [];
+let adminParticipationTab = 'pending';
 
 // ---------- Storage ----------
 function readStore(key, fallback) {
@@ -134,6 +135,7 @@ function getDailyStatus() {
   return { date: daily.date, surveyCount: daily.surveyCount, surveyLimit: plan.dailySurveyLimit, totalRewards: daily.totalRewards, earningsCap: plan.dailyEarningsCap };
 }
 function canStartSurvey(survey) {
+  if (isAdmin) return { allowed: false, reason: 'Administrators cannot participate in surveys.' };
   if (!currentUser) return { allowed: true };
   const users = readStore(STORE_USERS, []);
   const user = users.find(function(u) { return u.id === currentUser.id; });
@@ -147,16 +149,12 @@ function canStartSurvey(survey) {
   const plan = PLANS[user.tier || 'basic'];
   const daily = getDailyRecord(user);
   const reward = survey.reward || 0;
-  if (daily.surveyCount >= plan.dailySurveyLimit) {
-    return { allowed: false, reason: "You've reached your daily limit of " + plan.dailySurveyLimit + ' surveys. Come back tomorrow or upgrade your plan.' };
-  }
-  if (daily.totalRewards + reward > plan.dailyEarningsCap) {
-    return { allowed: false, reason: 'This survey would exceed your daily earnings cap of KSh ' + plan.dailyEarningsCap + '. Come back tomorrow or upgrade.' };
-  }
+  if (daily.surveyCount >= plan.dailySurveyLimit) return { allowed: false, reason: "You've reached your daily limit of " + plan.dailySurveyLimit + ' surveys. Come back tomorrow or upgrade your plan.' };
+  if (daily.totalRewards + reward > plan.dailyEarningsCap) return { allowed: false, reason: 'This survey would exceed your daily earnings cap of KSh ' + plan.dailyEarningsCap + '. Come back tomorrow or upgrade.' };
   return { allowed: true };
 }
 function recordSurveyStart(survey) {
-  if (!currentUser) return;
+  if (!currentUser || isAdmin) return;
   const users = readStore(STORE_USERS, []);
   const idx = users.findIndex(function(u) { return u.id === currentUser.id; });
   if (idx === -1) return;
@@ -279,6 +277,10 @@ function tierBadgeHTML(tier) {
 function renderSurveysPlanBanner() {
   const el = document.getElementById('surveys-plan-banner');
   if (!el) return;
+  if (isAdmin) {
+    el.innerHTML = '<div class="surveys-plan-banner"><div class="surveys-plan-left"><div><strong>Admin view</strong><small>You can browse and manage surveys but cannot participate.</small></div></div><button class="btn btn-outline btn-sm" onclick="navigate(\'admin\')">Admin Dashboard</button></div>';
+    return;
+  }
   if (!currentUser) {
     el.innerHTML = '<div class="surveys-plan-banner"><div class="surveys-plan-left"><div><strong>You are browsing as a guest</strong><small>Sign in to see your plan, daily limits, and access all surveys.</small></div></div><button class="btn btn-primary btn-sm" onclick="openAuth(\'signin\')">Sign In</button></div>';
     return;
@@ -312,18 +314,15 @@ function fetchAndRenderSurveys() {
 
 function surveyCardHTML(s) {
   const tier = s.tier || 'basic';
-  const locked = currentUser && !canAccessSurvey(tier);
+  const locked = !isAdmin && currentUser && !canAccessSurvey(tier);
   const linkClass = locked ? 'card-link locked' : 'card-link';
-  const linkLabel = locked ? 'Upgrade &rarr;' : 'Participate &rarr;';
-  const typeIcon = s.type === 'internal' ? '#i-book' : '#i-external';
+  const linkLabel = isAdmin ? 'View &rarr;' : (locked ? 'Upgrade &rarr;' : 'Participate &rarr;');
   return '<div class="survey-card ' + (locked ? 'locked' : '') + '">' +
     '<div class="card-top"><span class="cat-chip">' + escapeHtml(s.category || 'General') + '</span>' + tierBadgeHTML(tier) + '</div>' +
     '<h3>' + escapeHtml(s.title) + '</h3>' +
     '<p class="clamp">' + escapeHtml(s.description || '') + '</p>' +
-    '<div class="card-bottom">' +
-      '<span class="meta-chip"><svg><use href="#i-clock"/></svg> ' + escapeHtml(s.estimated_minutes || s.duration || '5') + ' mins &bull; KSh ' + (s.reward || 20) + '</span>' +
-      '<button class="' + linkClass + '" onclick="navigate(\'detail\', \'' + s.id + '\')">' + linkLabel + '</button>' +
-    '</div></div>';
+    '<div class="card-bottom"><span class="meta-chip"><svg><use href="#i-clock"/></svg> ' + escapeHtml(s.estimated_minutes || s.duration || '5') + ' mins &bull; KSh ' + (s.reward || 20) + '</span><button class="' + linkClass + '" onclick="navigate(\'detail\', \'' + s.id + '\')">' + linkLabel + '</button></div>' +
+    '</div>';
 }
 function renderHomeSurveys() {
   const container = document.getElementById('home-surveys-grid');
@@ -355,12 +354,13 @@ function renderSurveyDetail(id) {
   const elig = survey.eligibility ? '<div class="detail-section"><h3>Eligibility</h3><p class="detail-text">' + escapeHtml(survey.eligibility) + '</p></div>' : '';
   const inst = survey.instructions ? '<div class="detail-section"><h3>Instructions</h3><p class="detail-text">' + escapeHtml(survey.instructions) + '</p></div>' : '';
   const tier = survey.tier || 'basic';
-  const locked = currentUser && !canAccessSurvey(tier);
   const isInternal = survey.type === 'internal';
   const qCount = isInternal && Array.isArray(survey.questions) ? survey.questions.length : 0;
 
   let participateHTML;
-  if (locked) {
+  if (isAdmin) {
+    participateHTML = '<div class="admin-notice"><strong>Admin view</strong><p>Administrators cannot participate in surveys. This view is for management only.</p><button class="btn btn-primary" onclick="navigate(\'admin\')">Manage Surveys</button></div>';
+  } else if (currentUser && !canAccessSurvey(tier)) {
     const neededPlan = PLANS[tier];
     participateHTML = '<div class="upgrade-notice"><h3>' + neededPlan.label + ' plan required</h3><p>This survey is on the ' + neededPlan.label + ' plan. Upgrade to access it.</p><button class="btn btn-primary" onclick="openPlanModal()">View Plans</button></div>';
   } else {
@@ -384,19 +384,19 @@ function renderSurveyDetail(id) {
 }
 
 function startSurvey(surveyId) {
+  if (isAdmin) { showToast('Administrators cannot participate in surveys.'); return; }
   if (!currentUser) { showToast('Please sign in to participate.'); openAuth('signin'); return; }
   const allSurveys = readStore(STORE_SURVEYS, []);
   const survey = allSurveys.find(function(s) { return s.id === surveyId; });
   if (!survey) { showToast('Survey not found.'); return; }
   if (!canAccessSurvey(survey.tier || 'basic')) { showToast('Upgrade your plan to access this survey.'); return; }
-  if (survey.type === 'internal') {
-    navigate('take-survey', surveyId);
-  } else {
-    startExternalSurvey(surveyId);
-  }
+  if (survey.type === 'internal') navigate('take-survey', surveyId);
+  else startExternalSurvey(surveyId);
 }
 
 async function startExternalSurvey(surveyId) {
+  if (isAdmin) { showToast('Administrators cannot participate in surveys.'); return; }
+  if (!currentUser) { showToast('Please sign in.'); openAuth('signin'); return; }
   const allSurveys = readStore(STORE_SURVEYS, []);
   const survey = allSurveys.find(function(s) { return s.id === surveyId; });
   if (!survey || !survey.survey_url || !survey.survey_url.startsWith('https://')) { showToast('Invalid survey.'); return; }
@@ -422,19 +422,14 @@ async function startExternalSurvey(surveyId) {
 // ---------- Take Internal Survey ----------
 function renderTakeSurvey(surveyId) {
   const container = document.getElementById('take-survey-content');
+  if (isAdmin) { container.innerHTML = '<div class="state-box"><strong>Admins cannot participate</strong><p>Administrators cannot take surveys. Go back to manage surveys instead.</p><button class="btn btn-primary btn-sm" onclick="navigate(\'admin\')" style="margin-top:12px;">Go to Admin</button></div>'; return; }
   const surveys = readStore(STORE_SURVEYS, []);
   const survey = surveys.find(function(s) { return s.id === surveyId; });
-  if (!survey || survey.type !== 'internal') {
-    container.innerHTML = '<div class="state-box"><strong>Survey not available</strong><p>This survey could not be loaded.</p><button class="btn btn-primary btn-sm" onclick="navigate(\'surveys\')" style="margin-top:12px;">Back to Surveys</button></div>';
-    return;
-  }
+  if (!survey || survey.type !== 'internal') { container.innerHTML = '<div class="state-box"><strong>Survey not available</strong><p>This survey could not be loaded.</p><button class="btn btn-primary btn-sm" onclick="navigate(\'surveys\')" style="margin-top:12px;">Back to Surveys</button></div>'; return; }
   if (!currentUser) { showToast('Please sign in.'); openAuth('signin'); navigate('surveys'); return; }
   if (!canAccessSurvey(survey.tier || 'basic')) { showToast('Upgrade your plan to access this survey.'); navigate('surveys'); return; }
   const dailyCheck = canStartSurvey(survey);
-  if (!dailyCheck.allowed) {
-    container.innerHTML = '<div class="state-box"><strong>Cannot start survey</strong><p>' + escapeHtml(dailyCheck.reason) + '</p><button class="btn btn-primary btn-sm" onclick="navigate(\'surveys\')" style="margin-top:12px;">Back to Surveys</button></div>';
-    return;
-  }
+  if (!dailyCheck.allowed) { container.innerHTML = '<div class="state-box"><strong>Cannot start survey</strong><p>' + escapeHtml(dailyCheck.reason) + '</p><button class="btn btn-primary btn-sm" onclick="navigate(\'surveys\')" style="margin-top:12px;">Back to Surveys</button></div>'; return; }
 
   const questions = Array.isArray(survey.questions) ? survey.questions : [];
   let html = '<div class="take-survey-wrap"><div class="take-survey-card">';
@@ -448,7 +443,6 @@ function renderTakeSurvey(surveyId) {
     html += '<label class="survey-question-label">' + escapeHtml(q.question);
     if (q.required) html += '<span class="req">*</span>';
     html += '</label>';
-
     if (q.type === 'mcq') {
       html += '<div class="survey-options">';
       (q.options || []).forEach(function(opt) {
@@ -461,9 +455,7 @@ function renderTakeSurvey(surveyId) {
       html += '<textarea class="survey-text-input" id="q_' + q.id + '" placeholder="Your answer..."></textarea>';
     } else if (q.type === 'rating') {
       html += '<div class="survey-rating" data-rating-qid="' + q.id + '">';
-      for (let n = 1; n <= 5; n++) {
-        html += '<button type="button" class="survey-rating-btn" onclick="selectRating(\'' + q.id + '\', ' + n + ')">' + n + '</button>';
-      }
+      for (let n = 1; n <= 5; n++) html += '<button type="button" class="survey-rating-btn" onclick="selectRating(\'' + q.id + '\', ' + n + ')">' + n + '</button>';
       html += '<input type="hidden" id="q_' + q.id + '" value="">';
       html += '</div>';
     }
@@ -492,6 +484,7 @@ function selectRating(qId, value) {
 
 async function submitInternalSurvey(event, surveyId) {
   event.preventDefault();
+  if (isAdmin) { showToast('Administrators cannot submit surveys.'); return; }
   if (!currentUser) { showToast('Please sign in.'); openAuth('signin'); return; }
   const surveys = readStore(STORE_SURVEYS, []);
   const survey = surveys.find(function(s) { return s.id === surveyId; });
@@ -499,10 +492,7 @@ async function submitInternalSurvey(event, surveyId) {
   if (!canAccessSurvey(survey.tier || 'basic')) { showToast('Upgrade required.'); return; }
 
   const existingResponses = readStore(STORE_RESPONSES, []);
-  if (existingResponses.some(function(r) { return r.survey_id === surveyId && r.user_id === currentUser.id; })) {
-    showToast('You have already completed this survey.'); return;
-  }
-
+  if (existingResponses.some(function(r) { return r.survey_id === surveyId && r.user_id === currentUser.id; })) { showToast('You have already completed this survey.'); return; }
   const dailyCheck = canStartSurvey(survey);
   if (!dailyCheck.allowed) { showToast(dailyCheck.reason); return; }
 
@@ -536,7 +526,6 @@ async function submitInternalSurvey(event, surveyId) {
   const parts = readStore(STORE_PARTICIPATIONS, []);
   parts.push({ id: uid('part'), survey_id: surveyId, user_id: currentUser.id, status: 'submitted', review_status: 'pending', submitted_at: Date.now() });
   writeStore(STORE_PARTICIPATIONS, parts);
-
   recordSurveyStart(survey);
 
   const container = document.getElementById('take-survey-content');
@@ -544,14 +533,12 @@ async function submitInternalSurvey(event, surveyId) {
     '<div class="thank-you-icon"><svg><use href="#i-check-circle"/></svg></div>' +
     '<h2>Thank you!</h2>' +
     '<p>Your response to <strong>' + escapeHtml(survey.title) + '</strong> has been submitted. The admin will review it shortly.</p>' +
-    '<div class="btn-row" style="justify-content:center;">' +
-      '<button class="btn btn-primary" onclick="navigate(\'surveys\')">Browse More Surveys</button>' +
-      '<button class="btn btn-outline" onclick="navigate(\'wallet\')">View Wallet</button>' +
-    '</div></div></div>';
+    '<div class="btn-row" style="justify-content:center;"><button class="btn btn-primary" onclick="navigate(\'surveys\')">Browse More Surveys</button><button class="btn btn-outline" onclick="navigate(\'wallet\')">View Wallet</button></div></div></div>';
 }
 
-// ---------- Wallet ----------
+// ---------- Wallet (user) / Admin user list ----------
 function renderWallet() {
+  if (isAdmin) { renderAdminWallet(); return; }
   const container = document.getElementById('wallet-content');
   if (!currentUser) {
     container.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg><use href="#i-wallet"/></svg></div><h2>Sign in to view your wallet</h2><p>Track your earnings, daily limits, and withdrawals.</p><button class="btn btn-primary" onclick="openAuth(\'signin\')">Sign In</button></div>';
@@ -570,10 +557,11 @@ function renderWallet() {
     const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
     const reward = (s && s.reward) ? s.reward : 20;
     let amount = 0;
-    let status = p.review_status || 'pending';
-    if (status === 'approved') { amount = reward; approvedTotal += amount; }
-    else if (status === 'pending') { amount = reward; pendingTotal += amount; }
-    return { id: p.id, title: s ? s.title : 'Deleted survey', date: p.submitted_at, amount: amount, status: status };
+    let displayStatus = p.review_status || 'pending';
+    if (displayStatus === 'reviewed') displayStatus = 'pending';
+    if (displayStatus === 'approved') { amount = reward; approvedTotal += amount; }
+    else if (displayStatus === 'pending') { amount = reward; pendingTotal += amount; }
+    return { id: p.id, title: s ? s.title : 'Deleted survey', date: p.submitted_at, amount: amount, status: displayStatus };
   }).sort(function(a, b) { return b.date - a.date; });
 
   const daily = getDailyStatus();
@@ -613,6 +601,56 @@ function renderWallet() {
     '<div class="wallet-transactions"><h3>Recent Activity</h3>' + transactionsHTML + '</div>';
 }
 
+function renderAdminWallet() {
+  const container = document.getElementById('wallet-content');
+  const users = readStore(STORE_USERS, []);
+  const participations = readStore(STORE_PARTICIPATIONS, []);
+  const allSurveys = readStore(STORE_SURVEYS, []);
+
+  const totalUsers = users.filter(function(u) { return u.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase(); }).length;
+  const totalSurveys = allSurveys.length;
+  const totalParticipations = participations.length;
+  const approvedParts = participations.filter(function(p) { return p.review_status === 'approved'; });
+  const totalPaid = approvedParts.reduce(function(sum, p) {
+    const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
+    return sum + (s ? (s.reward || 0) : 0);
+  }, 0);
+
+  const userItems = users
+    .filter(function(u) { return u.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase(); })
+    .map(function(u) {
+      const userParts = participations.filter(function(p) { return p.user_id === u.id; });
+      const approved = userParts.filter(function(p) { return p.review_status === 'approved'; });
+      const earned = approved.reduce(function(sum, p) {
+        const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
+        return sum + (s ? (s.reward || 0) : 0);
+      }, 0);
+      return { user: u, surveysTaken: userParts.length, approvedCount: approved.length, earned: earned };
+    })
+    .sort(function(a, b) { return b.earned - a.earned; });
+
+  const statsHTML = '<div class="admin-user-stats">' +
+    '<div class="admin-stat-tile"><span class="val">' + totalUsers + '</span><span class="lbl">Total Users</span></div>' +
+    '<div class="admin-stat-tile"><span class="val">KSh ' + totalPaid.toLocaleString() + '</span><span class="lbl">Total Paid Out</span></div>' +
+    '<div class="admin-stat-tile"><span class="val">' + totalSurveys + '</span><span class="lbl">Surveys</span></div>' +
+    '<div class="admin-stat-tile"><span class="val">' + totalParticipations + '</span><span class="lbl">Participations</span></div>' +
+  '</div>';
+
+  const usersHTML = userItems.length === 0
+    ? '<div class="state-box"><strong>No registered users yet</strong><p>Users will appear here once they sign up.</p></div>'
+    : '<div class="user-list">' + userItems.map(function(item) {
+        const u = item.user;
+        const initial = (u.name || u.email || '?').charAt(0).toUpperCase();
+        const avatarHTML = u.avatar ? '<img src="' + escapeHtml(u.avatar) + '" alt="">' : escapeHtml(initial);
+        const tier = u.tier || 'basic';
+        const plan = PLANS[tier];
+        const joined = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
+        return '<div class="user-item"><div class="user-avatar">' + avatarHTML + '</div><div class="user-info"><strong>' + escapeHtml(u.name || 'User') + '</strong><small>' + escapeHtml(u.email) + '</small><small>' + plan.label + ' &bull; Joined ' + joined + '</small></div><div class="user-stats"><div class="user-stat"><span class="user-stat-val">' + item.surveysTaken + '</span><span class="user-stat-lbl">Surveys</span></div><div class="user-stat"><span class="user-stat-val">KSh ' + item.earned + '</span><span class="user-stat-lbl">Earned</span></div></div></div>';
+      }).join('') + '</div>';
+
+  container.innerHTML = '<div class="wallet-header"><h2>Users Overview</h2><p>Platform stats and registered users.</p></div>' + statsHTML + '<div class="wallet-transactions"><h3>Registered Users</h3>' + usersHTML + '</div>';
+}
+
 // ---------- Profile ----------
 function renderProfile() {
   const container = document.getElementById('profile-content');
@@ -637,9 +675,10 @@ function renderProfile() {
     '<h2>' + escapeHtml(currentUser.name || 'User') + '</h2>' +
     '<p class="profile-email">' + escapeHtml(currentUser.email) + '</p>' +
     '<span class="profile-tier-badge tier-' + tier + '"><svg style="width:14px;height:14px;"><use href="#' + plan.icon + '"/></svg>' + plan.label + '</span>' +
+    (isAdmin ? '<div style="margin-bottom:18px;padding:12px;background:var(--green-soft);border-radius:10px;font-size:12px;color:var(--muted-strong);">You are signed in as administrator.</div>' : '') +
     '<div class="profile-stats"><div class="profile-stat"><span class="profile-stat-val">' + parts.length + '</span><span class="profile-stat-label">Surveys taken</span></div><div class="profile-stat"><span class="profile-stat-val">' + approved + '</span><span class="profile-stat-label">Approved</span></div></div>' +
-    '<div class="profile-actions"><button class="btn btn-primary btn-block" onclick="openEditProfile()"><svg style="width:16px;height:16px;"><use href="#i-edit"/></svg>Edit Profile</button><button class="btn btn-outline btn-block" onclick="openPlanModal()"><svg style="width:16px;height:16px;"><use href="#i-crown"/></svg>Change Plan</button></div>' +
-    '<div class="referral-card"><div class="referral-header"><svg><use href="#i-gift"/></svg><strong>Referral Programme</strong></div><p class="referral-desc">Invite friends and earn rewards when they join SurveyKE.</p><div class="referral-code-box"><span class="referral-code-label">Your code</span><span class="referral-code-val">' + escapeHtml(code) + '</span></div><div class="referral-stats"><div class="referral-stat"><strong>' + referrals.length + '</strong><small>Friends invited</small></div></div><div class="referral-actions"><button class="btn btn-outline btn-sm" onclick="copyReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-copy"/></svg>Copy Link</button><button class="btn btn-outline btn-sm" onclick="shareReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-share"/></svg>Share</button></div></div>' +
+    '<div class="profile-actions"><button class="btn btn-primary btn-block" onclick="openEditProfile()"><svg style="width:16px;height:16px;"><use href="#i-edit"/></svg>Edit Profile</button>' + (isAdmin ? '' : '<button class="btn btn-outline btn-block" onclick="openPlanModal()"><svg style="width:16px;height:16px;"><use href="#i-crown"/></svg>Change Plan</button>') + '</div>' +
+    (isAdmin ? '' : '<div class="referral-card"><div class="referral-header"><svg><use href="#i-gift"/></svg><strong>Referral Programme</strong></div><p class="referral-desc">Invite friends and earn rewards when they join SurveyKE.</p><div class="referral-code-box"><span class="referral-code-label">Your code</span><span class="referral-code-val">' + escapeHtml(code) + '</span></div><div class="referral-stats"><div class="referral-stat"><strong>' + referrals.length + '</strong><small>Friends invited</small></div></div><div class="referral-actions"><button class="btn btn-outline btn-sm" onclick="copyReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-copy"/></svg>Copy Link</button><button class="btn btn-outline btn-sm" onclick="shareReferralLink()"><svg style="width:14px;height:14px;"><use href="#i-share"/></svg>Share</button></div></div>') +
     '<div class="profile-actions">' + (isAdmin ? '<button class="btn btn-primary btn-block" onclick="navigate(\'admin\')">Admin Dashboard</button>' : '') + '<button class="btn btn-outline btn-block" onclick="navigate(\'settings\')"><svg style="width:16px;height:16px;"><use href="#i-settings"/></svg>Settings</button><button class="btn btn-outline btn-block" onclick="signOut()">Sign Out</button></div>' +
     '<div class="danger-zone"><button class="btn btn-outline btn-block danger-btn" onclick="deleteAccount()"><svg style="width:16px;height:16px;"><use href="#i-trash"/></svg>Delete Account</button><p class="danger-note">Permanently delete your account and data from this browser.</p></div>' +
   '</div>';
@@ -701,6 +740,7 @@ function saveProfileEdits() {
 
 // ---------- Plan Modal ----------
 function openPlanModal() {
+  if (isAdmin) { showToast('Admins do not have plans.'); return; }
   if (!currentUser) { showToast('Sign in to change plan.'); openAuth('signin'); return; }
   const users = readStore(STORE_USERS, []);
   const stored = users.find(function(u) { return u.id === currentUser.id; }) || {};
@@ -750,9 +790,9 @@ function renderSettings() {
   container.innerHTML = '<div class="settings-container"><div class="settings-header"><h2>Settings</h2><p>Manage your preferences.</p></div>' +
     '<div class="settings-group"><div class="settings-group-title">Appearance</div><div class="settings-item"><div class="settings-item-left"><strong>Theme</strong><small>Choose light or dark mode</small></div><div class="theme-selector"><button class="theme-option ' + (currentTheme === 'light' ? 'active' : '') + '" onclick="setTheme(\'light\')">Light</button><button class="theme-option ' + (currentTheme === 'dark' ? 'active' : '') + '" onclick="setTheme(\'dark\')">Dark</button></div></div></div>' +
     '<div class="settings-group"><div class="settings-group-title">Notifications</div><div class="settings-item"><div class="settings-item-left"><strong>Email Notifications</strong><small>Get notified about new surveys</small></div><button class="toggle-switch ' + (notifications ? 'on' : '') + '" onclick="toggleNotifications()"><span class="toggle-knob"></span></button></div></div>' +
-    (currentUser ? '<div class="settings-group"><div class="settings-group-title">Account</div><button class="settings-item settings-item-btn" onclick="navigate(\'profile\')"><div class="settings-item-left"><strong>Profile</strong><small>Edit name, avatar, and more</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button><button class="settings-item settings-item-btn" onclick="openPlanModal()"><div class="settings-item-left"><strong>Change Plan</strong><small>Current: ' + plan.label + '</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button></div>' : '') +
+    (currentUser ? '<div class="settings-group"><div class="settings-group-title">Account</div><button class="settings-item settings-item-btn" onclick="navigate(\'profile\')"><div class="settings-item-left"><strong>Profile</strong><small>Edit name, avatar, and more</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button>' + (isAdmin ? '' : '<button class="settings-item settings-item-btn" onclick="openPlanModal()"><div class="settings-item-left"><strong>Change Plan</strong><small>Current: ' + plan.label + '</small></div><svg style="width:18px;height:18px;color:var(--muted);"><use href="#i-chevron-right"/></svg></button>') + '</div>' : '') +
     '<div class="settings-group"><div class="settings-group-title">Privacy & Data</div><div class="settings-item"><div class="settings-item-left"><strong>Clear App Data</strong><small>Remove all data from this browser</small></div><button class="btn btn-outline btn-sm" onclick="clearAppData()">Clear</button></div></div>' +
-    '<div class="settings-group"><div class="settings-group-title">About</div><div class="settings-item settings-item-static"><div class="settings-item-left"><strong>SurveyKE</strong><small>Version 1.3.0 &bull; Built for Kenya</small></div></div></div>' +
+    '<div class="settings-group"><div class="settings-group-title">About</div><div class="settings-item settings-item-static"><div class="settings-item-left"><strong>SurveyKE</strong><small>Version 1.4.0 &bull; Built for Kenya</small></div></div></div>' +
     (currentUser ? '<div class="settings-group"><div class="settings-group-title">Danger Zone</div><div class="settings-item"><div class="settings-item-left"><strong>Delete Account</strong><small>Permanently remove your account</small></div><button class="btn btn-outline btn-sm danger-btn" onclick="deleteAccount()">Delete</button></div></div>' : '') +
   '</div>';
 }
@@ -793,9 +833,7 @@ function deleteAccount() {
 // ---------- Admin: question builder ----------
 function setAdminSurveyType(type) {
   adminSurveyType = type;
-  document.querySelectorAll('.admin-type-btn').forEach(function(b) {
-    if (b.dataset.type === type) b.classList.add('active'); else b.classList.remove('active');
-  });
+  document.querySelectorAll('.admin-type-btn').forEach(function(b) { if (b.dataset.type === type) b.classList.add('active'); else b.classList.remove('active'); });
   document.getElementById('admin-external-fields').classList.toggle('hidden', type !== 'external');
   document.getElementById('admin-internal-fields').classList.toggle('hidden', type !== 'internal');
   const urlInput = document.getElementById('admin-url');
@@ -806,26 +844,11 @@ function addAdminQuestion() {
   adminQuestions.push({ id: uid('q'), type: 'mcq', question: '', options: ['', ''], required: true });
   renderAdminQuestions();
 }
-function removeAdminQuestion(qId) {
-  adminQuestions = adminQuestions.filter(function(q) { return q.id !== qId; });
-  renderAdminQuestions();
-}
-function updateAdminQuestion(qId, field, value) {
-  const q = adminQuestions.find(function(x) { return x.id === qId; });
-  if (q) q[field] = value;
-}
-function updateAdminQuestionOption(qId, index, value) {
-  const q = adminQuestions.find(function(x) { return x.id === qId; });
-  if (q && q.options) q.options[index] = value;
-}
-function addQuestionOption(qId) {
-  const q = adminQuestions.find(function(x) { return x.id === qId; });
-  if (q) { q.options.push(''); renderAdminQuestions(); }
-}
-function removeQuestionOption(qId, index) {
-  const q = adminQuestions.find(function(x) { return x.id === qId; });
-  if (q && q.options.length > 2) { q.options.splice(index, 1); renderAdminQuestions(); }
-}
+function removeAdminQuestion(qId) { adminQuestions = adminQuestions.filter(function(q) { return q.id !== qId; }); renderAdminQuestions(); }
+function updateAdminQuestion(qId, field, value) { const q = adminQuestions.find(function(x) { return x.id === qId; }); if (q) q[field] = value; }
+function updateAdminQuestionOption(qId, index, value) { const q = adminQuestions.find(function(x) { return x.id === qId; }); if (q && q.options) q.options[index] = value; }
+function addQuestionOption(qId) { const q = adminQuestions.find(function(x) { return x.id === qId; }); if (q) { q.options.push(''); renderAdminQuestions(); } }
+function removeQuestionOption(qId, index) { const q = adminQuestions.find(function(x) { return x.id === qId; }); if (q && q.options.length > 2) { q.options.splice(index, 1); renderAdminQuestions(); } }
 function changeQuestionType(qId, newType) {
   const q = adminQuestions.find(function(x) { return x.id === qId; });
   if (!q) return;
@@ -837,14 +860,10 @@ function renderAdminQuestions() {
   const wrap = document.getElementById('admin-questions-list');
   if (!wrap) return;
   if (adminQuestions.length === 0) { wrap.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:14px 0;">No questions yet. Click "Add Question" below.</p>'; return; }
-
   wrap.innerHTML = adminQuestions.map(function(q, idx) {
     let html = '<div class="question-builder"><div class="question-builder-header"><strong>Question ' + (idx + 1) + '</strong><button type="button" class="qb-remove" onclick="removeAdminQuestion(\'' + q.id + '\')">Remove</button></div>';
-
     html += '<div class="qb-field"><label>Type</label><select onchange="changeQuestionType(\'' + q.id + '\', this.value)"><option value="mcq"' + (q.type === 'mcq' ? ' selected' : '') + '>Multiple Choice</option><option value="text"' + (q.type === 'text' ? ' selected' : '') + '>Short Text</option><option value="paragraph"' + (q.type === 'paragraph' ? ' selected' : '') + '>Paragraph</option><option value="rating"' + (q.type === 'rating' ? ' selected' : '') + '>Rating (1-5)</option></select></div>';
-
     html += '<div class="qb-field"><label>Question text</label><input type="text" placeholder="e.g. How satisfied are you?" value="' + escapeHtml(q.question) + '" oninput="updateAdminQuestion(\'' + q.id + '\', \'question\', this.value)"></div>';
-
     if (q.type === 'mcq') {
       html += '<div class="qb-field"><label>Options</label><div class="qb-options-list">';
       q.options.forEach(function(opt, oIdx) {
@@ -852,9 +871,7 @@ function renderAdminQuestions() {
       });
       html += '</div><button type="button" class="qb-add-option" onclick="addQuestionOption(\'' + q.id + '\')" style="margin-top:8px;">+ Add Option</button></div>';
     }
-
     html += '<div class="qb-field"><div class="qb-required-row"><input type="checkbox"' + (q.required ? ' checked' : '') + ' onchange="updateAdminQuestion(\'' + q.id + '\', \'required\', this.checked)"><span>Required</span></div></div>';
-
     html += '</div>';
     return html;
   }).join('');
@@ -886,18 +903,74 @@ async function loadAdminSurveysTable() {
 
 async function loadAdminParticipationsTable() {
   const wrap = document.getElementById('admin-participations-wrap');
-  const parts = readStore(STORE_PARTICIPATIONS, []).slice().sort(function(a, b) { return (b.submitted_at || 0) - (a.submitted_at || 0); }).slice(0, 30);
+  const allParts = readStore(STORE_PARTICIPATIONS, []).slice().sort(function(a, b) { return (b.submitted_at || 0) - (a.submitted_at || 0); });
   const allSurveys = readStore(STORE_SURVEYS, []);
-  if (parts.length === 0) { wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted);">No participation records yet.</p>'; return; }
-  wrap.innerHTML = '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Survey</th><th>Type</th><th>Status</th><th>Review</th><th>Actions</th></tr></thead><tbody>' +
-    parts.map(function(p) {
-      const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
-      const title = s ? s.title : 'Deleted survey';
-      const isInternal = s && s.type === 'internal';
-      const typeLabel = isInternal ? '📝' : '🔗';
-      const viewBtn = isInternal ? '<button class="btn btn-outline btn-sm" onclick="viewResponse(\'' + p.id + '\')">View Answers</button> ' : '';
-      return '<tr><td><strong>' + escapeHtml(title) + '</strong></td><td>' + typeLabel + '</td><td>' + escapeHtml(p.status || 'started') + '</td><td><span class="status-chip">' + escapeHtml(p.review_status || 'pending') + '</span></td><td>' + viewBtn + '<button class="btn btn-outline btn-sm" onclick="reviewParticipation(\'' + p.id + '\', \'approved\')">Approve</button> <button class="btn btn-outline btn-sm danger-btn" onclick="reviewParticipation(\'' + p.id + '\', \'rejected\')">Reject</button></td></tr>';
-    }).join('') + '</tbody></table></div>';
+
+  const counts = { pending: 0, reviewed: 0, approved: 0, rejected: 0 };
+  allParts.forEach(function(p) {
+    const s = p.review_status || 'pending';
+    if (counts[s] !== undefined) counts[s]++;
+  });
+
+  let html = '<div class="admin-tabs">';
+  ['pending', 'reviewed', 'approved', 'rejected'].forEach(function(status) {
+    const label = status.charAt(0).toUpperCase() + status.slice(1);
+    const active = adminParticipationTab === status ? 'active' : '';
+    html += '<button class="admin-tab ' + active + '" onclick="setAdminParticipationTab(\'' + status + '\')">' + label + ' <span class="count">' + counts[status] + '</span></button>';
+  });
+  html += '</div>';
+
+  const filtered = allParts.filter(function(p) { return (p.review_status || 'pending') === adminParticipationTab; });
+
+  if (filtered.length === 0) {
+    html += '<div class="state-box" style="padding:30px 20px;"><strong>No ' + adminParticipationTab + ' participations</strong><p>Nothing to show here yet.</p></div>';
+  } else {
+    html += '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Survey</th><th>Type</th><th>Date</th><th>Actions</th></tr></thead><tbody>' +
+      filtered.map(function(p) {
+        const s = allSurveys.find(function(x) { return x.id === p.survey_id; });
+        const title = s ? s.title : 'Deleted survey';
+        const isInternal = s && s.type === 'internal';
+        const typeLabel = isInternal ? '📝' : '🔗';
+        const dateStr = p.submitted_at ? new Date(p.submitted_at).toLocaleDateString() : '—';
+        const actions = renderParticipationActions(p, isInternal);
+        return '<tr><td><strong>' + escapeHtml(title) + '</strong></td><td>' + typeLabel + '</td><td>' + dateStr + '</td><td>' + actions + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  wrap.innerHTML = html;
+}
+
+function setAdminParticipationTab(tab) {
+  adminParticipationTab = tab;
+  loadAdminParticipationsTable();
+}
+
+function renderParticipationActions(p, isInternal) {
+  const status = p.review_status || 'pending';
+  if (status === 'approved' || status === 'rejected') {
+    return '<span class="locked-badge"><svg><use href="#i-lock"/></svg>' + status.charAt(0).toUpperCase() + status.slice(1) + '</span>';
+  }
+  let btns = [];
+  if (isInternal) btns.push('<button class="btn btn-outline btn-sm" onclick="viewResponse(\'' + p.id + '\')">View</button>');
+  if (status === 'pending') btns.push('<button class="btn btn-outline btn-sm" onclick="markReviewed(\'' + p.id + '\')">Mark Reviewed</button>');
+  btns.push('<button class="btn btn-outline btn-sm" onclick="reviewParticipation(\'' + p.id + '\', \'approved\')">Approve</button>');
+  btns.push('<button class="btn btn-outline btn-sm danger-btn" onclick="reviewParticipation(\'' + p.id + '\', \'rejected\')">Reject</button>');
+  return btns.join(' ');
+}
+
+function markReviewed(participationId) {
+  try {
+    const parts = readStore(STORE_PARTICIPATIONS, []);
+    const idx = parts.findIndex(function(p) { return p.id === participationId; });
+    if (idx === -1) throw new Error('Participation not found.');
+    const p = parts[idx];
+    if (p.review_status === 'approved' || p.review_status === 'rejected') throw new Error('Already finalized.');
+    p.review_status = 'reviewed';
+    p.reviewed_at = Date.now();
+    writeStore(STORE_PARTICIPATIONS, parts);
+    showToast('Marked as reviewed.');
+    loadAdminParticipationsTable();
+  } catch (e) { showToast('Failed: ' + e.message); }
 }
 
 async function reviewParticipation(participationId, decision) {
@@ -906,6 +979,8 @@ async function reviewParticipation(participationId, decision) {
     const parts = readStore(STORE_PARTICIPATIONS, []);
     const idx = parts.findIndex(function(p) { return p.id === participationId; });
     if (idx === -1) throw new Error('Participation not found.');
+    const current = parts[idx].review_status || 'pending';
+    if (current === 'approved' || current === 'rejected') throw new Error('This participation is already finalized.');
     parts[idx].review_status = decision;
     parts[idx].reviewed_at = Date.now();
     writeStore(STORE_PARTICIPATIONS, parts);
@@ -926,6 +1001,12 @@ function viewResponse(participationId) {
   const users = readStore(STORE_USERS, []);
   const user = users.find(function(u) { return u.id === part.user_id; });
 
+  if (part.review_status === 'pending') {
+    const partsAll = readStore(STORE_PARTICIPATIONS, []);
+    const pIdx = partsAll.findIndex(function(p) { return p.id === participationId; });
+    if (pIdx !== -1) { partsAll[pIdx].review_status = 'reviewed'; partsAll[pIdx].reviewed_at = Date.now(); writeStore(STORE_PARTICIPATIONS, partsAll); }
+  }
+
   const content = document.getElementById('response-viewer-content');
   let html = '<h2 style="margin:0 0 6px;font-size:20px;">' + escapeHtml(survey.title) + '</h2>';
   html += '<p style="color:var(--muted);font-size:12px;margin:0 0 16px;">Submitted response</p>';
@@ -942,9 +1023,16 @@ function viewResponse(participationId) {
     html += '</div>';
   }
 
-  html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeResponseViewer()">Close</button><button class="btn btn-primary" onclick="closeResponseViewer(); reviewParticipation(\'' + part.id + '\', \'approved\')">Approve</button></div>';
+  const isFinalized = part.review_status === 'approved' || part.review_status === 'rejected';
+  html += '<div class="modal-actions"><button class="btn btn-outline" onclick="closeResponseViewer()">Close</button>';
+  if (!isFinalized) {
+    html += '<button class="btn btn-primary" onclick="closeResponseViewer(); reviewParticipation(\'' + part.id + '\', \'approved\')">Approve</button>';
+    html += '<button class="btn btn-outline danger-btn" onclick="closeResponseViewer(); reviewParticipation(\'' + part.id + '\', \'rejected\')">Reject</button>';
+  }
+  html += '</div>';
   content.innerHTML = html;
   document.getElementById('response-viewer-overlay').classList.add('open');
+  loadAdminParticipationsTable();
 }
 function closeResponseViewer() { document.getElementById('response-viewer-overlay').classList.remove('open'); }
 function handleResponseViewerOverlayClick(e) { if (e.target.id === 'response-viewer-overlay') closeResponseViewer(); }
@@ -970,7 +1058,6 @@ async function handleCreateSurvey(e) {
     if (isNaN(estimated_minutes) || estimated_minutes <= 0) throw new Error('Duration must be a positive number.');
     if (isNaN(reward) || reward <= 0) throw new Error('Reward must be a positive number.');
     if (!PLANS[tier]) throw new Error('Invalid tier.');
-
     if (adminSurveyType === 'external') {
       if (!survey_url.startsWith('https://')) throw new Error('Survey URL must be HTTPS.');
       if (survey_url.indexOf('forms.gle/example') !== -1) throw new Error('Demo link detected. Use a real URL.');
@@ -985,38 +1072,23 @@ async function handleCreateSurvey(e) {
         }
       }
     }
-
     const all = readStore(STORE_SURVEYS, []);
-    const newSurvey = {
-      id: uid('sur'), title: title, category: category, description: description,
-      estimated_minutes: estimated_minutes, duration: estimated_minutes + ' mins',
-      status: status, tier: tier, reward: reward,
-      eligibility: eligibility, instructions: instructions,
-      type: adminSurveyType, created_at: Date.now()
-    };
-    if (adminSurveyType === 'external') {
-      newSurvey.survey_url = survey_url;
-    } else {
-      newSurvey.questions = adminQuestions.map(function(q) {
-        return { id: q.id, type: q.type, question: q.question, required: q.required, options: q.type === 'mcq' ? q.options.filter(function(o) { return o.trim(); }) : [] };
-      });
-    }
+    const newSurvey = { id: uid('sur'), title: title, category: category, description: description, estimated_minutes: estimated_minutes, duration: estimated_minutes + ' mins', status: status, tier: tier, reward: reward, eligibility: eligibility, instructions: instructions, type: adminSurveyType, created_at: Date.now() };
+    if (adminSurveyType === 'external') { newSurvey.survey_url = survey_url; }
+    else { newSurvey.questions = adminQuestions.map(function(q) { return { id: q.id, type: q.type, question: q.question, required: q.required, options: q.type === 'mcq' ? q.options.filter(function(o) { return o.trim(); }) : [] }; }); }
     all.push(newSurvey);
     writeStore(STORE_SURVEYS, all);
 
-    noticeEl.className = 'notice show success';
-    noticeEl.textContent = 'Survey created successfully!';
+    noticeEl.className = 'notice show success'; noticeEl.textContent = 'Survey created successfully!';
     showToast('Survey published.');
     e.target.reset();
-    adminQuestions = [];
-    adminSurveyType = 'external';
+    adminQuestions = []; adminSurveyType = 'external';
     setAdminSurveyType('external');
     renderAdminQuestions();
     fetchAndRenderSurveys();
     await loadAdminSurveysTable();
   } catch (err) {
-    noticeEl.className = 'notice show error';
-    noticeEl.textContent = 'Error: ' + err.message;
+    noticeEl.className = 'notice show error'; noticeEl.textContent = 'Error: ' + err.message;
   } finally { submitBtn.disabled = false; }
 }
 
@@ -1175,50 +1247,3 @@ function showToast(message) {
   t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 3500);
 }
-
-
-/* ================= ADMIN PARTICIPATION TABS ================= */
-.admin-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.admin-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--card); font-size: 12.5px; font-weight: 700; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
-.admin-tab:hover { border-color: var(--green); }
-.admin-tab.active { background: var(--green); color: #fff; border-color: var(--green); }
-.admin-tab .count { background: rgba(255,255,255,.25); padding: 1px 7px; border-radius: 10px; font-size: 11px; }
-.admin-tab:not(.active) .count { background: var(--bg-soft); color: var(--muted-strong); }
-
-/* Admin notice in survey detail */
-.admin-notice { background: var(--bg-soft); border: 1px dashed var(--line-strong); border-radius: 16px; padding: 22px; margin-top: 26px; text-align: center; }
-.admin-notice strong { display: block; font-family: "Manrope", sans-serif; font-size: 15px; color: var(--ink); margin-bottom: 6px; }
-.admin-notice p { color: var(--muted-strong); font-size: 13px; margin: 0 0 14px; line-height: 1.7; }
-
-/* Locked/finalized badge */
-.locked-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-soft); padding: 4px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
-.locked-badge svg { width: 11px; height: 11px; }
-
-/* Admin user list */
-.admin-user-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
-.admin-stat-tile { background: var(--card); border: 1px solid var(--line-strong); border-radius: 14px; padding: 18px; text-align: center; }
-.admin-stat-tile .val { font-family: "Manrope", sans-serif; font-size: 24px; font-weight: 800; color: var(--green-dark); display: block; margin-bottom: 4px; }
-[data-theme="dark"] .admin-stat-tile .val { color: var(--green); }
-.admin-stat-tile .lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
-
-.user-list { display: flex; flex-direction: column; gap: 10px; }
-.user-item { background: var(--card); border: 1px solid var(--line-strong); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.user-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--green-light); color: var(--green-dark); display: grid; place-items: center; font-weight: 800; font-family: "Manrope", sans-serif; font-size: 16px; flex-shrink: 0; overflow: hidden; }
-[data-theme="dark"] .user-avatar { color: var(--green); }
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-info { flex: 1; min-width: 140px; }
-.user-info strong { display: block; font-size: 13.5px; color: var(--ink); margin-bottom: 2px; }
-.user-info small { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
-.user-stats { display: flex; gap: 18px; }
-.user-stat { text-align: right; }
-.user-stat-val { font-family: "Manrope", sans-serif; font-size: 14px; font-weight: 800; color: var(--green-dark); display: block; margin-bottom: 2px; }
-[data-theme="dark"] .user-stat-val { color: var(--green); }
-.user-stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; font-weight: 700; }
-
-@media (max-width: 680px) {
-  .admin-user-stats { grid-template-columns: 1fr; }
-  .user-item { flex-wrap: wrap; }
-  .user-stats { width: 100%; justify-content: space-around; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
-}
-
-
