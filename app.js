@@ -1175,3 +1175,50 @@ function showToast(message) {
   t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 3500);
 }
+
+
+/* ================= ADMIN PARTICIPATION TABS ================= */
+.admin-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.admin-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--card); font-size: 12.5px; font-weight: 700; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
+.admin-tab:hover { border-color: var(--green); }
+.admin-tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+.admin-tab .count { background: rgba(255,255,255,.25); padding: 1px 7px; border-radius: 10px; font-size: 11px; }
+.admin-tab:not(.active) .count { background: var(--bg-soft); color: var(--muted-strong); }
+
+/* Admin notice in survey detail */
+.admin-notice { background: var(--bg-soft); border: 1px dashed var(--line-strong); border-radius: 16px; padding: 22px; margin-top: 26px; text-align: center; }
+.admin-notice strong { display: block; font-family: "Manrope", sans-serif; font-size: 15px; color: var(--ink); margin-bottom: 6px; }
+.admin-notice p { color: var(--muted-strong); font-size: 13px; margin: 0 0 14px; line-height: 1.7; }
+
+/* Locked/finalized badge */
+.locked-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-soft); padding: 4px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
+.locked-badge svg { width: 11px; height: 11px; }
+
+/* Admin user list */
+.admin-user-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+.admin-stat-tile { background: var(--card); border: 1px solid var(--line-strong); border-radius: 14px; padding: 18px; text-align: center; }
+.admin-stat-tile .val { font-family: "Manrope", sans-serif; font-size: 24px; font-weight: 800; color: var(--green-dark); display: block; margin-bottom: 4px; }
+[data-theme="dark"] .admin-stat-tile .val { color: var(--green); }
+.admin-stat-tile .lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+
+.user-list { display: flex; flex-direction: column; gap: 10px; }
+.user-item { background: var(--card); border: 1px solid var(--line-strong); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.user-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--green-light); color: var(--green-dark); display: grid; place-items: center; font-weight: 800; font-family: "Manrope", sans-serif; font-size: 16px; flex-shrink: 0; overflow: hidden; }
+[data-theme="dark"] .user-avatar { color: var(--green); }
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-info { flex: 1; min-width: 140px; }
+.user-info strong { display: block; font-size: 13.5px; color: var(--ink); margin-bottom: 2px; }
+.user-info small { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.user-stats { display: flex; gap: 18px; }
+.user-stat { text-align: right; }
+.user-stat-val { font-family: "Manrope", sans-serif; font-size: 14px; font-weight: 800; color: var(--green-dark); display: block; margin-bottom: 2px; }
+[data-theme="dark"] .user-stat-val { color: var(--green); }
+.user-stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; font-weight: 700; }
+
+@media (max-width: 680px) {
+  .admin-user-stats { grid-template-columns: 1fr; }
+  .user-item { flex-wrap: wrap; }
+  .user-stats { width: 100%; justify-content: space-around; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+}
+
+
