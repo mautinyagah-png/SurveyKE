@@ -1,64 +1,129 @@
-// Initialize Supabase Client with your genuine project URL and publishable anon key
-const SUPABASE_URL = 'https://hisstfhwiijzzteuhewv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc3RmaHdpaWp6enRldWhld3YiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyNDMxMDAwMCwiZXhwIjoyMDM5ODg2MDAwfQ.EXAMPLE_KEY_ANON';
+// ================================================================
+// SurveyKE — Chrome-only (localStorage) app logic
+// No backend, no Supabase. Everything lives in the browser.
+// Clearing site data wipes users, surveys, participations, session.
+// ================================================================
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const STORE_USERS         = 'surveyke_users';
+const STORE_SESSION       = 'surveyke_session';
+const STORE_SURVEYS       = 'surveyke_surveys';
+const STORE_PARTICIPATIONS = 'surveyke_participations';
 
-// App State
-let currentView = 'home';
+const ADMIN_EMAIL = 'mautinyagah@gmail.com';
+
 let currentUser = null;
 let isAdmin = false;
 let surveysCache = [];
 let selectedDirectoryTopic = 'All';
 let activeSurveyId = null;
 
-// Initialize App
-document.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session && session.user) {
-    currentUser = session.user;
-    await checkAdminStatus();
-  }
-
-  updateAuthUI();
-  await fetchAndRenderSurveys();
-
-  supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    if (session && session.user) {
-      currentUser = session.user;
-      await checkAdminStatus();
-    } else {
-      currentUser = null;
-      isAdmin = false;
-    }
-    updateAuthUI();
-  });
-});
-
-// Check Admin Privileges
-async function checkAdminStatus() {
-  if (!currentUser) {
-    isAdmin = false;
-    return;
-  }
+// ---------- Storage helpers ----------
+function readStore(key, fallback) {
   try {
-    const { data, error } = await supabaseClient.rpc('is_admin');
-    if (!error && data === true) {
-      isAdmin = true;
-    } else {
-      const { data: adminRow } = await supabaseClient
-        .from('admins')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
-      isAdmin = !!adminRow || (currentUser.email === 'mautinyagah@gmail.com');
-    }
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    return JSON.parse(raw);
   } catch (e) {
-    isAdmin = (currentUser.email === 'mautinyagah@gmail.com');
+    return fallback;
   }
 }
 
-// Navigation Router
+function writeStore(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function uid(prefix) {
+  prefix = prefix || 'id';
+  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
+async function hashPassword(pw) {
+  try {
+    const enc = new TextEncoder().encode(pw + '::surveyke::salt');
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(function(b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  } catch (e) {
+    return 'plain::' + btoa(pw);
+  }
+}
+
+// ---------- Seed surveys on first load ----------
+function seedSurveysIfEmpty() {
+  const existing = readStore(STORE_SURVEYS, null);
+  if (Array.isArray(existing) && existing.length > 0) return;
+
+  const now = Date.now();
+  const seeds = [
+    {
+      id: uid('sur'),
+      title: 'Digital ID Public Feedback',
+      category: 'Public Policy',
+      description: 'Share your views on the proposed national digital identity system and how it may impact everyday Kenyans.',
+      estimated_minutes: 5,
+      duration: '5 mins',
+      status: 'published',
+      survey_url: 'https://forms.gle/example-survey-1',
+      eligibility: 'Kenyan residents aged 18+.',
+      instructions: 'Answer all questions honestly. Your responses are anonymous.',
+      created_at: now - 300000
+    },
+    {
+      id: uid('sur'),
+      title: 'Mobile Money Usage Study',
+      category: 'Finance',
+      description: 'Help us understand how Kenyans use mobile money platforms for daily transactions, savings and small business.',
+      estimated_minutes: 7,
+      duration: '7 mins',
+      status: 'published',
+      survey_url: 'https://forms.gle/example-survey-2',
+      eligibility: 'Anyone who has used mobile money in the last 30 days.',
+      instructions: 'Respond based on your most recent month of activity.',
+      created_at: now - 200000
+    },
+    {
+      id: uid('sur'),
+      title: 'Matatu Commuter Experience',
+      category: 'Transport',
+      description: 'Rate your experience with matatus, fares, safety and route coverage in Nairobi and other towns.',
+      estimated_minutes: 6,
+      duration: '6 mins',
+      status: 'published',
+      survey_url: 'https://forms.gle/example-survey-3',
+      eligibility: 'Regular commuters using public transport.',
+      instructions: 'Focus on the last 7 days of your commute.',
+      created_at: now - 100000
+    }
+  ];
+
+  writeStore(STORE_SURVEYS, seeds);
+}
+
+// ---------- Session ----------
+function restoreSession() {
+  const session = readStore(STORE_SESSION, null);
+  if (session && session.userId) {
+    const users = readStore(STORE_USERS, []);
+    const user = users.find(function(u) { return u.id === session.userId; });
+    if (user) {
+      currentUser = { id: user.id, email: user.email, name: user.name || user.email.split('@')[0] };
+      isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    } else {
+      writeStore(STORE_SESSION, null);
+    }
+  }
+  updateAuthUI();
+}
+
+// ---------- Boot ----------
+document.addEventListener('DOMContentLoaded', function() {
+  seedSurveysIfEmpty();
+  restoreSession();
+  fetchAndRenderSurveys();
+});
+
+// ---------- Navigation ----------
 function navigate(viewName, param) {
   currentView = viewName;
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -88,35 +153,33 @@ function navigate(viewName, param) {
   }
 }
 
-// Fetch surveys
-async function fetchAndRenderSurveys() {
+let currentView = 'home';
+
+// ---------- Surveys ----------
+function fetchAndRenderSurveys() {
   try {
-    const { data, error } = await supabaseClient
-      .from('surveys')
-      .select('*')
-      .eq('status', 'published')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    surveysCache = (data || []).filter(s => {
+    const all = readStore(STORE_SURVEYS, []);
+    surveysCache = (all || []).filter(function(s) {
+      if (s.status !== 'published') return false;
       if (!s.survey_url) return false;
+      if (!s.survey_url.startsWith('https://')) return false;
       const urlLower = s.survey_url.toLowerCase();
       if (urlLower.includes('example.com') || urlLower.includes('placeholder')) return false;
       return true;
+    }).sort(function(a, b) {
+      return (b.created_at || 0) - (a.created_at || 0);
     });
 
     renderHomeSurveys();
     renderDirectorySurveys();
   } catch (e) {
-    console.error('Error fetching surveys:', e);
+    console.error('Error loading surveys:', e);
     surveysCache = [];
     renderHomeSurveys();
     renderDirectorySurveys();
   }
 }
 
-// Render Home Featured Surveys
 function renderHomeSurveys() {
   const container = document.getElementById('home-surveys-grid');
 
@@ -124,74 +187,77 @@ function renderHomeSurveys() {
     container.innerHTML = `
       <div class="state-box" style="grid-column: 1 / -1;">
         <strong>No active surveys available right now</strong>
-        <p>Our research team is preparing new verified public opinion polls. Check back soon or join our WhatsApp channel for instant alerts!</p>
+        <p>Sign in as admin (<strong>${ADMIN_EMAIL}</strong>) to publish your first survey, or check back soon.</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = surveysCache.slice(0, 3).map(s => `
-    <div class="survey-card compact">
-      <div class="card-top">
-        <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
-        <span class="status-chip">Active</span>
+  container.innerHTML = surveysCache.slice(0, 3).map(function(s) {
+    return `
+      <div class="survey-card compact">
+        <div class="card-top">
+          <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
+          <span class="status-chip">Active</span>
+        </div>
+        <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
+        <h3>${escapeHtml(s.title)}</h3>
+        <p class="clamp">${escapeHtml(s.description || '')}</p>
+        <div class="meta-row">
+          <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
+        </div>
+        <div class="card-bottom">
+          <span class="small-note">Verified Survey</span>
+          <button class="card-link" onclick="navigate('detail', '${s.id}')">Participate &rarr;</button>
+        </div>
       </div>
-      <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
-      <h3>${escapeHtml(s.title)}</h3>
-      <p class="clamp">${escapeHtml(s.description || '')}</p>
-      <div class="meta-row">
-        <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
-      </div>
-      <div class="card-bottom">
-        <span class="small-note">Verified Survey</span>
-        <button class="card-link" onclick="navigate('detail', '${s.id}')">Participate &rarr;</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
-// Render Directory Surveys
 function renderDirectorySurveys() {
   const container = document.getElementById('directory-surveys-grid');
   let list = surveysCache;
   if (selectedDirectoryTopic !== 'All') {
-    list = surveysCache.filter(s => s.category === selectedDirectoryTopic);
+    list = surveysCache.filter(function(s) { return s.category === selectedDirectoryTopic; });
   }
 
   if (list.length === 0) {
     container.innerHTML = `
       <div class="state-box" style="grid-column: 1 / -1;">
         <strong>No surveys found in this category</strong>
-        <p>We will be launching new studies in this category soon.</p>
+        <p>New studies will appear here once published.</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = list.map(s => `
-    <div class="survey-card compact">
-      <div class="card-top">
-        <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
-        <span class="status-chip">Active</span>
+  container.innerHTML = list.map(function(s) {
+    return `
+      <div class="survey-card compact">
+        <div class="card-top">
+          <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
+          <span class="status-chip">Active</span>
+        </div>
+        <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
+        <h3>${escapeHtml(s.title)}</h3>
+        <p class="clamp">${escapeHtml(s.description || '')}</p>
+        <div class="meta-row">
+          <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
+        </div>
+        <div class="card-bottom">
+          <span class="small-note">Open opportunity</span>
+          <button class="card-link" onclick="navigate('detail', '${s.id}')">View Details &rarr;</button>
+        </div>
       </div>
-      <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
-      <h3>${escapeHtml(s.title)}</h3>
-      <p class="clamp">${escapeHtml(s.description || '')}</p>
-      <div class="meta-row">
-        <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
-      </div>
-      <div class="card-bottom">
-        <span class="small-note">Open opportunity</span>
-        <button class="card-link" onclick="navigate('detail', '${s.id}')">View Details &rarr;</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function filterDirectoryTopic(topic) {
   selectedDirectoryTopic = topic;
   const chips = document.querySelectorAll('#directory-topic-chips .topic-chip');
-  chips.forEach(c => {
+  chips.forEach(function(c) {
     if (c.textContent.trim() === topic || (topic === 'All' && c.textContent.includes('Categories'))) {
       c.classList.add('active');
     } else {
@@ -201,9 +267,8 @@ function filterDirectoryTopic(topic) {
   renderDirectorySurveys();
 }
 
-// Render Survey Detail
 function renderSurveyDetail(id) {
-  const survey = surveysCache.find(s => s.id === id);
+  const survey = surveysCache.find(function(s) { return s.id === id; });
   const container = document.getElementById('survey-detail-content');
 
   if (!survey) {
@@ -217,14 +282,14 @@ function renderSurveyDetail(id) {
     return;
   }
 
-  let eligibilityHTML = survey.eligibility ? `
+  const eligibilityHTML = survey.eligibility ? `
     <div class="detail-section">
       <h3>Eligibility Requirements</h3>
       <p class="detail-text">${escapeHtml(survey.eligibility)}</p>
     </div>
   ` : '';
 
-  let instructionsHTML = survey.instructions ? `
+  const instructionsHTML = survey.instructions ? `
     <div class="detail-section">
       <h3>Participation Instructions</h3>
       <p class="detail-text">${escapeHtml(survey.instructions)}</p>
@@ -256,7 +321,7 @@ function renderSurveyDetail(id) {
         <div id="participate-notice" class="notice"></div>
 
         <div class="btn-row" style="margin-top: 14px;">
-          <button class="btn btn-primary" onclick="startExternalSurvey('${survey.id}', '${escapeHtml(survey.survey_url)}')">
+          <button class="btn btn-primary" onclick="startExternalSurvey('${survey.id}')">
             Proceed to External Survey <svg><use href="#i-external"/></svg>
           </button>
         </div>
@@ -265,35 +330,54 @@ function renderSurveyDetail(id) {
   `;
 }
 
-// Start Survey participation
-async function startExternalSurvey(surveyId, surveyUrl) {
+async function startExternalSurvey(surveyId) {
   if (!currentUser) {
     showToast('Please sign in to participate in surveys.');
     openAuth('signin');
     return;
   }
 
-  if (!surveyUrl || !surveyUrl.startsWith('https://')) {
-    showToast('Invalid or insecure survey destination URL.');
+  const allSurveys = readStore(STORE_SURVEYS, []);
+  const survey = allSurveys.find(function(s) { return s.id === surveyId; });
+  if (!survey || !survey.survey_url || !survey.survey_url.startsWith('https://')) {
+    showToast('Invalid or unavailable survey.');
     return;
   }
 
   try {
-    await supabaseClient.from('survey_participations').insert([
-      { survey_id: surveyId, user_id: currentUser.id, status: 'started', review_status: 'pending' }
-    ]);
+    const parts = readStore(STORE_PARTICIPATIONS, []);
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const alreadyStarted = parts.some(function(p) {
+      return p.survey_id === surveyId &&
+             p.user_id === currentUser.id &&
+             p.status === 'started' &&
+             p.started_at > oneDayAgo;
+    });
+
+    if (!alreadyStarted) {
+      parts.push({
+        id: uid('part'),
+        survey_id: surveyId,
+        user_id: currentUser.id,
+        status: 'started',
+        review_status: 'pending',
+        submitted_at: Date.now(),
+        started_at: Date.now()
+      });
+      writeStore(STORE_PARTICIPATIONS, parts);
+    }
 
     showToast('Participation recorded. Redirecting to survey...');
-    setTimeout(() => {
-      window.open(surveyUrl, '_blank', 'noopener,noreferrer');
-    }, 800);
+    setTimeout(function() {
+      window.open(survey.survey_url, '_blank', 'noopener,noreferrer');
+    }, 700);
   } catch (e) {
     console.error('Participation exception:', e);
-    window.open(surveyUrl, '_blank', 'noopener,noreferrer');
+    window.open(survey.survey_url, '_blank', 'noopener,noreferrer');
   }
 }
 
-// Admin Dashboard
+// ---------- Admin ----------
 async function renderAdminDashboard() {
   const unauthorizedEl = document.getElementById('admin-unauthorized');
   const authorizedEl = document.getElementById('admin-authorized');
@@ -312,112 +396,109 @@ async function renderAdminDashboard() {
 
 async function loadAdminSurveysTable() {
   const wrap = document.getElementById('admin-surveys-list-wrap');
-  try {
-    const { data, error } = await supabaseClient
-      .from('surveys')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const all = readStore(STORE_SURVEYS, []).slice().sort(function(a, b) {
+    return (b.created_at || 0) - (a.created_at || 0);
+  });
 
-    if (error) throw error;
+  if (all.length === 0) {
+    wrap.innerHTML = '<p style="font-size:12px; color:var(--muted);">No surveys found. Create one above.</p>';
+    return;
+  }
 
-    if (!data || data.length === 0) {
-      wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">No surveys found in database.</p>`;
-      return;
-    }
-
-    wrap.innerHTML = `
-      <div style="overflow-x:auto;">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Duration</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.map(s => `
+  wrap.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${all.map(function(s) {
+            const toggleTo = s.status === 'published' ? 'closed' : 'published';
+            const toggleLabel = s.status === 'published' ? 'Close' : 'Publish';
+            return `
               <tr>
                 <td><strong>${escapeHtml(s.title)}</strong><br><small style="color:var(--muted);">${escapeHtml(s.survey_url || '')}</small></td>
                 <td>${escapeHtml(s.category || '')}</td>
                 <td>${escapeHtml(String(s.estimated_minutes || s.duration || '5'))} mins</td>
                 <td><span class="status-chip">${escapeHtml(s.status)}</span></td>
                 <td>
-                  <button class="btn btn-outline btn-sm" onclick="toggleSurveyStatus('${s.id}', '${s.status === 'published' ? 'closed' : 'published'}')">
-                    ${s.status === 'published' ? 'Close' : 'Publish'}
-                  </button>
+                  <button class="btn btn-outline btn-sm" onclick="toggleSurveyStatus('${s.id}', '${toggleTo}')">${toggleLabel}</button>
                 </td>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  } catch (e) {
-    wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">Error loading admin surveys: ${e.message}</p>`;
-  }
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 async function loadAdminParticipationsTable() {
   const wrap = document.getElementById('admin-participations-wrap');
-  try {
-    const { data, error } = await supabaseClient
-      .from('survey_participations')
-      .select('id, status, review_status, submitted_at, surveys(title)')
-      .order('submitted_at', { ascending: false })
-      .limit(20);
+  const parts = readStore(STORE_PARTICIPATIONS, []).slice().sort(function(a, b) {
+    return (b.submitted_at || 0) - (a.submitted_at || 0);
+  }).slice(0, 20);
+  const allSurveys = readStore(STORE_SURVEYS, []);
 
-    if (error) throw error;
+  if (parts.length === 0) {
+    wrap.innerHTML = '<p style="font-size:12px; color:var(--muted);">No participation records found yet.</p>';
+    return;
+  }
 
-    if (!data || data.length === 0) {
-      wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">No participation records found.</p>`;
-      return;
-    }
-
-    wrap.innerHTML = `
-      <div style="overflow-x:auto;">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Survey</th>
-              <th>Participant Status</th>
-              <th>Submission Date</th>
-              <th>Review Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.map(p => `
+  wrap.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Survey</th>
+            <th>Participant Status</th>
+            <th>Submission Date</th>
+            <th>Review Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${parts.map(function(p) {
+            const survey = allSurveys.find(function(s) { return s.id === p.survey_id; });
+            const title = survey ? survey.title : 'Deleted survey';
+            const dateStr = p.submitted_at ? new Date(p.submitted_at).toLocaleDateString() : '—';
+            return `
               <tr>
-                <td><strong>${escapeHtml(p.surveys ? p.surveys.title : 'Survey')}</strong></td>
+                <td><strong>${escapeHtml(title)}</strong></td>
                 <td>${escapeHtml(p.status || 'started')}</td>
-                <td>${new Date(p.submitted_at).toLocaleDateString()}</td>
+                <td>${dateStr}</td>
                 <td><span class="status-chip">${escapeHtml(p.review_status || 'pending')}</span></td>
                 <td>
                   <button class="btn btn-outline btn-sm" onclick="reviewParticipation('${p.id}', 'approved')">Approve</button>
                   <button class="btn btn-outline btn-sm" style="color:#a52b26; border-color:#f6d4d1;" onclick="reviewParticipation('${p.id}', 'rejected')">Reject</button>
                 </td>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  } catch (e) {
-    wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">Participation table or RPC not configured yet.</p>`;
-  }
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 async function reviewParticipation(participationId, decision) {
   try {
-    const { error } = await supabaseClient.rpc('admin_review_participation', {
-      p_participation_id: participationId,
-      p_decision: decision
-    });
-    if (error) throw error;
-    showToast(`Participation ${decision} successfully.`);
+    if (decision !== 'approved' && decision !== 'rejected') {
+      throw new Error('Invalid decision.');
+    }
+    const parts = readStore(STORE_PARTICIPATIONS, []);
+    const idx = parts.findIndex(function(p) { return p.id === participationId; });
+    if (idx === -1) throw new Error('Participation not found.');
+    parts[idx].review_status = decision;
+    parts[idx].reviewed_at = Date.now();
+    writeStore(STORE_PARTICIPATIONS, parts);
+    showToast('Participation ' + decision + ' successfully.');
     await loadAdminParticipationsTable();
   } catch (e) {
     showToast('Review failed: ' + e.message);
@@ -426,6 +507,10 @@ async function reviewParticipation(participationId, decision) {
 
 async function handleCreateSurvey(e) {
   e.preventDefault();
+
+  const noticeEl = document.getElementById('admin-create-notice');
+  const submitBtn = document.getElementById('admin-submit-btn');
+
   const title = document.getElementById('admin-title').value.trim();
   const category = document.getElementById('admin-category').value;
   const description = document.getElementById('admin-description').value.trim();
@@ -434,47 +519,43 @@ async function handleCreateSurvey(e) {
   const survey_url = document.getElementById('admin-url').value.trim();
   const eligibility = document.getElementById('admin-eligibility').value.trim();
   const instructions = document.getElementById('admin-instructions').value.trim();
-  const noticeEl = document.getElementById('admin-create-notice');
-  const submitBtn = document.getElementById('admin-submit-btn');
-
-  if (!survey_url.startsWith('https://')) {
-    noticeEl.className = 'notice show error';
-    noticeEl.textContent = 'Survey URL must be a valid secure HTTPS destination.';
-    return;
-  }
-
-  if (isNaN(estimated_minutes) || estimated_minutes <= 0) {
-    noticeEl.className = 'notice show error';
-    noticeEl.textContent = 'Estimated duration must be a positive number of minutes.';
-    return;
-  }
 
   submitBtn.disabled = true;
   noticeEl.className = 'notice';
 
   try {
-    const { error } = await supabaseClient.from('surveys').insert([
-      {
-        title,
-        category,
-        description,
-        estimated_minutes,
-        duration: `${estimated_minutes} mins`,
-        status,
-        survey_url,
-        eligibility,
-        instructions
-      }
-    ]);
+    if (!title || !description) {
+      throw new Error('Title and description are required.');
+    }
+    if (!survey_url.startsWith('https://')) {
+      throw new Error('Survey URL must be a valid secure HTTPS destination.');
+    }
+    if (isNaN(estimated_minutes) || estimated_minutes <= 0) {
+      throw new Error('Estimated duration must be a positive number of minutes.');
+    }
 
-    if (error) throw error;
+    const all = readStore(STORE_SURVEYS, []);
+    all.push({
+      id: uid('sur'),
+      title: title,
+      category: category,
+      description: description,
+      estimated_minutes: estimated_minutes,
+      duration: estimated_minutes + ' mins',
+      status: status,
+      survey_url: survey_url,
+      eligibility: eligibility,
+      instructions: instructions,
+      created_at: Date.now()
+    });
+    writeStore(STORE_SURVEYS, all);
 
     noticeEl.className = 'notice show success';
-    noticeEl.textContent = 'Survey successfully created and saved to database!';
+    noticeEl.textContent = 'Survey successfully created and saved locally!';
     showToast('Survey published successfully.');
 
     e.target.reset();
-    await fetchAndRenderSurveys();
+    fetchAndRenderSurveys();
     await loadAdminSurveysTable();
   } catch (err) {
     noticeEl.className = 'notice show error';
@@ -486,21 +567,20 @@ async function handleCreateSurvey(e) {
 
 async function toggleSurveyStatus(surveyId, newStatus) {
   try {
-    const { error } = await supabaseClient
-      .from('surveys')
-      .update({ status: newStatus })
-      .eq('id', surveyId);
-
-    if (error) throw error;
-    showToast(`Survey status updated to ${newStatus}`);
-    await fetchAndRenderSurveys();
+    const all = readStore(STORE_SURVEYS, []);
+    const idx = all.findIndex(function(s) { return s.id === surveyId; });
+    if (idx === -1) throw new Error('Survey not found.');
+    all[idx].status = newStatus;
+    writeStore(STORE_SURVEYS, all);
+    showToast('Survey status updated to ' + newStatus);
+    fetchAndRenderSurveys();
     await loadAdminSurveysTable();
   } catch (e) {
     showToast('Failed to update status: ' + e.message);
   }
 }
 
-// Auth
+// ---------- Auth ----------
 function openAuth(mode) {
   document.getElementById('auth-overlay').classList.add('open');
   switchAuthMode(mode);
@@ -532,7 +612,7 @@ function switchAuthMode(mode) {
 
 function showNotice(msg, type) {
   const n = document.getElementById('auth-notice');
-  n.className = `notice show ${type}`;
+  n.className = 'notice show ' + type;
   n.textContent = msg;
 }
 
@@ -544,102 +624,117 @@ function clearAuthNotices() {
 
 async function submitSignIn(e) {
   e.preventDefault();
-  const email = document.getElementById('signin-email').value.trim();
+  const email = document.getElementById('signin-email').value.trim().toLowerCase();
   const password = document.getElementById('signin-password').value;
   const submitBtn = document.getElementById('signin-submit-btn');
 
   submitBtn.disabled = true;
-  submitBtn.classList.add('loading');
   clearAuthNotices();
 
   try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    if (!email || !password) {
+      throw new Error('Please enter your email and password.');
+    }
 
-    currentUser = data.user;
-    await checkAdminStatus();
+    const users = readStore(STORE_USERS, []);
+    const user = users.find(function(u) { return u.email.toLowerCase() === email; });
+
+    if (!user) {
+      throw new Error('No account found with this email. Please register first.');
+    }
+
+    const passwordHash = await hashPassword(password);
+    if (user.passwordHash !== passwordHash) {
+      throw new Error('Incorrect password. Please try again.');
+    }
+
+    currentUser = {
+      id: user.id,
+      email: user.email,
+      name: user.name || user.email.split('@')[0]
+    };
+    isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    writeStore(STORE_SESSION, { userId: user.id });
+
     updateAuthUI();
     closeAuth();
-    showToast(`Welcome back, ${currentUser.email}!`);
+    showToast('Welcome back, ' + (currentUser.name || currentUser.email) + '!');
+    fetchAndRenderSurveys();
+    if (currentView === 'admin') navigate('home');
   } catch (err) {
     showNotice(err.message, 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.classList.remove('loading');
   }
 }
 
 async function submitSignUp(e) {
   e.preventDefault();
   const name = document.getElementById('signup-name').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
+  const email = document.getElementById('signup-email').value.trim().toLowerCase();
   const password = document.getElementById('signup-password').value;
   const submitBtn = document.getElementById('signup-submit-btn');
 
   submitBtn.disabled = true;
-  submitBtn.classList.add('loading');
   clearAuthNotices();
 
   try {
-    const { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name, name: name }
-      }
-    });
-
-    if (error) throw error;
-
-    if (data && data.session) {
-      currentUser = data.session.user;
-      await checkAdminStatus();
-      updateAuthUI();
-      closeAuth();
-      showToast(`Account created successfully. Karibu, ${name}!`);
-    } else {
-      showNotice('Account created successfully! Please check your email inbox to confirm your registration before signing in.', 'success');
-      showToast('Registration verification email sent.');
+    if (!name || name.length < 2) {
+      throw new Error('Please enter your full name.');
     }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error('Please enter a valid email address.');
+    }
+    if (!password || password.length < 6) {
+      throw new Error('Password must be at least 6 characters.');
+    }
+
+    const users = readStore(STORE_USERS, []);
+    if (users.some(function(u) { return u.email.toLowerCase() === email; })) {
+      throw new Error('An account with this email already exists. Please sign in instead.');
+    }
+
+    const passwordHash = await hashPassword(password);
+    const newUser = {
+      id: uid('user'),
+      name: name,
+      email: email,
+      passwordHash: passwordHash,
+      created_at: Date.now()
+    };
+    users.push(newUser);
+    writeStore(STORE_USERS, users);
+
+    currentUser = { id: newUser.id, email: newUser.email, name: newUser.name };
+    isAdmin = newUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    writeStore(STORE_SESSION, { userId: newUser.id });
+
+    updateAuthUI();
+    closeAuth();
+    showToast('Account created. Karibu, ' + name + '!');
+    fetchAndRenderSurveys();
+    if (currentView === 'admin') navigate('home');
   } catch (err) {
     showNotice(err.message, 'error');
   } finally {
     submitBtn.disabled = false;
-    submitBtn.classList.remove('loading');
   }
 }
 
 async function submitPasswordReset() {
-  const email = document.getElementById('signin-email').value.trim();
-  if (!email) {
-    showNotice('Please enter your email address above to reset password.', 'error');
-    return;
-  }
-  try {
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.href
-    });
-    if (error) throw error;
-    showNotice('Password recovery instructions sent to your email.', 'info');
-  } catch (err) {
-    showNotice(err.message, 'error');
-  }
+  showNotice('Local-only mode: password reset is not available because there is no email server. Please remember your password, or register a new account with a different email.', 'info');
 }
 
 async function signOut() {
-  try {
-    await supabaseClient.auth.signOut();
-    currentUser = null;
-    isAdmin = false;
-    updateAuthUI();
-    navigate('home');
-    showToast('Signed out successfully.');
-  } catch (e) {
-    console.error('Sign out error:', e);
-  }
+  writeStore(STORE_SESSION, null);
+  currentUser = null;
+  isAdmin = false;
+  updateAuthUI();
+  navigate('home');
+  showToast('Signed out successfully.');
 }
 
-async function updateAuthUI() {
+function updateAuthUI() {
   const guestActions = document.getElementById('auth-guest-actions');
   const userActions = document.getElementById('auth-user-actions');
   const greeting = document.getElementById('user-greeting');
@@ -650,13 +745,10 @@ async function updateAuthUI() {
     guestActions.style.display = 'none';
     userActions.classList.remove('hidden');
     userActions.style.display = 'flex';
-    greeting.textContent = `Hi, ${currentUser.email.split('@')[0]}`;
+    greeting.textContent = 'Hi, ' + (currentUser.name || currentUser.email.split('@')[0]);
 
-    if (isAdmin) {
-      adminLink.classList.remove('hidden');
-    } else {
-      adminLink.classList.add('hidden');
-    }
+    if (isAdmin) adminLink.classList.remove('hidden');
+    else adminLink.classList.add('hidden');
   } else {
     userActions.classList.add('hidden');
     userActions.style.display = 'none';
@@ -666,7 +758,7 @@ async function updateAuthUI() {
   }
 }
 
-// Utility: HTML escape
+// ---------- Utilities ----------
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -677,12 +769,11 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-// Toast
 function showToast(message) {
   const t = document.getElementById('toast');
   t.textContent = message;
   t.classList.add('show');
-  setTimeout(() => {
+  setTimeout(function() {
     t.classList.remove('show');
   }, 3500);
 }
