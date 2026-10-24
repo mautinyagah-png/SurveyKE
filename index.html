@@ -6,6 +6,10 @@
   <meta name="theme-color" content="#087f5b" />
   <meta name="description" content="SurveyKE — Share your opinions, help shape better services, and discover upcoming survey opportunities in Kenya." />
   <title>SurveyKE — Your Voice Matters</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzA4N2Y1YiIgcng9IjMyIi8+PHBhdGggZD0iTTE0MCA0NGMtNTYgMC05OCAyMS05OCA3MGE0MiA0MiAwIDAgMCA0MiA0MmM0OSAwIDU2LTU2IDU2LTExMloiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNMzIgMTYwYzE0LTM1IDQyLTYzIDg0LTg0IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+" />
+
   <script>
     (function () {
       try {
@@ -15,10 +19,13 @@
       } catch (e) {}
     })();
   </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
 </head>
 <body class="booting">
   <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -54,9 +61,16 @@
     <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
     <symbol id="i-zap" viewBox="0 0 24 24"><path d="m13 2-3 8h7L8 22l3-9H4l9-11Z"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+    <symbol id="i-fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+    <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></symbol>
+    <symbol id="i-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
   </svg>
 
-  <!-- ===== BOOT LOADING SCREEN ===== -->
   <div id="app-loading" class="app-loading">
     <div class="loading-content">
       <div class="loading-logo"><svg><use href="#i-leaf"/></svg></div>
@@ -69,7 +83,7 @@
       </div>
       <div id="boot-error" class="boot-error hidden">
         <strong>Cannot access app</strong>
-        <p>Your browser does not support the features this app needs. Please try a modern browser like Chrome or Firefox.</p>
+        <p>Your browser does not support the features this app needs. Try Chrome or Firefox.</p>
       </div>
     </div>
   </div>
@@ -90,10 +104,13 @@
         <a href="#" onclick="navigate('wallet'); return false;">Wallet</a>
         <a href="#" onclick="navigate('profile'); return false;">Profile</a>
         <a href="#" onclick="navigate('settings'); return false;">Settings</a>
-        <a href="#footer">Contact</a>
+        <a href="#" onclick="navigate('static','faq'); return false;">FAQ</a>
         <a id="nav-admin-link" href="#" class="hidden" onclick="navigate('admin'); return false;">Admin</a>
       </nav>
       <div class="nav-actions">
+        <button id="install-btn" class="header-bell hidden" onclick="installPWA()" aria-label="Install App" title="Install App">
+          <svg><use href="#i-download"/></svg>
+        </button>
         <button class="header-bell" id="header-bell" onclick="navigate('notifications')" aria-label="Notifications">
           <svg><use href="#i-bell"/></svg>
           <span class="header-bell-badge hidden" id="header-bell-badge">0</span>
@@ -130,6 +147,13 @@
           </div>
         </div>
       </section>
+
+      <section class="section">
+        <div class="container">
+          <div id="survey-of-day-container"></div>
+        </div>
+      </section>
+
       <section class="section">
         <div class="container">
           <div class="section-head-center">
@@ -138,13 +162,14 @@
             <p>Explore current surveys open to participants across Kenya.</p>
           </div>
           <div id="home-surveys-grid" class="survey-grid">
-            <div class="state-box" style="grid-column: 1 / -1;"><div class="spinner"></div><strong>Loading active surveys...</strong></div>
+            <div class="skeleton-card" style="grid-column: 1 / -1;"><div class="skeleton" style="height: 180px;"></div></div>
           </div>
           <div class="center-cta">
-            <button class="btn btn-outline" onclick="navigate('surveys')">View All Surveys <svg><use href="#i-arrow"/></svg></button>
+            <button class="btn btn-primary" onclick="navigate('surveys')">More Surveys <svg><use href="#i-arrow"/></svg></button>
           </div>
         </div>
       </section>
+
       <section class="section soft">
         <div class="container">
           <div class="section-head-center">
@@ -159,6 +184,7 @@
           </div>
         </div>
       </section>
+
       <section class="section">
         <div class="container">
           <div class="cta-banner">
@@ -179,10 +205,21 @@
           <div>
             <span class="eyebrow">Directory</span>
             <h2>All Published Surveys</h2>
-            <p>Browse active surveys. Your current plan determines which ones you can take.</p>
+            <p>Browse surveys by plan tier and category.</p>
           </div>
         </div>
+
         <div id="surveys-plan-banner"></div>
+        <div id="surveys-tier-banners"></div>
+
+        <div class="search-wrap">
+          <div class="search-bar">
+            <svg><use href="#i-search"/></svg>
+            <input type="text" id="surveys-search" placeholder="Search surveys by title or keyword..." oninput="onSurveySearch(this.value)">
+            <button class="search-clear hidden" id="search-clear-btn" onclick="clearSurveySearch()"><svg><use href="#i-x"/></svg></button>
+          </div>
+        </div>
+
         <div class="filter-row">
           <div class="topic-chips" id="directory-topic-chips">
             <button class="topic-chip active" onclick="filterDirectoryTopic('All')">All</button>
@@ -195,8 +232,9 @@
             <button class="topic-chip" onclick="filterDirectoryTopic('Other')">Other</button>
           </div>
         </div>
+
         <div id="directory-surveys-grid" class="survey-grid">
-          <div class="state-box" style="grid-column: 1 / -1;"><div class="spinner"></div><strong>Loading surveys...</strong></div>
+          <div class="skeleton-card" style="grid-column: 1 / -1;"><div class="skeleton" style="height: 180px;"></div></div>
         </div>
       </div>
     </div>
@@ -218,9 +256,11 @@
     </div>
 
     <div id="view-wallet" class="hidden"><div class="container section"><div id="wallet-content"></div></div></div>
+    <div id="view-history" class="hidden"><div class="container section"><div id="history-content"></div></div></div>
     <div id="view-notifications" class="hidden"><div class="container section"><div id="notifications-content"></div></div></div>
     <div id="view-profile" class="hidden"><div class="container section"><div id="profile-content"></div></div></div>
     <div id="view-settings" class="hidden"><div class="container section"><div id="settings-content"></div></div></div>
+    <div id="view-static" class="hidden"><div class="container section"><div id="static-content"></div></div></div>
 
     <div id="view-admin" class="hidden">
       <div class="container section">
@@ -240,13 +280,15 @@
           <div class="admin-subtabs" id="admin-subtabs">
             <button class="admin-subtab active" data-section="add" onclick="switchAdminSection('add')"><svg><use href="#i-plus"/></svg><span>Add Survey</span></button>
             <button class="admin-subtab" data-section="manage" onclick="switchAdminSection('manage')"><svg><use href="#i-list"/></svg><span>Manage Surveys</span></button>
-            <button class="admin-subtab" data-section="review" onclick="switchAdminSection('review')"><svg><use href="#i-check-circle"/></svg><span>Participation Review</span></button>
+            <button class="admin-subtab" data-section="review" onclick="switchAdminSection('review')"><svg><use href="#i-check-circle"/></svg><span>Participation</span></button>
+            <button class="admin-subtab" data-section="withdrawals" onclick="switchAdminSection('withdrawals')"><svg><use href="#i-wallet"/></svg><span>Withdrawals</span></button>
+            <button class="admin-subtab" data-section="promos" onclick="switchAdminSection('promos')"><svg><use href="#i-tag"/></svg><span>Promos</span></button>
           </div>
 
           <div id="admin-section-add" class="admin-section">
             <div class="admin-panel-card">
               <h3>Add New Survey</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create an external link survey or build an in-app survey with your own questions.</p>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create an external or internal survey.</p>
               <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
                 <div class="field">
                   <label>Survey Type *</label>
@@ -259,13 +301,7 @@
                   <div class="field"><label>Survey Title *</label><input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required></div>
                   <div class="field"><label>Category *</label>
                     <select id="admin-category" style="padding-left: 13px;" required>
-                      <option value="Public Policy">Public Policy</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Consumer Goods">Consumer Goods</option>
-                      <option value="Transport">Transport</option>
-                      <option value="Health">Health</option>
-                      <option value="Other">Other</option>
+                      <option value="Public Policy">Public Policy</option><option value="Technology">Technology</option><option value="Finance">Finance</option><option value="Consumer Goods">Consumer Goods</option><option value="Transport">Transport</option><option value="Health">Health</option><option value="Other">Other</option>
                     </select>
                   </div>
                 </div>
@@ -274,24 +310,13 @@
                   <div class="field"><label>Duration (mins) *</label><input type="number" id="admin-duration" placeholder="5" min="1" required></div>
                   <div class="field"><label>Reward (KSh) *</label><input type="number" id="admin-reward" placeholder="20" min="1" required></div>
                   <div class="field"><label>Tier *</label>
-                    <select id="admin-tier" style="padding-left: 13px;" required>
-                      <option value="basic">Basic</option>
-                      <option value="silver">Silver</option>
-                      <option value="gold">Gold</option>
-                      <option value="platinum">Platinum</option>
-                    </select>
+                    <select id="admin-tier" style="padding-left: 13px;" required><option value="basic">Basic</option><option value="silver">Silver</option><option value="gold">Gold</option><option value="platinum">Platinum</option></select>
                   </div>
                   <div class="field"><label>Status *</label>
-                    <select id="admin-status" style="padding-left: 13px;" required>
-                      <option value="published">Published</option>
-                      <option value="draft">Draft</option>
-                      <option value="closed">Closed</option>
-                    </select>
+                    <select id="admin-status" style="padding-left: 13px;" required><option value="published">Published</option><option value="draft">Draft</option><option value="closed">Closed</option></select>
                   </div>
                 </div>
-                <div id="admin-external-fields">
-                  <div class="field"><label>Survey URL (HTTPS) *</label><input type="url" id="admin-url" placeholder="https://forms.gle/..." required></div>
-                </div>
+                <div id="admin-external-fields"><div class="field"><label>Survey URL (HTTPS) *</label><input type="url" id="admin-url" placeholder="https://forms.gle/..." required></div></div>
                 <div id="admin-internal-fields" class="hidden">
                   <div class="field">
                     <label>Questions *</label>
@@ -312,16 +337,38 @@
           <div id="admin-section-manage" class="admin-section hidden">
             <div class="admin-panel-card">
               <h3>Manage Existing Surveys</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Close, publish, or delete surveys.</p>
-              <div id="admin-surveys-list-wrap"><div class="spinner"></div></div>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Close, publish, or delete surveys. <button class="admin-act-btn admin-act-view" onclick="exportCSV()" style="float:right;">📥 Export CSV</button></p>
+              <div id="admin-surveys-list-wrap"><div class="skeleton" style="height: 200px; margin-top: 12px;"></div></div>
             </div>
           </div>
 
           <div id="admin-section-review" class="admin-section hidden">
             <div class="admin-panel-card">
               <h3>Participation Review</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Review submissions by user. Once finalized, actions are locked.</p>
-              <div id="admin-participations-wrap"><div class="spinner"></div></div>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Review submissions by user. Click a user to see full profile.</p>
+              <div id="admin-participations-wrap"><div class="skeleton" style="height: 200px; margin-top: 12px;"></div></div>
+            </div>
+          </div>
+
+          <div id="admin-section-withdrawals" class="admin-section hidden">
+            <div class="admin-panel-card">
+              <h3>Withdrawal Requests</h3>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Approve and process user withdrawals.</p>
+              <div id="admin-withdrawals-wrap"></div>
+            </div>
+          </div>
+
+          <div id="admin-section-promos" class="admin-section hidden">
+            <div class="admin-panel-card">
+              <h3>Promo Codes</h3>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Create bonus codes users can redeem.</p>
+              <div class="promo-create-row">
+                <input type="text" id="promo-code-input" placeholder="CODE" maxlength="15" style="text-transform: uppercase;">
+                <input type="number" id="promo-amount-input" placeholder="KSh" min="1" max="1000">
+                <input type="number" id="promo-maxuses-input" placeholder="Max uses" min="1" value="100">
+                <button class="btn btn-primary btn-sm" onclick="createPromo()">Create</button>
+              </div>
+              <div id="admin-promos-list"></div>
             </div>
           </div>
         </div>
@@ -342,7 +389,7 @@
         <div class="footer-title">Reach us</div>
         <div class="social-row">
           <a href="mailto:facelessdime@gmail.com" class="social-link"><svg style="width:16px;height:16px;"><use href="#i-mail"/></svg>Email</a>
-          <a href="https://wa.me/254705559494" target="_blank" rel="noopener" class="social-link wa"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>WhatsApp</a>
+          <a href="https://wa.me/254705559494" target="_blank" rel="noopener" class="social-link wa"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>WhatsApp</a>
           <a href="https://t.me/Shearny" target="_blank" rel="noopener" class="social-link tg"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/></svg>Telegram</a>
           <a href="https://discord.com/app" target="_blank" rel="noopener" class="social-link dc"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.011c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>Discord</a>
         </div>
@@ -354,15 +401,18 @@
           <button onclick="navigate('home')">Home</button>
           <button onclick="navigate('surveys')">All Surveys</button>
           <button onclick="navigate('wallet')">Wallet</button>
+          <button onclick="navigate('history')">History</button>
           <button onclick="navigate('notifications')">Notifications</button>
           <button onclick="navigate('profile')">Profile</button>
-          <button onclick="navigate('settings')">Settings</button>
+          <button onclick="navigate('static','faq')">FAQ</button>
+          <button onclick="navigate('static','terms')">Terms</button>
+          <button onclick="navigate('static','privacy')">Privacy</button>
         </div>
       </div>
     </div>
     <div class="container footer-bottom">
       <div>&copy; 2026 SurveyKE. All rights reserved. Built for Kenya.</div>
-      <div>Privacy Policy &bull; Terms of Service</div>
+      <div>Made with ❤️ for Kenya</div>
     </div>
   </footer>
 
@@ -374,6 +424,68 @@
     <button class="bottom-nav-item" data-tab="profile" onclick="navigate('profile')"><svg><use href="#i-user"/></svg><span>Profile</span></button>
   </nav>
 
+  <!-- Withdrawal Modal -->
+  <div id="withdrawal-overlay" class="modal-overlay" onclick="handleWithdrawalOverlayClick(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeWithdrawalModal()"><svg><use href="#i-x"/></svg></button>
+      <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Request Withdrawal</h2>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Money will be sent to your M-Pesa number within 24-48 hours.</p>
+      <div class="field">
+        <label>M-Pesa Number *</label>
+        <div class="input-wrap"><svg><use href="#i-mail"/></svg>
+          <input type="tel" id="withdraw-phone" placeholder="e.g. 0712345678" maxlength="13" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Amount (KSh) *</label>
+        <div class="input-wrap"><svg><use href="#i-wallet"/></svg>
+          <input type="number" id="withdraw-amount" placeholder="Enter amount" required>
+        </div>
+        <small class="field-hint" id="withdraw-hint"></small>
+      </div>
+      <div id="withdraw-notice" class="notice"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeWithdrawalModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitWithdrawal()">Confirm Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin User Detail Modal -->
+  <div id="admin-user-overlay" class="modal-overlay" onclick="handleAdminUserOverlayClick(event)">
+    <div class="modal-box wide">
+      <button class="modal-close" onclick="closeAdminUserModal()"><svg><use href="#i-x"/></svg></button>
+      <div id="admin-user-content"></div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="password-overlay" class="modal-overlay" onclick="handlePasswordOverlayClick(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closePasswordModal()"><svg><use href="#i-x"/></svg></button>
+      <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Change Password</h2>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Enter your current password and a new one.</p>
+      <div class="field">
+        <label>Current Password</label>
+        <div class="input-wrap"><svg><use href="#i-lock"/></svg>
+          <input type="password" id="old-password" placeholder="••••••••" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>New Password</label>
+        <div class="input-wrap"><svg><use href="#i-lock"/></svg>
+          <input type="password" id="new-password" placeholder="At least 6 characters" minlength="6" required>
+        </div>
+      </div>
+      <div id="password-notice" class="notice"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closePasswordModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
   <div id="edit-profile-overlay" class="modal-overlay" onclick="handleEditProfileOverlayClick(event)">
     <div class="modal-box">
       <button class="modal-close" onclick="closeEditProfile()"><svg><use href="#i-x"/></svg></button>
@@ -399,6 +511,7 @@
     </div>
   </div>
 
+  <!-- Plan Modal -->
   <div id="plan-overlay" class="modal-overlay" onclick="handlePlanOverlayClick(event)">
     <div class="modal-box wide">
       <button class="modal-close" onclick="closePlanModal()"><svg><use href="#i-x"/></svg></button>
@@ -449,19 +562,15 @@
       <div id="auth-notice" class="notice"></div>
       <div id="form-signin" class="auth-form-panel">
         <h2>Welcome Back</h2>
-        <p class="auth-description">Sign in to participate in active surveys and track your submissions.</p>
+        <p class="auth-description">Sign in to continue.</p>
         <form id="signin-form" onsubmit="submitSignIn(event)">
           <div class="field">
             <label>Email or Username</label>
-            <div class="input-wrap"><svg><use href="#i-mail"/></svg>
-              <input type="text" id="signin-email" placeholder="email or username" required>
-            </div>
+            <div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="text" id="signin-email" placeholder="email or username" required></div>
           </div>
           <div class="field">
             <label>Password</label>
-            <div class="input-wrap"><svg><use href="#i-lock"/></svg>
-              <input type="password" id="signin-password" placeholder="••••••••" required>
-            </div>
+            <div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signin-password" placeholder="••••••••" required></div>
           </div>
           <div class="auth-options"><button type="button" class="text-button" onclick="submitPasswordReset()">Forgot password?</button></div>
           <button type="submit" id="signin-submit-btn" class="btn btn-primary btn-block">Sign In</button>
@@ -470,43 +579,27 @@
       </div>
       <div id="form-signup" class="auth-form-panel hidden">
         <h2>Create Account</h2>
-        <p class="auth-description">Join SurveyKE — start with the free Basic plan and upgrade anytime.</p>
+        <p class="auth-description">Join SurveyKE — start free, upgrade anytime.</p>
         <form id="signup-form" onsubmit="submitSignUp(event)">
-          <div class="field">
-            <label>Official Name *</label>
-            <div class="input-wrap"><svg><use href="#i-user"/></svg>
-              <input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required>
-            </div>
+          <div class="field"><label>Official Name *</label>
+            <div class="input-wrap"><svg><use href="#i-user"/></svg><input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required></div>
           </div>
-          <div class="field">
-            <label>Username (Nickname) *</label>
-            <div class="input-wrap"><svg><use href="#i-user"/></svg>
-              <input type="text" id="signup-username" placeholder="e.g. amina_w" minlength="3" maxlength="20" required>
-            </div>
-            <small class="field-hint">3-20 chars · letters, numbers, underscore only · must be unique</small>
+          <div class="field"><label>Username (Nickname) *</label>
+            <div class="input-wrap"><svg><use href="#i-user"/></svg><input type="text" id="signup-username" placeholder="e.g. amina_w" minlength="3" maxlength="20" required></div>
+            <small class="field-hint">3-20 chars · lowercase, numbers, underscore</small>
           </div>
-          <div class="field">
-            <label>Email Address *</label>
-            <div class="input-wrap"><svg><use href="#i-mail"/></svg>
-              <input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required>
-            </div>
+          <div class="field"><label>Email Address *</label>
+            <div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required></div>
           </div>
-          <div class="field">
-            <label>Password *</label>
-            <div class="input-wrap"><svg><use href="#i-lock"/></svg>
-              <input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6">
-            </div>
+          <div class="field"><label>Password *</label>
+            <div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6"></div>
           </div>
-          <div class="field">
-            <label>Referral Code (Optional)</label>
-            <div class="input-wrap"><svg><use href="#i-gift"/></svg>
-              <input type="text" id="signup-referral" placeholder="e.g. SK123ABC">
-            </div>
-            <small class="field-hint">Have a friend's referral code? Enter it here.</small>
+          <div class="field"><label>Referral Code (Optional)</label>
+            <div class="input-wrap"><svg><use href="#i-gift"/></svg><input type="text" id="signup-referral" placeholder="e.g. SK123ABC"></div>
           </div>
           <label class="rules-checkbox">
             <input type="checkbox" id="signup-rules" required>
-            <span>I agree to the <a href="#" onclick="event.preventDefault(); showToast('Terms & Privacy coming soon.');">Terms of Service</a> and <a href="#" onclick="event.preventDefault(); showToast('Terms & Privacy coming soon.');">Privacy Policy</a>. I confirm the information I've provided is accurate.</span>
+            <span>I agree to the <a href="#" onclick="event.preventDefault(); closeAuth(); navigate('static','terms');">Terms</a> and <a href="#" onclick="event.preventDefault(); closeAuth(); navigate('static','privacy');">Privacy Policy</a>.</span>
           </label>
           <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
         </form>
