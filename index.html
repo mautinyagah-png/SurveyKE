@@ -11,646 +11,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <!-- CSS file (same folder) -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Supabase UMD (must load before app.js) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    :root {
-      --green: #087f5b;
-      --green-dark: #056447;
-      --green-light: #e7f7ef;
-      --green-soft: #f2fbf6;
-      --ink: #172b24;
-      --muted: #718078;
-      --line: #e5ece8;
-      --white: #ffffff;
-      --surface: #f8faf9;
-      --orange: #f59e0b;
-      --shadow: 0 12px 36px rgba(20, 60, 42, .07);
-      --radius: 20px;
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      margin: 0;
-      background: #fff;
-      color: var(--ink);
-      font-family: "DM Sans", sans-serif;
-      line-height: 1.6;
-    }
-
-    body, button, input, textarea, select { font-family: "DM Sans", sans-serif; }
-    button, a { -webkit-tap-highlight-color: transparent; }
-    button { cursor: pointer; }
-    a { color: inherit; text-decoration: none; }
-
-    svg {
-      width: 22px;
-      height: 22px;
-      display: inline-block;
-      flex-shrink: 0;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 1.8;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .container { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
-
-    .announcement {
-      background: #07583f;
-      color: #e8fff2;
-      text-align: center;
-      font-size: 12px;
-      padding: 9px 15px;
-      letter-spacing: .15px;
-    }
-    .announcement strong { color: white; }
-
-    header {
-      height: 78px;
-      border-bottom: 1px solid #edf1ee;
-      background: rgba(255,255,255,.96);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(12px);
-    }
-
-    .nav { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 11px;
-      font-family: "Manrope", sans-serif;
-      font-size: 23px;
-      font-weight: 800;
-      letter-spacing: -1px;
-    }
-    .brand-mark {
-      width: 42px; height: 42px;
-      display: grid; place-items: center;
-      background: var(--green);
-      color: white;
-      border-radius: 13px;
-      box-shadow: 0 5px 13px rgba(8,127,91,.2);
-    }
-    .brand-mark svg { width: 24px; height: 24px; }
-    .brand span span { color: var(--green); }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      font-size: 13px;
-      color: #53635b;
-      font-weight: 600;
-    }
-    .nav-links a:hover { color: var(--green); }
-
-    .nav-actions { display: flex; align-items: center; gap: 10px; }
-
-    .btn {
-      border: 1px solid transparent;
-      border-radius: 11px;
-      padding: 12px 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      font-size: 13px;
-      font-weight: 700;
-      transition: .2s ease;
-      min-height: 44px;
-    }
-    .btn svg { width: 17px; height: 17px; }
-    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
-
-    .btn-primary {
-      background: var(--green);
-      color: white;
-      box-shadow: 0 5px 12px rgba(8,127,91,.12);
-    }
-    .btn-primary:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); }
-
-    .btn-outline {
-      background: white;
-      color: var(--ink);
-      border-color: #dce6e0;
-    }
-    .btn-outline:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
-
-    .btn-light { background: white; color: var(--green-dark); }
-    .btn-light:hover { background: #f1fff7; }
-    .btn-block { width: 100%; }
-
-    .hero {
-      padding: 40px 0 36px;
-      overflow: hidden;
-      background:
-        radial-gradient(ellipse at 82% 20%, rgba(181,238,207,.34), transparent 32%),
-        linear-gradient(180deg, #f6fcf8 0%, #fff 95%);
-    }
-    .hero-grid {
-      display: grid;
-      grid-template-columns: 1.06fr .94fr;
-      align-items: center;
-      gap: 40px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--green);
-      background: #e5f6eb;
-      border: 1px solid #d5eedf;
-      border-radius: 30px;
-      padding: 7px 12px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .eyebrow svg { width: 15px; height: 15px; }
-
-    h1, h2, h3, p { margin-top: 0; }
-
-    h1 {
-      font-family: "Manrope", sans-serif;
-      font-size: clamp(30px, 4.2vw, 44px);
-      letter-spacing: -1.8px;
-      line-height: 1.12;
-      margin: 16px 0 14px;
-      max-width: 650px;
-    }
-    h1 .accent { color: var(--green); }
-
-    .hero-copy {
-      color: #64736b;
-      font-size: 15px;
-      max-width: 505px;
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-
-    .hero-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
-    .hero-buttons .btn { min-height: 44px; padding: 11px 18px; }
-
-    .trust-row {
-      display: flex; flex-wrap: wrap; gap: 18px;
-      color: #65766d; font-size: 11px; font-weight: 600;
-    }
-    .trust-item { display: flex; align-items: center; gap: 6px; }
-    .trust-item svg { color: var(--green); width: 16px; height: 16px; }
-
-    .hero-art { position: relative; min-height: 0; display: grid; place-items: center; }
-
-    .art-card {
-      width: min(100%, 440px);
-      min-height: 350px;
-      background: white;
-      border: 1px solid #e2eee6;
-      border-radius: 28px;
-      box-shadow: 0 30px 75px rgba(20,76,47,.10);
-      padding: 26px;
-      position: relative;
-      z-index: 2;
-    }
-    .art-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    .art-top strong { font-size: 14px; }
-    .art-top small { display: block; color: var(--muted); font-size: 11px; }
-
-    .live-pill {
-      background: #e6f8ee;
-      color: #087f5b;
-      padding: 6px 10px;
-      border-radius: 30px;
-      font-size: 10px;
-      font-weight: 800;
-    }
-
-    .art-bottom {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 10px; font-size: 11px; color: var(--muted);
-    }
-    .art-bottom strong { color: var(--green); }
-
-    .stats-band {
-      border-top: 1px solid #eaf0ec;
-      border-bottom: 1px solid #eaf0ec;
-      padding: 25px 0;
-      background: white;
-    }
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-
-    .stat { display: flex; justify-content: center; align-items: center; gap: 13px; text-align: left; }
-    .stat-icon {
-      width: 43px; height: 43px;
-      border-radius: 13px;
-      display: grid; place-items: center;
-      color: var(--green);
-      background: var(--green-light);
-    }
-    .stat-icon svg { width: 21px; height: 21px; }
-    .stat strong { display: block; font-size: 13px; }
-    .stat small { color: var(--muted); font-size: 11px; }
-
-    section { scroll-margin-top: 95px; }
-    .section { padding: 44px 0; }
-    .section.tight { padding: 38px 0; }
-    .section-soft { background: #f8fbf9; }
-
-    .section-heading { text-align: center; max-width: 620px; margin: 0 auto 24px; }
-    .section-heading .eyebrow { margin-bottom: 13px; }
-
-    h2 {
-      font-family: "Manrope", sans-serif;
-      font-size: clamp(22px, 2.6vw, 30px);
-      letter-spacing: -1px;
-      line-height: 1.25;
-      margin-bottom: 13px;
-    }
-
-    .section-heading p { color: var(--muted); font-size: 14px; line-height: 1.8; margin-bottom: 0; }
-
-    .survey-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
-
-    .survey-card {
-      background: white;
-      border: 1px solid #e6ede8;
-      border-radius: var(--radius);
-      padding: 23px;
-      transition: transform .2s, box-shadow .2s, border-color .2s;
-    }
-    .survey-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
-      border-color: #cde8d7;
-    }
-    .survey-card .mini-icon { margin-bottom: 17px; }
-    .survey-card h3 {
-      font-family: "Manrope", sans-serif;
-      font-size: 15px;
-      margin-bottom: 8px;
-      letter-spacing: -.25px;
-    }
-    .survey-card p { color: var(--muted); font-size: 12px; line-height: 1.8; margin-bottom: 17px; }
-
-    .card-bottom {
-      border-top: 1px solid #edf1ee;
-      padding-top: 14px;
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    }
-
-    .card-link {
-      border: 0;
-      background: transparent;
-      color: var(--green);
-      font-size: 11px;
-      font-weight: 800;
-      padding: 5px 0;
-    }
-    .card-link:hover { color: var(--green-dark); }
-
-    .vision-panel {
-      background: #07583f;
-      color: white;
-      border-radius: 26px;
-      padding: 45px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 35px;
-      position: relative;
-      overflow: hidden;
-    }
-    .vision-panel::after {
-      content: "";
-      width: 250px;
-      height: 250px;
-      border: 1px solid rgba(255,255,255,.13);
-      border-radius: 50%;
-      position: absolute;
-      right: 120px;
-      top: -130px;
-      box-shadow: 0 0 0 30px rgba(255,255,255,.03), 0 0 0 60px rgba(255,255,255,.025);
-    }
-    .vision-panel h2 { max-width: 550px; position: relative; z-index: 1; }
-    .vision-panel p { color: #c4e3d4; max-width: 570px; font-size: 13px; line-height: 1.9; margin-bottom: 0; position: relative; z-index: 1; }
-    .vision-panel .btn { position: relative; z-index: 2; white-space: nowrap; }
-
-    .contact-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; }
-
-    .contact-card {
-      display: flex; flex-direction: column; align-items: flex-start;
-      padding: 22px;
-      background: white;
-      border: 1px solid #e4ece7;
-      border-radius: 17px;
-      transition: .2s ease;
-      min-width: 0;
-    }
-    a.contact-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: #bfe3ce; }
-
-    .contact-icon { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 14px; margin-bottom: 17px; }
-    .contact-icon svg { width: 23px; height: 23px; }
-    .email-icon { background: #e9f6ed; color: #087f5b; }
-    .whatsapp-icon { background: #e2f8e9; color: #168546; }
-    .telegram-icon { background: #e5f3ff; color: #1687c9; }
-    .discord-icon { background: #eeebff; color: #635bce; }
-
-    .contact-card strong { font-size: 13px; margin-bottom: 5px; }
-    .contact-card .contact-detail {
-      font-size: 11px; color: var(--muted);
-      overflow-wrap: anywhere;
-      margin-bottom: 13px;
-    }
-    .contact-action {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 11px; font-weight: 800; color: var(--green);
-      margin-top: auto;
-    }
-    .contact-action svg { width: 14px; height: 14px; }
-
-    .contact-note { text-align: center; font-size: 11px; color: var(--muted); margin-top: 20px; }
-
-    footer { background: #102b21; color: white; padding: 30px 0 16px; }
-
-    .auth-overlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 100;
-      padding: 22px;
-      background: rgba(10,31,22,.63);
-      backdrop-filter: blur(7px);
-      align-items: center; justify-content: center;
-      overflow-y: auto;
-    }
-    .auth-overlay.open { display: flex; }
-
-    .auth-box {
-      background: white;
-      width: min(100%, 440px);
-      border-radius: 23px;
-      padding: 32px;
-      position: relative;
-      box-shadow: 0 25px 90px rgba(0,0,0,.22);
-      margin: auto;
-    }
-
-    .auth-close {
-      position: absolute; top: 16px; right: 16px;
-      border: 1px solid #e6ece8;
-      background: white;
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      display: grid; place-items: center;
-      color: #65756b;
-    }
-    .auth-close:hover { background: #f3f8f5; }
-    .auth-close svg { width: 18px; height: 18px; }
-
-    .auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 23px; }
-    .auth-brand .brand-mark { width: 39px; height: 39px; border-radius: 12px; }
-    .auth-brand strong { font-family: "Manrope", sans-serif; font-size: 19px; letter-spacing: -.6px; }
-
-    .auth-box h2 { font-size: 26px; margin-bottom: 8px; letter-spacing: -.9px; }
-    .auth-description { color: var(--muted); font-size: 12px; margin-bottom: 22px; line-height: 1.8; }
-
-    .notice {
-      display: none;
-      border-radius: 11px;
-      padding: 12px 13px;
-      font-size: 12px;
-      line-height: 1.65;
-      margin-bottom: 17px;
-      overflow-wrap: anywhere;
-    }
-    .notice.show { display: block; }
-    .notice.success { background: #e9f9ef; color: #146c43; border: 1px solid #ccefd9; }
-    .notice.error { background: #fff0ef; color: #a52b26; border: 1px solid #f6d4d1; }
-    .notice.info { background: #edf6ff; color: #205d91; border: 1px solid #d5e8fb; }
-
-    .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; color: #30483b; }
-
-    .input-wrap { position: relative; }
-    .input-wrap > svg {
-      position: absolute; left: 13px; top: 50%;
-      transform: translateY(-50%);
-      width: 18px; height: 18px;
-      color: #8a9b90;
-    }
-
-    .field input, .field textarea, .field select {
-      width: 100%;
-      min-height: 47px;
-      border: 1px solid #dfe8e2;
-      background: #fbfdfb;
-      border-radius: 11px;
-      padding: 12px 13px 12px 42px;
-      outline: none;
-      font-size: 13px;
-      color: var(--ink);
-    }
-    .field textarea { padding-left: 13px; min-height: 80px; resize: vertical; }
-
-    .field input:focus, .field textarea:focus, .field select:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(8,127,91,.09);
-      background: white;
-    }
-
-    .auth-options { display: flex; justify-content: flex-end; margin: -3px 0 19px; }
-
-    .text-button {
-      border: 0; background: transparent;
-      color: var(--green); font-size: 11px; font-weight: 800;
-      padding: 0;
-    }
-    .text-button:hover { text-decoration: underline; }
-
-    .auth-switch {
-      margin-top: 19px;
-      padding-top: 17px;
-      border-top: 1px solid #edf1ee;
-      text-align: center;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .auth-switch button { margin-left: 4px; }
-
-    .fine-print { color: #8a9890; font-size: 10px; line-height: 1.7; margin: 15px 0 0; }
-
-    .hidden { display: none !important; }
-
-    .toast {
-      position: fixed; z-index: 150;
-      right: 22px; bottom: 22px;
-      max-width: min(390px, calc(100% - 44px));
-      background: #123e2c; color: white;
-      border-radius: 13px;
-      padding: 14px 18px;
-      box-shadow: 0 12px 35px rgba(0,0,0,.18);
-      font-size: 12px;
-      display: none;
-    }
-    .toast.show { display: block; }
-
-    .how-card { min-height: 0; padding: 20px 22px; }
-    .how-step { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-top: 1px solid #edf1ee; }
-    .how-step:first-of-type { border-top: 0; padding-top: 0; }
-    .how-num {
-      width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-      display: grid; place-items: center; background: var(--green-light); color: var(--green);
-      font-family: "Manrope", sans-serif; font-size: 12px; font-weight: 800;
-    }
-    .how-step strong { display: block; font-size: 13px; }
-    .how-step small { display: block; color: var(--muted); font-size: 11px; line-height: 1.6; }
-    .how-card .art-bottom { margin-top: 10px; }
-
-    .section-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
-    .section-head-row h2 { margin: 0 0 4px; font-size: clamp(21px, 2.4vw, 28px); }
-    .section-head-row p { margin: 0; color: var(--muted); font-size: 13px; }
-    .btn-sm { min-height: 36px; padding: 8px 14px; font-size: 12px; }
-
-    .survey-card.compact { padding: 18px; display: flex; flex-direction: column; }
-    .survey-card.compact h3 { font-size: 15px; margin-bottom: 6px; overflow-wrap: anywhere; }
-    .survey-card.compact p { margin-bottom: 12px; line-height: 1.65; overflow-wrap: anywhere; }
-    .survey-card.compact .card-bottom { margin-top: auto; }
-    .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .cat-chip { font-size: 10px; font-weight: 800; color: var(--green); background: var(--green-light); border-radius: 20px; padding: 4px 9px; text-transform: uppercase; letter-spacing: .5px; overflow-wrap: anywhere; }
-    .status-chip { font-size: 10px; font-weight: 800; color: #146c43; background: #e9f9ef; border-radius: 20px; padding: 4px 9px; white-space: nowrap; }
-    .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-    .meta-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #53635b; background: #f3f7f5; border-radius: 8px; padding: 4px 8px; }
-    .meta-chip svg { width: 13px; height: 13px; }
-    .small-note { font-size: 11px; color: var(--muted); }
-
-    .state-box { border: 1px dashed #cfe3d7; border-radius: 16px; padding: 32px 20px; text-align: center; color: var(--muted); font-size: 13px; background: #fbfefc; line-height: 1.7; }
-    .state-box strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 4px; }
-    .spinner { width: 22px; height: 22px; border: 3px solid #d9eadf; border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 10px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .topic-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .topic-chip { border: 1px solid #dbe8e0; background: #fff; color: #30483b; border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 700; }
-    button.topic-chip:hover { border-color: var(--green); color: var(--green); }
-    .topic-chip.active { background: var(--green); color: #fff; border-color: var(--green); }
-    .filter-row { margin-bottom: 18px; }
-
-    .detail-wrap { max-width: 820px; margin: 0 auto; }
-    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--green); margin-bottom: 14px; }
-    .back-link svg { width: 15px; height: 15px; }
-    .back-link:hover { color: var(--green-dark); }
-    .detail-card { background: #fff; border: 1px solid #e6ede8; border-radius: 20px; padding: 26px; }
-    .detail-card h1 { font-size: clamp(22px, 3vw, 30px); letter-spacing: -1px; margin: 10px 0 10px; line-height: 1.25; overflow-wrap: anywhere; }
-    .detail-section { margin-top: 18px; }
-    .detail-section h3 { font-family: "Manrope", sans-serif; font-size: 14px; margin-bottom: 6px; }
-    .detail-text { white-space: pre-line; color: #40524a; font-size: 13px; line-height: 1.8; margin: 0; overflow-wrap: anywhere; }
-    .participate-box { margin-top: 22px; border: 1px solid #cde8d7; background: var(--green-soft); border-radius: 16px; padding: 18px; }
-    .participate-box h3 { font-family: "Manrope", sans-serif; font-size: 15px; margin-bottom: 8px; }
-    .participate-box p { font-size: 12px; color: #40524a; line-height: 1.7; margin-bottom: 8px; }
-    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-
-    .admin-panel-card { background: #fff; border: 1px solid #e4ece7; border-radius: 20px; padding: 24px; margin-bottom: 24px; }
-    .admin-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
-    .admin-table th, .admin-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #edf1ee; }
-    .admin-table th { font-weight: 700; color: var(--muted); background: #f8faf9; }
-
-    .admin-question-row {
-      border: 1px solid #e4ece7;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-      background: #fbfdfc;
-    }
-    .admin-question-row .field { margin-bottom: 10px; }
-
-    .modal-overlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 120;
-      padding: 22px;
-      background: rgba(10,31,22,.63);
-      backdrop-filter: blur(7px);
-      align-items: center; justify-content: center;
-      overflow-y: auto;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-box {
-      background: white;
-      width: min(100%, 560px);
-      border-radius: 23px;
-      padding: 28px;
-      position: relative;
-      box-shadow: 0 25px 90px rgba(0,0,0,.22);
-      margin: auto;
-      max-height: 85vh;
-      overflow-y: auto;
-    }
-    .modal-box h3 { font-family: "Manrope", sans-serif; font-size: 18px; margin-bottom: 16px; }
-    .answer-item { border-bottom: 1px solid #edf1ee; padding: 12px 0; }
-    .answer-item:last-child { border-bottom: 0; }
-    .answer-item strong { display: block; font-size: 13px; margin-bottom: 4px; color: var(--ink); }
-    .answer-item span { font-size: 13px; color: #40524a; }
-
-    .mini-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--green-light); color: var(--green); display: grid; place-items: center; }
-    .mini-icon svg { width: 21px; height: 21px; }
-
-    .footer-compact { display: grid; grid-template-columns: 1.1fr 1.7fr .8fr; gap: 28px; padding-bottom: 20px; }
-    .footer-compact .footer-about { margin: 0; color: #b7ccc0; font-size: 12px; line-height: 1.9; }
-    .footer-title { color: white; font-size: 12px; font-weight: 800; margin-bottom: 10px; }
-    .social-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .social-link {
-      display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18); color: #d3e6db; font-size: 12px; font-weight: 600; line-height: 1;
-      transition: .2s ease;
-    }
-    .social-link:hover { background: rgba(255,255,255,.09); color: #fff; }
-    .social-link svg { width: 16px; height: 16px; }
-    .brand-icon { fill: currentColor; stroke: none; }
-    .social-link.wa .brand-icon { color: #25d366; }
-    .social-link.tg .brand-icon { color: #29a9eb; }
-    .social-link.dc .brand-icon { color: #8ea1ff; }
-    .contact-lines { margin: 0; color: #9eb6a8; font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
-    footer .footer-links { display: grid; gap: 8px; }
-    footer .footer-links button { border: 0; background: transparent; padding: 0; text-align: left; color: #b7ccc0; font-size: 12px; width: fit-content; cursor: pointer; }
-    footer .footer-links button:hover { color: white; }
-    footer .footer-bottom { border-top: 1px solid rgba(255,255,255,.13); padding-top: 14px; display: flex; justify-content: space-between; gap: 15px; flex-wrap: wrap; color: #9eb6a8; font-size: 10px; }
-
-    @media (max-width: 900px) {
-      .footer-compact { grid-template-columns: 1fr 1fr; }
-      .footer-compact > div:first-child { grid-column: 1 / -1; }
-      .contact-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .survey-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
-
-    @media (max-width: 680px) {
-      .container { width: min(100% - 30px, 540px); }
-      header { height: 68px; }
-      .brand { font-size: 21px; }
-      .brand-mark { width: 38px; height: 38px; }
-      .nav-links { display: none; }
-      .nav-actions { gap: 7px; }
-      .hero { padding: 30px 0 28px; }
-      .hero-grid { grid-template-columns: 1fr; gap: 15px; }
-      h1 { font-size: clamp(37px, 10vw, 49px); letter-spacing: -2px; margin-top: 18px; }
-      .hero-art { display: none; }
-      .stats-grid { gap: 17px 8px; grid-template-columns: 1fr; }
-      .stat { justify-content: flex-start; max-width: 260px; margin: 0 auto; width: 100%; }
-      .section, .section.tight { padding: 30px 0; }
-      .survey-grid { grid-template-columns: 1fr; gap: 13px; }
-      .survey-card { padding: 20px; }
-      .vision-panel { grid-template-columns: 1fr; padding: 29px 23px; gap: 24px; }
-      .contact-grid { grid-template-columns: 1fr; }
-      .footer-compact { grid-template-columns: 1fr; gap: 20px; }
-    }
-  </style>
 </head>
 
 <body>
+  <!-- Inline SVG icon library -->
   <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
     <symbol id="i-leaf" viewBox="0 0 24 24">
       <path d="M20 4c-8 0-14 3-14 10a6 6 0 0 0 6 6c7 0 8-8 8-16Z"/>
@@ -702,14 +71,18 @@
     </symbol>
   </svg>
 
+  <!-- Announcement Bar -->
   <div class="announcement">
     🇰🇪 <strong>SurveyKE is live!</strong> Shape future services, products, and policies across Kenya.
   </div>
 
+  <!-- Header -->
   <header>
     <div class="container nav">
       <a href="#" class="brand" onclick="navigate('home'); return false;">
-        <div class="brand-mark"><svg><use href="#i-leaf"/></svg></div>
+        <div class="brand-mark">
+          <svg><use href="#i-leaf"/></svg>
+        </div>
         <span>Survey<span>KE</span></span>
       </a>
 
@@ -734,18 +107,27 @@
     </div>
   </header>
 
+  <!-- Main Dynamic View Container -->
   <main id="app-main">
+
+    <!-- View: Home -->
     <div id="view-home">
       <section class="hero">
         <div class="container hero-grid">
           <div>
-            <div class="eyebrow"><svg><use href="#i-shield"/></svg> Kenya’s Opinion Hub</div>
+            <div class="eyebrow">
+              <svg><use href="#i-shield"/></svg> Kenya’s Opinion Hub
+            </div>
             <h1>Your Voice Shapes <span class="accent">Kenya's Future</span></h1>
             <p class="hero-copy">Participate in trusted public and private sector surveys, share your genuine perspectives, and help guide better services, products, and policies in Kenya.</p>
 
             <div class="hero-buttons">
-              <button class="btn btn-primary" onclick="navigate('surveys')">Explore Active Surveys <svg><use href="#i-arrow"/></svg></button>
-              <button class="btn btn-outline" onclick="openAuth('signup')">Create Free Account</button>
+              <button class="btn btn-primary" onclick="navigate('surveys')">
+                Explore Active Surveys <svg><use href="#i-arrow"/></svg>
+              </button>
+              <button class="btn btn-outline" onclick="openAuth('signup')">
+                Create Free Account
+              </button>
             </div>
 
             <div class="trust-row">
@@ -758,15 +140,41 @@
           <div class="hero-art" id="how-it-works">
             <div class="art-card how-card">
               <div class="art-top">
-                <div><strong>How SurveyKE Works</strong><small>Quick 3-step participation</small></div>
-                <div class="live-pill">Simple & Secure</div>
+                <div>
+                  <strong>How SurveyKE Works</strong>
+                  <small>Quick 3-step participation</small>
+                </div>
+                <div class="live-pill">Simple &amp; Secure</div>
               </div>
 
-              <div class="how-step"><div class="how-num">1</div><div><strong>Browse & Choose</strong><small>Select from verified public opinion polls, tech adoption studies, or consumer feedback.</small></div></div>
-              <div class="how-step"><div class="how-num">2</div><div><strong>Share Your View</strong><small>Securely access external survey platforms with trusted authentication tracking.</small></div></div>
-              <div class="how-step"><div class="how-num">3</div><div><strong>Impact Decisions</strong><small>Aggregated insights are shared with organizations to build better solutions for Kenya.</small></div></div>
+              <div class="how-step">
+                <div class="how-num">1</div>
+                <div>
+                  <strong>Browse &amp; Choose</strong>
+                  <small>Select from verified public opinion polls, tech adoption studies, or consumer feedback.</small>
+                </div>
+              </div>
 
-              <div class="art-bottom"><span>Join thousands of contributors</span><strong>100% Free</strong></div>
+              <div class="how-step">
+                <div class="how-num">2</div>
+                <div>
+                  <strong>Share Your View</strong>
+                  <small>Securely access external survey platforms with trusted authentication tracking.</small>
+                </div>
+              </div>
+
+              <div class="how-step">
+                <div class="how-num">3</div>
+                <div>
+                  <strong>Impact Decisions</strong>
+                  <small>Aggregated insights are shared with organizations to build better solutions for Kenya.</small>
+                </div>
+              </div>
+
+              <div class="art-bottom">
+                <span>Join thousands of contributors</span>
+                <strong>100% Free</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -774,9 +182,27 @@
 
       <div class="stats-band">
         <div class="container stats-grid">
-          <div class="stat"><div class="stat-icon"><svg><use href="#i-users"/></svg></div><div><strong>Growing Network</strong><small>Contributors across Kenya</small></div></div>
-          <div class="stat"><div class="stat-icon"><svg><use href="#i-chart"/></svg></div><div><strong>Diverse Topics</strong><small>Tech, finance, transport & lifestyle</small></div></div>
-          <div class="stat"><div class="stat-icon"><svg><use href="#i-shield"/></svg></div><div><strong>Privacy First</strong><small>Data protected & anonymized</small></div></div>
+          <div class="stat">
+            <div class="stat-icon"><svg><use href="#i-users"/></svg></div>
+            <div>
+              <strong>Growing Network</strong>
+              <small>Contributors across Kenya</small>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon"><svg><use href="#i-chart"/></svg></div>
+            <div>
+              <strong>Diverse Topics</strong>
+              <small>Tech, finance, transport &amp; lifestyle</small>
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-icon"><svg><use href="#i-shield"/></svg></div>
+            <div>
+              <strong>Privacy First</strong>
+              <small>Data protected &amp; anonymized</small>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -792,7 +218,10 @@
           </div>
 
           <div id="home-surveys-grid" class="survey-grid">
-            <div class="state-box" style="grid-column: 1 / -1;"><div class="spinner"></div><strong>Loading active surveys from Supabase...</strong></div>
+            <div class="state-box" style="grid-column: 1 / -1;">
+              <div class="spinner"></div>
+              <strong>Loading active surveys...</strong>
+            </div>
           </div>
         </div>
       </section>
@@ -801,11 +230,15 @@
         <div class="container">
           <div class="vision-panel">
             <div>
-              <div class="eyebrow" style="background: rgba(255,255,255,.1); color: #8affc1; border-color: rgba(255,255,255,.15); margin-bottom: 12px;"><svg><use href="#i-shield"/></svg> Our Commitment</div>
+              <div class="eyebrow" style="background: rgba(255,255,255,.1); color: #8affc1; border-color: rgba(255,255,255,.15); margin-bottom: 12px;">
+                <svg><use href="#i-shield"/></svg> Our Commitment
+              </div>
               <h2>Empowering Kenyan Voices Through Transparent Research</h2>
               <p>SurveyKE bridges the gap between everyday citizens and decision-makers. We ensure every opinion is captured anonymously, securely, and valued accurately to build a more responsive society.</p>
             </div>
-            <div><button class="btn btn-light" onclick="openAuth('signup')">Get Started Today <svg><use href="#i-arrow"/></svg></button></div>
+            <div>
+              <button class="btn btn-light" onclick="openAuth('signup')">Get Started Today <svg><use href="#i-arrow"/></svg></button>
+            </div>
           </div>
         </div>
       </section>
@@ -827,32 +260,41 @@
             </a>
 
             <a href="https://wa.me/254705559494" target="_blank" rel="noopener" class="contact-card">
-              <div class="contact-icon whatsapp-icon"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg></div>
+              <div class="contact-icon whatsapp-icon">
+                <svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+              </div>
               <strong>WhatsApp Support</strong>
               <span class="contact-detail">+254 705 559494</span>
               <span class="contact-action">Chat on WhatsApp <svg><use href="#i-arrow"/></svg></span>
             </a>
 
             <a href="https://t.me/Shearny" target="_blank" rel="noopener" class="contact-card">
-              <div class="contact-icon telegram-icon"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/></svg></div>
+              <div class="contact-icon telegram-icon">
+                <svg class="brand-icon" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/></svg>
+              </div>
               <strong>Telegram Channel</strong>
               <span class="contact-detail">@Shearny</span>
               <span class="contact-action">Join Telegram <svg><use href="#i-arrow"/></svg></span>
             </a>
 
             <a href="https://discord.com/app" target="_blank" rel="noopener" class="contact-card">
-              <div class="contact-icon discord-icon"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.011c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></div>
+              <div class="contact-icon discord-icon">
+                <svg class="brand-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.011c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              </div>
               <strong>Discord Server</strong>
               <span class="contact-detail">benardmauti</span>
               <span class="contact-action">Join Discord <svg><use href="#i-arrow"/></svg></span>
             </a>
           </div>
 
-          <div class="contact-note">Office hours: Monday through Friday, 8:00 AM – 5:00 PM EAT.</div>
+          <div class="contact-note">
+            Office hours: Monday through Friday, 8:00 AM – 5:00 PM EAT.
+          </div>
         </div>
       </section>
     </div>
 
+    <!-- View: Surveys List -->
     <div id="view-surveys" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
@@ -878,11 +320,15 @@
         </div>
 
         <div id="directory-surveys-grid" class="survey-grid">
-          <div class="state-box" style="grid-column: 1 / -1;"><div class="spinner"></div><strong>Loading surveys...</strong></div>
+          <div class="state-box" style="grid-column: 1 / -1;">
+            <div class="spinner"></div>
+            <strong>Loading surveys...</strong>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- View: Survey Detail -->
     <div id="view-detail" class="hidden">
       <div class="container section">
         <div class="detail-wrap">
@@ -892,13 +338,14 @@
       </div>
     </div>
 
+    <!-- View: Admin Dashboard -->
     <div id="view-admin" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
         <div class="section-head-row" style="margin-bottom: 24px;">
           <div>
             <div class="eyebrow" style="margin-bottom: 8px;"><svg><use href="#i-shield"/></svg> Admin Portal</div>
-            <h2>Survey Management & Participation Review</h2>
+            <h2>Survey Management &amp; Participation Review</h2>
             <p>Authorized administrator interface for managing live surveys and tracking participation.</p>
           </div>
         </div>
@@ -911,7 +358,7 @@
         <div id="admin-authorized" class="hidden">
           <div class="admin-panel-card">
             <h3>Add New Survey</h3>
-            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Create an internal SurveyKE survey with built-in questions, or publish an external survey with an HTTPS link.</p>
+            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Publish a genuine survey with an active HTTPS destination link.</p>
 
             <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
@@ -952,17 +399,9 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label>Survey Type *</label>
-                  <select id="admin-hosting-type" style="padding-left: 13px;" onchange="toggleAdminSurveyFields()" required>
-                    <option value="external">External (hosted elsewhere)</option>
-                    <option value="internal">Internal (hosted on SurveyKE)</option>
-                  </select>
+                  <label>Survey URL (HTTPS) *</label>
+                  <input type="url" id="admin-url" placeholder="https://example.com/survey" required>
                 </div>
-              </div>
-
-              <div class="field" id="admin-url-field">
-                <label>Survey URL (HTTPS) *</label>
-                <input type="url" id="admin-url" placeholder="https://example.com/survey">
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
@@ -976,33 +415,32 @@
                 </div>
               </div>
 
-              <div id="admin-question-builder" class="hidden" style="margin-top: 8px; border-top: 1px solid #edf1ee; padding-top: 16px;">
-                <h4 style="font-family: 'Manrope', sans-serif; font-size: 14px; margin-bottom: 10px;">Survey Questions</h4>
-                <p style="font-size: 11px; color: var(--muted); margin-bottom: 12px;">Add the questions participants will answer. Multiple-choice questions require comma-separated options.</p>
-                <div id="admin-questions-list"></div>
-                <button type="button" class="btn btn-outline btn-sm" onclick="addAdminQuestionRow()">+ Add Question</button>
-              </div>
-
               <div id="admin-create-notice" class="notice"></div>
+
               <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey to Database</button>
             </form>
           </div>
 
           <div class="admin-panel-card">
             <h3>Manage Existing Surveys</h3>
-            <div id="admin-surveys-list-wrap"><div class="spinner"></div></div>
+            <div id="admin-surveys-list-wrap">
+              <div class="spinner"></div>
+            </div>
           </div>
 
           <div class="admin-panel-card">
             <h3>Participation Review</h3>
             <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Review participant engagement and submissions across active surveys.</p>
-            <div id="admin-participations-wrap"><div class="spinner"></div></div>
+            <div id="admin-participations-wrap">
+              <div class="spinner"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </main>
 
+  <!-- Footer -->
   <footer>
     <div class="container footer-compact">
       <div>
@@ -1014,11 +452,20 @@
       </div>
 
       <div>
-        <div class="footer-title">Community & Channels</div>
+        <div class="footer-title">Community &amp; Channels</div>
         <div class="social-row">
-          <a href="https://wa.me/254705559494" target="_blank" rel="noopener" class="social-link wa"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg> WhatsApp</a>
-          <a href="https://t.me/Shearny" target="_blank" rel="noopener" class="social-link tg"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/></svg> Telegram</a>
-          <a href="https://discord.com/app" target="_blank" rel="noopener" class="social-link dc"><svg class="brand-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.011c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg> Discord</a>
+          <a href="https://wa.me/254705559494" target="_blank" rel="noopener" class="social-link wa">
+            <svg class="brand-icon" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            WhatsApp
+          </a>
+          <a href="https://t.me/Shearny" target="_blank" rel="noopener" class="social-link tg">
+            <svg class="brand-icon" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/></svg>
+            Telegram
+          </a>
+          <a href="https://discord.com/app" target="_blank" rel="noopener" class="social-link dc">
+            <svg class="brand-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.011c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+            Discord
+          </a>
         </div>
         <p class="contact-lines">Email: facelessdime@gmail.com<br>Nairobi, Kenya</p>
       </div>
@@ -1040,6 +487,7 @@
     </div>
   </footer>
 
+  <!-- Auth Modal -->
   <div id="auth-overlay" class="auth-overlay" onclick="handleOverlayClick(event)">
     <div class="auth-box">
       <button class="auth-close" onclick="closeAuth()"><svg><use href="#i-x"/></svg></button>
@@ -1058,17 +506,30 @@
         <form id="signin-form" onsubmit="submitSignIn(event)">
           <div class="field">
             <label>Email Address</label>
-            <div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="email" id="signin-email" placeholder="e.g. juma@example.co.ke" required></div>
+            <div class="input-wrap">
+              <svg><use href="#i-mail"/></svg>
+              <input type="email" id="signin-email" placeholder="e.g. juma@example.co.ke" required>
+            </div>
           </div>
+
           <div class="field">
             <label>Password</label>
-            <div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signin-password" placeholder="••••••••" required></div>
+            <div class="input-wrap">
+              <svg><use href="#i-lock"/></svg>
+              <input type="password" id="signin-password" placeholder="••••••••" required>
+            </div>
           </div>
-          <div class="auth-options"><button type="button" class="text-button" onclick="submitPasswordReset()">Forgot password?</button></div>
+
+          <div class="auth-options">
+            <button type="button" class="text-button" onclick="submitPasswordReset()">Forgot password?</button>
+          </div>
+
           <button type="submit" id="signin-submit-btn" class="btn btn-primary btn-block">Sign In</button>
         </form>
 
-        <div class="auth-switch">Don't have an account? <button class="text-button" onclick="switchAuthMode('signup')">Register now</button></div>
+        <div class="auth-switch">
+          Don't have an account? <button class="text-button" onclick="switchAuthMode('signup')">Register now</button>
+        </div>
       </div>
 
       <div id="form-signup" class="auth-form-panel hidden">
@@ -1076,661 +537,45 @@
         <p class="auth-description">Join SurveyKE to share your opinions and help shape products and services in Kenya.</p>
 
         <form id="signup-form" onsubmit="submitSignUp(event)">
-          <div class="field"><label>Full Name</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required></div></div>
-          <div class="field"><label>Email Address</label><div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required></div></div>
-          <div class="field"><label>Password</label><div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6"></div></div>
+          <div class="field">
+            <label>Full Name</label>
+            <div class="input-wrap">
+              <svg><use href="#i-user"/></svg>
+              <input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <svg><use href="#i-mail"/></svg>
+              <input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Password</label>
+            <div class="input-wrap">
+              <svg><use href="#i-lock"/></svg>
+              <input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6">
+            </div>
+          </div>
+
           <p class="fine-print">By registering, you agree to SurveyKE’s terms of confidentiality and privacy guidelines.</p>
+
           <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
         </form>
 
-        <div class="auth-switch">Already have an account? <button class="text-button" onclick="switchAuthMode('signin')">Sign in</button></div>
+        <div class="auth-switch">
+          Already have an account? <button class="text-button" onclick="switchAuthMode('signin')">Sign in</button>
+        </div>
       </div>
-    </div>
-  </div>
-
-  <div id="answers-modal" class="modal-overlay" onclick="handleAnswersOverlayClick(event)">
-    <div class="modal-box">
-      <button class="auth-close" onclick="closeAnswersModal()"><svg><use href="#i-x"/></svg></button>
-      <h3>Participation Answers</h3>
-      <div id="answers-modal-body"><div class="spinner"></div></div>
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
 
-  <script>
-    const SUPABASE_URL = 'https://hisstfhwiijzzteuhewv.supabase.co';
-    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WWKlyx2hD9nH3p22Hl-dAw_XfixoKCQ';
-
-    let supabaseClient = null;
-    try {
-      if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-      } else {
-        console.error('Supabase library did not load.');
-      }
-    } catch (e) {
-      console.error('Could not create the Supabase client:', e);
-    }
-
-    const AUTH_UNAVAILABLE_MESSAGE = 'The sign-in service could not load. Check your internet connection and refresh.';
-
-    function friendlyAuthError(err) {
-      const message = (err && err.message) ? err.message : 'Something went wrong. Please try again.';
-      if (/invalid api key|invalid key|apikey/i.test(message)) return 'Sign-in is temporarily unavailable. Contact support.';
-      if (/invalid login credentials/i.test(message)) return 'The email or password is incorrect.';
-      if (/email not confirmed/i.test(message)) return 'Your email is not confirmed yet. Open the link in your email, then sign in.';
-      if (/failed to fetch|networkerror|load failed/i.test(message)) return 'Could not reach the auth service. Check your internet connection.';
-      return message;
-    }
-
-    let currentView = 'home';
-    let currentUser = null;
-    let isAdmin = false;
-    let surveysCache = [];
-    let selectedDirectoryTopic = 'All';
-    let activeSurveyId = null;
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      if (!supabaseClient) { updateAuthUI(); renderHomeSurveys(); renderDirectorySurveys(); return; }
-      try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) { currentUser = session.user; await checkAdminStatus(); }
-      } catch (e) { console.error('Could not read session:', e); }
-
-      updateAuthUI();
-      await fetchAndRenderSurveys();
-
-      supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        if (session && session.user) { currentUser = session.user; await checkAdminStatus(); }
-        else { currentUser = null; isAdmin = false; }
-        updateAuthUI();
-      });
-    });
-
-    async function checkAdminStatus() {
-      if (!currentUser) { isAdmin = false; return; }
-      try {
-        const { data, error } = await supabaseClient.rpc('is_admin');
-        if (!error && data === true) { isAdmin = true; }
-        else {
-          const { data: adminRow } = await supabaseClient.from('admins').select('*').eq('user_id', currentUser.id).maybeSingle();
-          isAdmin = !!adminRow || (currentUser.email === 'mautinyagah@gmail.com');
-        }
-      } catch (e) { isAdmin = (currentUser.email === 'mautinyagah@gmail.com'); }
-    }
-
-    function navigate(viewName, param) {
-      currentView = viewName;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      ['view-home','view-surveys','view-detail','view-admin'].forEach(id => document.getElementById(id).classList.add('hidden'));
-
-      if (viewName === 'home') document.getElementById('view-home').classList.remove('hidden');
-      else if (viewName === 'surveys') { document.getElementById('view-surveys').classList.remove('hidden'); renderDirectorySurveys(); }
-      else if (viewName === 'detail' && param) { activeSurveyId = param; document.getElementById('view-detail').classList.remove('hidden'); renderSurveyDetail(param); }
-      else if (viewName === 'admin') {
-        if (!isAdmin) { showToast('Administrator access required.'); navigate('home'); return; }
-        document.getElementById('view-admin').classList.remove('hidden');
-        renderAdminDashboard();
-      }
-    }
-
-    async function fetchAndRenderSurveys() {
-      try {
-        const { data, error } = await supabaseClient.from('surveys').select('*').eq('status', 'published').order('created_at', { ascending: false });
-        if (error) throw error;
-        surveysCache = data || [];
-        renderHomeSurveys();
-        renderDirectorySurveys();
-      } catch (e) {
-        console.error('Error fetching surveys:', e);
-        surveysCache = [];
-        renderHomeSurveys();
-        renderDirectorySurveys();
-      }
-    }
-
-    function renderHomeSurveys() {
-      const container = document.getElementById('home-surveys-grid');
-      if (surveysCache.length === 0) {
-        container.innerHTML = `<div class="state-box" style="grid-column: 1 / -1;"><strong>No active surveys available right now</strong><p>Check back soon!</p></div>`;
-        return;
-      }
-      container.innerHTML = surveysCache.slice(0, 3).map(s => `
-        <div class="survey-card compact">
-          <div class="card-top"><span class="cat-chip">${escapeHtml(s.category || 'General')}</span><span class="status-chip">Active</span></div>
-          <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
-          <h3>${escapeHtml(s.title)}</h3>
-          <p class="clamp">${escapeHtml(s.description || '')}</p>
-          <div class="meta-row"><span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || '5')} mins</span></div>
-          <div class="card-bottom"><span class="small-note">Verified Survey</span><button class="card-link" onclick="navigate('detail', '${s.id}')">Participate &rarr;</button></div>
-        </div>
-      `).join('');
-    }
-
-    function renderDirectorySurveys() {
-      const container = document.getElementById('directory-surveys-grid');
-      let list = surveysCache;
-      if (selectedDirectoryTopic !== 'All') list = surveysCache.filter(s => s.category === selectedDirectoryTopic);
-      if (list.length === 0) {
-        container.innerHTML = `<div class="state-box" style="grid-column: 1 / -1;"><strong>No surveys found in this category</strong><p>New studies coming soon.</p></div>`;
-        return;
-      }
-      container.innerHTML = list.map(s => `
-        <div class="survey-card compact">
-          <div class="card-top"><span class="cat-chip">${escapeHtml(s.category || 'General')}</span><span class="status-chip">Active</span></div>
-          <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
-          <h3>${escapeHtml(s.title)}</h3>
-          <p class="clamp">${escapeHtml(s.description || '')}</p>
-          <div class="meta-row"><span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || '5')} mins</span></div>
-          <div class="card-bottom"><span class="small-note">Open opportunity</span><button class="card-link" onclick="navigate('detail', '${s.id}')">View Details &rarr;</button></div>
-        </div>
-      `).join('');
-    }
-
-    function filterDirectoryTopic(topic) {
-      selectedDirectoryTopic = topic;
-      document.querySelectorAll('#directory-topic-chips .topic-chip').forEach(c => {
-        if (c.textContent.trim() === topic || (topic === 'All' && c.textContent.includes('Categories'))) c.classList.add('active');
-        else c.classList.remove('active');
-      });
-      renderDirectorySurveys();
-    }
-
-    function renderSurveyDetail(id) {
-      const survey = surveysCache.find(s => s.id === id);
-      const container = document.getElementById('survey-detail-content');
-      if (!survey) {
-        container.innerHTML = `<div class="state-box"><strong>Survey not found or unavailable</strong><p>It may have closed.</p><button class="btn btn-primary btn-sm" onclick="navigate('surveys')" style="margin-top:12px;">Back to Surveys</button></div>`;
-        return;
-      }
-      const isInternal = survey.hosting_type === 'internal';
-      let eligibilityHTML = survey.eligibility ? `<div class="detail-section"><h3>Eligibility Requirements</h3><p class="detail-text">${escapeHtml(survey.eligibility)}</p></div>` : '';
-      let instructionsHTML = survey.instructions ? `<div class="detail-section"><h3>Participation Instructions</h3><p class="detail-text">${escapeHtml(survey.instructions)}</p></div>` : '';
-
-      container.innerHTML = `
-        <div class="detail-card">
-          <div class="card-top" style="margin-bottom:12px;"><span class="cat-chip">${escapeHtml(survey.category || 'General')}</span><span class="status-chip">Active</span></div>
-          <div class="mini-icon" style="margin-bottom: 14px;"><svg><use href="#i-book"/></svg></div>
-          <h1>${escapeHtml(survey.title)}</h1>
-          <div class="meta-row" style="margin-bottom: 16px;"><span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.estimated_minutes || '5')} mins</span></div>
-          <p class="detail-text">${escapeHtml(survey.description || '')}</p>
-          ${eligibilityHTML}
-          ${instructionsHTML}
-          <div class="participate-box" id="participate-box">
-            ${isInternal ? renderNativeSurveyForm(survey) : renderExternalSurveyAction(survey)}
-          </div>
-        </div>
-      `;
-      if (isInternal) attachNativeSurveySubmitHandler(survey.id);
-    }
-
-    function renderExternalSurveyAction(survey) {
-      const url = survey.survey_url || '';
-      const looksLikePlaceholder = /(example\.com|placeholder)/i.test(url);
-      const isValid = url.startsWith('https://') && !looksLikePlaceholder;
-      if (!isValid) return `<h3>External Survey</h3><p>This survey currently does not have a valid participation link.</p><div class="btn-row" style="margin-top: 14px;"><button class="btn btn-outline" disabled>Link Unavailable</button></div>`;
-      return `<h3>External Survey Participation</h3><p>This survey is hosted on an external platform.</p><div id="participate-notice" class="notice"></div><div class="btn-row" style="margin-top: 14px;"><button class="btn btn-primary" onclick="startExternalSurvey('${survey.id}')">Proceed to External Survey <svg><use href="#i-external"/></svg></button></div>`;
-    }
-
-    async function startExternalSurvey(surveyId) {
-      if (!currentUser) { showToast('Please sign in to participate.'); openAuth('signin'); return; }
-      const survey = surveysCache.find(s => s.id === surveyId);
-      const surveyUrl = survey ? survey.survey_url : '';
-      if (!surveyUrl || !surveyUrl.startsWith('https://') || /(example\.com|placeholder)/i.test(surveyUrl)) { showToast('Invalid survey URL.'); return; }
-      try {
-        await supabaseClient.from('survey_participations').insert([{ survey_id: surveyId, user_id: currentUser.id, status: 'started', review_status: 'pending' }]);
-        showToast('Participation recorded. Redirecting...');
-        setTimeout(() => window.open(surveyUrl, '_blank', 'noopener,noreferrer'), 800);
-      } catch (e) {
-        console.error('Participation exception:', e);
-        window.open(surveyUrl, '_blank', 'noopener,noreferrer');
-      }
-    }
-
-    function renderNativeSurveyForm(survey) {
-      return `<h3>Participate in this Survey</h3><p>Please answer the questions below. Required fields are marked with *.</p>
-        <form id="native-survey-form" style="margin-top: 16px;">
-          <div id="native-questions-container"><div class="spinner"></div></div>
-          <div id="native-submit-notice" class="notice"></div>
-          <button type="submit" class="btn btn-primary" style="margin-top: 14px;">Submit Responses</button>
-        </form>`;
-    }
-
-    async function attachNativeSurveySubmitHandler(surveyId) {
-      const { data: rawQuestions, error } = await supabaseClient.from('survey_questions').select('*').eq('survey_id', surveyId);
-      if (error || !rawQuestions) {
-        document.getElementById('native-questions-container').innerHTML = `<p style="color: #a52b26; font-size: 13px;">Could not load questions. ${escapeHtml(error ? error.message : '')}</p>`;
-        return;
-      }
-      if (rawQuestions.length === 0) {
-        document.getElementById('native-questions-container').innerHTML = `<p style="color: var(--muted); font-size: 13px;">This survey has no questions configured yet.</p>`;
-        return;
-      }
-
-      const questions = rawQuestions.map(q => {
-        const meta = (q.options && typeof q.options === 'object' && !Array.isArray(q.options))
-          ? q.options : { choices: Array.isArray(q.options) ? q.options : [], required: true, order_index: 0 };
-        return {
-          id: q.id, question_text: q.question_text, question_type: q.question_type,
-          required: meta.required !== false,
-          options: Array.isArray(meta.choices) ? meta.choices : [],
-          order_index: typeof meta.order_index === 'number' ? meta.order_index : 0
-        };
-      }).sort((a, b) => a.order_index - b.order_index);
-
-      const container = document.getElementById('native-questions-container');
-      container.innerHTML = questions.map(q => {
-        const req = q.required ? 'required' : '';
-        const reqMark = q.required ? ' *' : '';
-        let inputHTML = '';
-        if (q.question_type === 'short_text') {
-          inputHTML = `<input type="text" class="native-answer" data-qid="${q.id}" ${req} style="width:100%; padding:10px; border:1px solid #dfe8e2; border-radius:8px; font-size:13px;">`;
-        } else if (q.question_type === 'rating') {
-          inputHTML = `<select class="native-answer" data-qid="${q.id}" ${req} style="padding:10px; border-radius:8px; border:1px solid #dfe8e2; font-size:13px;"><option value="">Select rating</option>${[1,2,3,4,5].map(n => `<option value="${n}">${n}</option>`).join('')}</select>`;
-        } else if (q.question_type === 'yes_no') {
-          inputHTML = `<select class="native-answer" data-qid="${q.id}" ${req} style="padding:10px; border-radius:8px; border:1px solid #dfe8e2; font-size:13px;"><option value="">Select</option><option value="true">Yes</option><option value="false">No</option></select>`;
-        } else if (q.question_type === 'multiple_choice') {
-          inputHTML = `<select class="native-answer" data-qid="${q.id}" ${req} style="padding:10px; border-radius:8px; border:1px solid #dfe8e2; font-size:13px;"><option value="">Select an option</option>${q.options.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}</select>`;
-        }
-        return `<div class="field" style="margin-bottom:16px;"><label style="font-weight:600;">${escapeHtml(q.question_text)}${reqMark}</label>${inputHTML}</div>`;
-      }).join('');
-
-      document.getElementById('native-survey-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await submitNativeSurvey(surveyId, questions);
-      });
-    }
-
-    async function submitNativeSurvey(surveyId, questions) {
-      if (!currentUser) { showToast('Please sign in to participate.'); openAuth('signin'); return; }
-      const notice = document.getElementById('native-submit-notice');
-      notice.className = 'notice';
-      notice.textContent = '';
-
-      const answers = [];
-      let valid = true;
-      for (const q of questions) {
-        const el = document.querySelector(`.native-answer[data-qid="${q.id}"]`);
-        const val = el ? el.value.trim() : '';
-        if (q.required && !val) { valid = false; el.style.borderColor = '#a52b26'; }
-        else if (el) el.style.borderColor = '';
-        if (val) {
-          const answer = { question_id: q.id };
-          if (q.question_type === 'short_text' || q.question_type === 'multiple_choice') answer.answer_text = val;
-          else if (q.question_type === 'rating') answer.answer_number = parseInt(val, 10);
-          else if (q.question_type === 'yes_no') answer.answer_boolean = val === 'true';
-          answers.push(answer);
-        }
-      }
-      if (!valid) { notice.className = 'notice show error'; notice.textContent = 'Please answer all required questions.'; return; }
-
-      try {
-        const { data: existing } = await supabaseClient
-          .from('survey_participations').select('id')
-          .eq('survey_id', surveyId).eq('user_id', currentUser.id).eq('status', 'under_review').maybeSingle();
-        if (existing) {
-          notice.className = 'notice show info';
-          notice.textContent = 'You have already submitted a response to this survey. Thank you!';
-          return;
-        }
-      } catch (_) { /* ignore */ }
-
-      try {
-        const { data: part, error: partError } = await supabaseClient
-          .from('survey_participations')
-          .insert([{ survey_id: surveyId, user_id: currentUser.id, status: 'under_review', review_status: 'pending' }])
-          .select().single();
-        if (partError) throw partError;
-
-        if (answers.length > 0) {
-          // survey_answers has a single `answer` TEXT column, not answer_text/answer_number/answer_boolean.
-          const answerInserts = answers.map(a => {
-            let value = null;
-            if (a.answer_text != null) value = String(a.answer_text);
-            else if (a.answer_number != null) value = String(a.answer_number);
-            else if (a.answer_boolean !== undefined) value = a.answer_boolean ? 'true' : 'false';
-            return { participation_id: part.id, question_id: a.question_id, answer: value };
-          });
-          const { error: ansError } = await supabaseClient.from('survey_answers').insert(answerInserts);
-          if (ansError) throw ansError;
-        }
-
-        notice.className = 'notice show success';
-        notice.textContent = 'Thank you! Your responses have been recorded.';
-        document.getElementById('native-survey-form').reset();
-        showToast('Survey submitted successfully.');
-      } catch (err) {
-        console.error('Submission error:', err);
-        notice.className = 'notice show error';
-        notice.textContent = 'Could not save responses: ' + err.message;
-      }
-    }
-
-    async function renderAdminDashboard() {
-      const unauthorizedEl = document.getElementById('admin-unauthorized');
-      const authorizedEl = document.getElementById('admin-authorized');
-      if (!isAdmin) { unauthorizedEl.classList.remove('hidden'); authorizedEl.classList.add('hidden'); return; }
-      unauthorizedEl.classList.add('hidden');
-      authorizedEl.classList.remove('hidden');
-      toggleAdminSurveyFields();
-      await loadAdminSurveysTable();
-      await loadAdminParticipationsTable();
-    }
-
-    function toggleAdminSurveyFields() {
-      const type = document.getElementById('admin-hosting-type').value;
-      const urlField = document.getElementById('admin-url-field');
-      const builder = document.getElementById('admin-question-builder');
-      if (type === 'internal') { urlField.classList.add('hidden'); builder.classList.remove('hidden'); }
-      else { urlField.classList.remove('hidden'); builder.classList.add('hidden'); }
-    }
-
-    function addAdminQuestionRow() {
-      const list = document.getElementById('admin-questions-list');
-      const row = document.createElement('div');
-      row.className = 'admin-question-row';
-      row.innerHTML = `
-        <div class="field"><label>Question Text *</label><input type="text" class="q-text" placeholder="Enter question..." style="padding-left:13px;" required></div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div class="field"><label>Type *</label><select class="q-type" onchange="toggleQuestionOptions(this)" style="padding-left:13px;"><option value="short_text">Short Text</option><option value="multiple_choice">Multiple Choice</option><option value="rating">Rating 1–5</option><option value="yes_no">Yes / No</option></select></div>
-          <div class="field"><label>Required?</label><select class="q-required" style="padding-left:13px;"><option value="true">Required</option><option value="false">Optional</option></select></div>
-        </div>
-        <div class="field q-options-wrap hidden"><label>Options (comma-separated) *</label><input type="text" class="q-options" placeholder="Option A, Option B, Option C" style="padding-left:13px;"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="color:#a52b26; border-color:#f6d4d1;" onclick="this.closest('.admin-question-row').remove()">Remove Question</button>
-      `;
-      list.appendChild(row);
-    }
-
-    function toggleQuestionOptions(selectEl) {
-      const row = selectEl.closest('.admin-question-row');
-      const wrap = row.querySelector('.q-options-wrap');
-      if (selectEl.value === 'multiple_choice') wrap.classList.remove('hidden');
-      else wrap.classList.add('hidden');
-    }
-
-    async function loadAdminSurveysTable() {
-      const wrap = document.getElementById('admin-surveys-list-wrap');
-      try {
-        const { data, error } = await supabaseClient.from('surveys').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        if (!data || data.length === 0) { wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">No surveys found.</p>`; return; }
-        wrap.innerHTML = `
-          <div style="overflow-x:auto;">
-            <table class="admin-table">
-              <thead><tr><th>Title</th><th>Category</th><th>Type</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
-              <tbody>
-                ${data.map(s => {
-                  const type = s.hosting_type === 'internal' ? 'Internal' : 'External';
-                  return `<tr>
-                    <td><strong>${escapeHtml(s.title)}</strong><br><small style="color:var(--muted);">${escapeHtml(s.survey_url || '')}</small></td>
-                    <td>${escapeHtml(s.category || '')}</td>
-                    <td>${type}</td>
-                    <td>${escapeHtml(String(s.estimated_minutes || '5'))} mins</td>
-                    <td><span class="status-chip">${escapeHtml(s.status)}</span></td>
-                    <td><button class="btn btn-outline btn-sm" onclick="toggleSurveyStatus('${s.id}', '${s.status === 'published' ? 'closed' : 'published'}')">${s.status === 'published' ? 'Close' : 'Publish'}</button></td>
-                  </tr>`;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>`;
-      } catch (e) { wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">Error: ${escapeHtml(e.message)}</p>`; }
-    }
-
-    async function loadAdminParticipationsTable() {
-      const wrap = document.getElementById('admin-participations-wrap');
-      try {
-        const { data, error } = await supabaseClient.from('survey_participations')
-          .select('id, status, review_status, submitted_at, survey_id, surveys(title)')
-          .order('submitted_at', { ascending: false }).limit(30);
-        if (error) throw error;
-        if (!data || data.length === 0) { wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">No participation records found.</p>`; return; }
-        wrap.innerHTML = `
-          <div style="overflow-x:auto;">
-            <table class="admin-table">
-              <thead><tr><th>Survey</th><th>Status</th><th>Date</th><th>Review</th><th>Answers</th><th>Actions</th></tr></thead>
-              <tbody>
-                ${data.map(p => `<tr>
-                  <td><strong>${escapeHtml(p.surveys ? p.surveys.title : 'Survey')}</strong></td>
-                  <td>${escapeHtml(p.status || 'started')}</td>
-                  <td>${p.submitted_at ? new Date(p.submitted_at).toLocaleDateString() : '—'}</td>
-                  <td><span class="status-chip">${escapeHtml(p.review_status || 'pending')}</span></td>
-                  <td><button class="btn btn-outline btn-sm" onclick="showAnswersModal('${p.id}')">View</button></td>
-                  <td style="display:flex; gap:6px; flex-wrap:wrap;">
-                    <button class="btn btn-outline btn-sm" onclick="reviewParticipation('${p.id}', 'approved')">Approve</button>
-                    <button class="btn btn-outline btn-sm" style="color:#a52b26; border-color:#f6d4d1;" onclick="reviewParticipation('${p.id}', 'rejected')">Reject</button>
-                  </td>
-                </tr>`).join('')}
-              </tbody>
-            </table>
-          </div>`;
-      } catch (e) { wrap.innerHTML = `<p style="font-size:12px; color:var(--muted);">Could not load: ${escapeHtml(e.message)}</p>`; }
-    }
-
-    async function reviewParticipation(participationId, decision) {
-      try {
-        const { error } = await supabaseClient.rpc('admin_review_participation', { p_participation_id: participationId, p_decision: decision });
-        if (error) throw error;
-        showToast(`Participation ${decision} successfully.`);
-        await loadAdminParticipationsTable();
-      } catch (e) { showToast('Review failed: ' + e.message); }
-    }
-
-    async function showAnswersModal(participationId) {
-      const overlay = document.getElementById('answers-modal');
-      const body = document.getElementById('answers-modal-body');
-      overlay.classList.add('open');
-      body.innerHTML = '<div class="spinner"></div>';
-      try {
-        const { data, error } = await supabaseClient.from('survey_answers')
-          .select('answer, survey_questions(question_text, question_type)')
-          .eq('participation_id', participationId);
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          body.innerHTML = '<p style="color:var(--muted);font-size:13px;">No answers recorded for this participation (may be an external survey).</p>';
-          return;
-        }
-        body.innerHTML = data.map(a => {
-          let display = '—';
-          if (a.survey_questions) {
-            const t = a.survey_questions.question_type;
-            if (t === 'rating') display = (a.answer != null && a.answer !== '') ? `${a.answer} / 5` : '—';
-            else if (t === 'yes_no') display = a.answer === 'true' ? 'Yes' : a.answer === 'false' ? 'No' : (a.answer || '—');
-            else display = a.answer || '—';
-          }
-          return `<div class="answer-item"><strong>${escapeHtml(a.survey_questions ? a.survey_questions.question_text : 'Question')}</strong><span>${escapeHtml(display)}</span></div>`;
-        }).join('');
-      } catch (e) {
-        body.innerHTML = `<p style="color:#a52b26;font-size:13px;">Could not load answers: ${escapeHtml(e.message)}</p>`;
-      }
-    }
-
-    function closeAnswersModal() { document.getElementById('answers-modal').classList.remove('open'); }
-    function handleAnswersOverlayClick(event) { if (event.target === document.getElementById('answers-modal')) closeAnswersModal(); }
-
-    async function handleCreateSurvey(e) {
-      e.preventDefault();
-      const title = document.getElementById('admin-title').value.trim();
-      const category = document.getElementById('admin-category').value;
-      const description = document.getElementById('admin-description').value.trim();
-      const estimated_minutes = parseInt(document.getElementById('admin-duration').value, 10);
-      const status = document.getElementById('admin-status').value;
-      const hostingType = document.getElementById('admin-hosting-type').value;
-      const survey_url = document.getElementById('admin-url').value.trim();
-      const eligibility = document.getElementById('admin-eligibility').value.trim();
-      const instructions = document.getElementById('admin-instructions').value.trim();
-      const noticeEl = document.getElementById('admin-create-notice');
-      const submitBtn = document.getElementById('admin-submit-btn');
-
-      noticeEl.className = 'notice';
-      noticeEl.textContent = '';
-
-      if (!['internal', 'external'].includes(hostingType)) { noticeEl.className = 'notice show error'; noticeEl.textContent = 'Invalid survey type.'; return; }
-      if (hostingType === 'external' && !survey_url.startsWith('https://')) { noticeEl.className = 'notice show error'; noticeEl.textContent = 'External surveys require HTTPS URL.'; return; }
-      if (isNaN(estimated_minutes) || estimated_minutes <= 0) { noticeEl.className = 'notice show error'; noticeEl.textContent = 'Duration must be positive.'; return; }
-
-      let questions = [];
-      if (hostingType === 'internal') {
-        const rows = document.querySelectorAll('#admin-questions-list .admin-question-row');
-        for (const [i, row] of [...rows].entries()) {
-          const qtext = row.querySelector('.q-text').value.trim();
-          const qtype = row.querySelector('.q-type').value;
-          const qreq = row.querySelector('.q-required').value === 'true';
-          const optsRaw = row.querySelector('.q-options').value.trim();
-          if (!qtext) { noticeEl.className = 'notice show error'; noticeEl.textContent = 'All questions need text.'; return; }
-          if (qtype === 'multiple_choice' && !optsRaw) { noticeEl.className = 'notice show error'; noticeEl.textContent = 'Multiple-choice needs options.'; return; }
-          const options = qtype === 'multiple_choice' ? optsRaw.split(',').map(o => o.trim()).filter(Boolean) : [];
-          questions.push({ text: qtext, type: qtype, required: qreq, options, order_index: i });
-        }
-        if (questions.length === 0) { noticeEl.className = 'notice show error'; noticeEl.textContent = 'Add at least one question.'; return; }
-      }
-
-      submitBtn.disabled = true;
-      try {
-        const { data: surveyData, error: surveyError } = await supabaseClient.from('surveys')
-          .insert([{ title, category, description, estimated_minutes, status, survey_url: hostingType === 'external' ? survey_url : null, eligibility, instructions, hosting_type: hostingType }])
-          .select().single();
-        if (surveyError) throw surveyError;
-
-        if (hostingType === 'internal' && questions.length > 0) {
-          const questionInserts = questions.map(q => ({
-            survey_id: surveyData.id, question_text: q.text, question_type: q.type,
-            options: { choices: q.type === 'multiple_choice' ? q.options : [], required: q.required, order_index: q.order_index }
-          }));
-          const { error: qError } = await supabaseClient.from('survey_questions').insert(questionInserts);
-          if (qError) throw qError;
-        }
-
-        noticeEl.className = 'notice show success';
-        noticeEl.textContent = 'Survey successfully created!';
-        showToast('Survey published.');
-        e.target.reset();
-        document.getElementById('admin-questions-list').innerHTML = '';
-        toggleAdminSurveyFields();
-        await fetchAndRenderSurveys();
-        await loadAdminSurveysTable();
-      } catch (err) {
-        noticeEl.className = 'notice show error';
-        noticeEl.textContent = 'Error creating survey: ' + err.message;
-      } finally { submitBtn.disabled = false; }
-    }
-
-    async function toggleSurveyStatus(surveyId, newStatus) {
-      try {
-        const { error } = await supabaseClient.from('surveys').update({ status: newStatus }).eq('id', surveyId);
-        if (error) throw error;
-        showToast(`Status updated to ${newStatus}`);
-        await fetchAndRenderSurveys();
-        await loadAdminSurveysTable();
-      } catch (e) { showToast('Failed: ' + e.message); }
-    }
-
-    function openAuth(mode) { document.getElementById('auth-overlay').classList.add('open'); switchAuthMode(mode); clearAuthNotices(); }
-    function closeAuth() { document.getElementById('auth-overlay').classList.remove('open'); }
-    function handleOverlayClick(event) { if (event.target === document.getElementById('auth-overlay')) closeAuth(); }
-
-    function switchAuthMode(mode) {
-      clearAuthNotices();
-      const s = document.getElementById('form-signin'), u = document.getElementById('form-signup');
-      if (mode === 'signin') { s.classList.remove('hidden'); u.classList.add('hidden'); }
-      else { s.classList.add('hidden'); u.classList.remove('hidden'); }
-    }
-
-    function showNotice(msg, type) { const n = document.getElementById('auth-notice'); n.className = `notice show ${type}`; n.textContent = msg; }
-    function clearAuthNotices() { const n = document.getElementById('auth-notice'); n.className = 'notice'; n.textContent = ''; }
-
-    async function submitSignIn(e) {
-      e.preventDefault();
-      if (!supabaseClient) { showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error'); return; }
-      const email = document.getElementById('signin-email').value.trim();
-      const password = document.getElementById('signin-password').value;
-      const btn = document.getElementById('signin-submit-btn');
-      btn.disabled = true; clearAuthNotices();
-      try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        currentUser = data.user;
-        await checkAdminStatus();
-        updateAuthUI();
-        closeAuth();
-        showToast(`Welcome back, ${currentUser.email}!`);
-      } catch (err) { showNotice(friendlyAuthError(err), 'error'); }
-      finally { btn.disabled = false; }
-    }
-
-    async function submitSignUp(e) {
-      e.preventDefault();
-      if (!supabaseClient) { showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error'); return; }
-      const name = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
-      const password = document.getElementById('signup-password').value;
-      const btn = document.getElementById('signup-submit-btn');
-      btn.disabled = true; clearAuthNotices();
-      try {
-        const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name, name } } });
-        if (error) throw error;
-        if (data && data.session) {
-          currentUser = data.session.user;
-          await checkAdminStatus();
-          updateAuthUI();
-          closeAuth();
-          showToast(`Account created. Karibu, ${name}!`);
-        } else {
-          showNotice('Account created! Check your email to confirm.', 'success');
-          showToast('Verification email sent.');
-        }
-      } catch (err) { showNotice(friendlyAuthError(err), 'error'); }
-      finally { btn.disabled = false; }
-    }
-
-    async function submitPasswordReset() {
-      if (!supabaseClient) { showNotice(AUTH_UNAVAILABLE_MESSAGE, 'error'); return; }
-      const email = document.getElementById('signin-email').value.trim();
-      if (!email) { showNotice('Enter your email first.', 'error'); return; }
-      try {
-        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
-        if (error) throw error;
-        showNotice('Recovery email sent.', 'info');
-      } catch (err) { showNotice(friendlyAuthError(err), 'error'); }
-    }
-
-    async function signOut() {
-      try {
-        if (supabaseClient) await supabaseClient.auth.signOut();
-        currentUser = null; isAdmin = false;
-        updateAuthUI(); navigate('home');
-        showToast('Signed out.');
-      } catch (e) { console.error(e); }
-    }
-
-    async function updateAuthUI() {
-      const guest = document.getElementById('auth-guest-actions');
-      const user = document.getElementById('auth-user-actions');
-      const greeting = document.getElementById('user-greeting');
-      const adminLink = document.getElementById('nav-admin-link');
-      if (currentUser) {
-        guest.classList.add('hidden'); guest.style.display = 'none';
-        user.classList.remove('hidden'); user.style.display = 'flex';
-        greeting.textContent = `Hi, ${currentUser.email.split('@')[0]}`;
-        if (isAdmin) adminLink.classList.remove('hidden'); else adminLink.classList.add('hidden');
-      } else {
-        user.classList.add('hidden'); user.style.display = 'none';
-        guest.classList.remove('hidden'); guest.style.display = 'flex';
-        adminLink.classList.add('hidden');
-      }
-    }
-
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    function showToast(message) {
-      const t = document.getElementById('toast');
-      t.textContent = message;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3500);
-    }
-  </script>
+  <!-- App JavaScript (same folder) -->
+  <script src="app.js"></script>
 </body>
 </html>
