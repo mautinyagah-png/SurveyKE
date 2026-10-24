@@ -7,6 +7,16 @@
   <meta name="description" content="SurveyKE — Share your opinions, help shape better services, and discover upcoming survey opportunities in Kenya." />
   <title>SurveyKE — Your Voice Matters</title>
 
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('surveyke_theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,13 +46,6 @@
       <circle cx="9" cy="7" r="4"/>
       <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
     </symbol>
-    <symbol id="i-chart" viewBox="0 0 24 24">
-      <path d="M3 3v18h18"/>
-      <path d="m8 14 4-4 4 3 5-7"/>
-    </symbol>
-    <symbol id="i-zap" viewBox="0 0 24 24">
-      <path d="m13 2-3 8h7L8 22l3-9H4l9-11Z"/>
-    </symbol>
     <symbol id="i-clock" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
     </symbol>
@@ -65,6 +68,13 @@
     <symbol id="i-external" viewBox="0 0 24 24">
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
     </symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+    </symbol>
   </svg>
 
   <div class="announcement">
@@ -80,13 +90,17 @@
 
       <nav class="nav-links">
         <a href="#surveys" onclick="navigate('surveys'); return false;">Surveys</a>
-        <a href="#how-it-works" onclick="navigate('home'); return false;">How It Works</a>
-        <a href="#community" onclick="navigate('home'); return false;">Community</a>
+        <a href="#how" onclick="navigate('home'); return false;">How It Works</a>
         <a href="#contact" onclick="navigate('home'); return false;">Contact</a>
         <a id="nav-admin-link" href="#" class="hidden" onclick="navigate('admin'); return false;">Admin</a>
       </nav>
 
       <div class="nav-actions">
+        <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+          <svg class="icon-moon"><use href="#i-moon"/></svg>
+          <svg class="icon-sun"><use href="#i-sun"/></svg>
+        </button>
+
         <div id="auth-guest-actions">
           <button class="btn btn-outline" onclick="openAuth('signin')">Sign In</button>
           <button class="btn btn-primary" onclick="openAuth('signup')">Register</button>
@@ -102,94 +116,35 @@
   <main id="app-main">
 
     <div id="view-home">
+      <!-- HERO -->
       <section class="hero">
-        <div class="container hero-grid">
-          <div>
-            <div class="eyebrow"><svg><use href="#i-shield"/></svg> Kenya’s Opinion Hub</div>
-            <h1>Your Voice Shapes <span class="accent">Kenya's Future</span></h1>
-            <p class="hero-copy">Participate in trusted public and private sector surveys, share your genuine perspectives, and help guide better services, products, and policies in Kenya.</p>
+        <div class="container hero-inner">
+          <span class="hero-badge">🇰🇪 Kenya's Opinion Hub</span>
+          <h1>Share your voice.<br><span class="accent">Shape Kenya's future.</span></h1>
+          <p class="hero-sub">Trusted surveys from public and private organizations. Every response helps build better services, products, and policies.</p>
 
-            <div class="hero-buttons">
-              <button class="btn btn-primary" onclick="navigate('surveys')">
-                Explore Active Surveys <svg><use href="#i-arrow"/></svg>
-              </button>
-              <button class="btn btn-outline" onclick="openAuth('signup')">Create Free Account</button>
-            </div>
-
-            <div class="trust-row">
-              <div class="trust-item"><svg><use href="#i-check"/></svg> 100% Confidential</div>
-              <div class="trust-item"><svg><use href="#i-check"/></svg> Verified Kenyan Insights</div>
-              <div class="trust-item"><svg><use href="#i-check"/></svg> Instant Access</div>
-            </div>
+          <div class="hero-cta">
+            <button class="btn btn-primary btn-lg" onclick="navigate('surveys')">
+              Browse Surveys <svg><use href="#i-arrow"/></svg>
+            </button>
+            <button class="btn btn-outline btn-lg" onclick="openAuth('signup')">Create Account</button>
           </div>
 
-          <div class="hero-art" id="how-it-works">
-            <div class="art-card how-card">
-              <div class="art-top">
-                <div>
-                  <strong>How SurveyKE Works</strong>
-                  <small>Quick 3-step participation</small>
-                </div>
-                <div class="live-pill">Simple &amp; Secure</div>
-              </div>
-
-              <div class="how-step">
-                <div class="how-num">1</div>
-                <div>
-                  <strong>Browse &amp; Choose</strong>
-                  <small>Select from verified public opinion polls, tech adoption studies, or consumer feedback.</small>
-                </div>
-              </div>
-              <div class="how-step">
-                <div class="how-num">2</div>
-                <div>
-                  <strong>Share Your View</strong>
-                  <small>Securely access external survey platforms with trusted authentication tracking.</small>
-                </div>
-              </div>
-              <div class="how-step">
-                <div class="how-num">3</div>
-                <div>
-                  <strong>Impact Decisions</strong>
-                  <small>Aggregated insights are shared with organizations to build better solutions for Kenya.</small>
-                </div>
-              </div>
-
-              <div class="art-bottom">
-                <span>Join thousands of contributors</span>
-                <strong>100% Free</strong>
-              </div>
-            </div>
+          <div class="hero-trust">
+            <span>100% Confidential</span>
+            <span>Verified Insights</span>
+            <span>Free to Join</span>
           </div>
         </div>
       </section>
 
-      <div class="stats-band">
-        <div class="container stats-grid">
-          <div class="stat">
-            <div class="stat-icon"><svg><use href="#i-users"/></svg></div>
-            <div><strong>Growing Network</strong><small>Contributors across Kenya</small></div>
-          </div>
-          <div class="stat">
-            <div class="stat-icon"><svg><use href="#i-chart"/></svg></div>
-            <div><strong>Diverse Topics</strong><small>Tech, finance, transport &amp; lifestyle</small></div>
-          </div>
-          <div class="stat">
-            <div class="stat-icon"><svg><use href="#i-shield"/></svg></div>
-            <div><strong>Privacy First</strong><small>Data protected &amp; anonymized</small></div>
-          </div>
-        </div>
-      </div>
-
+      <!-- FEATURED SURVEYS -->
       <section id="surveys" class="section">
         <div class="container">
-          <div class="section-head-row">
-            <div>
-              <div class="eyebrow" style="margin-bottom:8px;"><svg><use href="#i-zap"/></svg> Open Polls</div>
-              <h2>Featured Surveys</h2>
-              <p>Explore current genuine opinion surveys open to participants in Kenya.</p>
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="navigate('surveys')">View All Surveys</button>
+          <div class="section-head-center">
+            <span class="eyebrow">Open Polls</span>
+            <h2>Featured Surveys</h2>
+            <p>Explore current surveys open to participants across Kenya.</p>
           </div>
 
           <div id="home-surveys-grid" class="survey-grid">
@@ -198,32 +153,64 @@
               <strong>Loading active surveys...</strong>
             </div>
           </div>
+
+          <div class="center-cta">
+            <button class="btn btn-outline" onclick="navigate('surveys')">
+              View All Surveys <svg><use href="#i-arrow"/></svg>
+            </button>
+          </div>
         </div>
       </section>
 
-      <section class="section">
+      <!-- HOW IT WORKS -->
+      <section id="how" class="section soft">
         <div class="container">
-          <div class="vision-panel">
-            <div>
-              <div class="eyebrow" style="background: rgba(255,255,255,.1); color: #8affc1; border-color: rgba(255,255,255,.15); margin-bottom: 12px;">
-                <svg><use href="#i-shield"/></svg> Our Commitment
-              </div>
-              <h2>Empowering Kenyan Voices Through Transparent Research</h2>
-              <p>SurveyKE bridges the gap between everyday citizens and decision-makers. We ensure every opinion is captured anonymously, securely, and valued accurately to build a more responsive society.</p>
+          <div class="section-head-center">
+            <span class="eyebrow">How It Works</span>
+            <h2>Three simple steps</h2>
+            <p>From browsing to impact — participating takes just a few minutes.</p>
+          </div>
+
+          <div class="steps-grid">
+            <div class="step-card">
+              <div class="step-num">1</div>
+              <h3>Browse &amp; Choose</h3>
+              <p>Pick from verified surveys on policy, technology, finance, transport, and more.</p>
             </div>
-            <div>
-              <button class="btn btn-light" onclick="openAuth('signup')">Get Started Today <svg><use href="#i-arrow"/></svg></button>
+            <div class="step-card">
+              <div class="step-num">2</div>
+              <h3>Share Your View</h3>
+              <p>Answer honestly on trusted external research platforms. Your identity stays private.</p>
+            </div>
+            <div class="step-card">
+              <div class="step-num">3</div>
+              <h3>Impact Decisions</h3>
+              <p>Your aggregated insights reach the organizations building Kenya's future.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="contact" class="section section-soft">
+      <!-- CTA -->
+      <section class="section">
         <div class="container">
-          <div class="section-heading" id="community">
-            <div class="eyebrow"><svg><use href="#i-users"/></svg> Get in Touch</div>
-            <h2>We’d Love to Hear From You</h2>
-            <p>Have questions about a survey, looking to commission research, or need technical support? Reach out to our team.</p>
+          <div class="cta-banner">
+            <div>
+              <h2>Every voice matters.</h2>
+              <p>Join thousands of Kenyans sharing their perspective to build a more responsive society.</p>
+            </div>
+            <button class="btn btn-light btn-lg" onclick="openAuth('signup')">Get Started</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section id="contact" class="section soft">
+        <div class="container">
+          <div class="section-head-center">
+            <span class="eyebrow">Get in Touch</span>
+            <h2>We'd love to hear from you</h2>
+            <p>Questions about a survey, research commission, or technical support — reach out to our team.</p>
           </div>
 
           <div class="contact-grid">
@@ -262,7 +249,7 @@
             </a>
           </div>
 
-          <div class="contact-note">Office hours: Monday through Friday, 8:00 AM – 5:00 PM EAT.</div>
+          <div class="contact-note">Office hours: Monday–Friday, 8:00 AM – 5:00 PM EAT.</div>
         </div>
       </section>
     </div>
@@ -270,9 +257,9 @@
     <div id="view-surveys" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
-        <div class="section-head-row" style="margin-bottom: 24px;">
+        <div class="section-head-row">
           <div>
-            <div class="eyebrow" style="margin-bottom: 8px;"><svg><use href="#i-book"/></svg> Directory</div>
+            <span class="eyebrow">Directory</span>
             <h2>All Published Surveys</h2>
             <p>Browse active opinion surveys currently open for participation in Kenya.</p>
           </div>
@@ -312,23 +299,23 @@
     <div id="view-admin" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
-        <div class="section-head-row" style="margin-bottom: 24px;">
+        <div class="section-head-row">
           <div>
-            <div class="eyebrow" style="margin-bottom: 8px;"><svg><use href="#i-shield"/></svg> Admin Portal</div>
-            <h2>Survey Management &amp; Participation Review</h2>
+            <span class="eyebrow">Admin Portal</span>
+            <h2>Survey Management</h2>
             <p>Authorized administrator interface for managing live surveys and tracking participation.</p>
           </div>
         </div>
 
         <div id="admin-unauthorized" class="state-box hidden">
           <strong>Access Restricted</strong>
-          <p>You are signed in, but your account does not have administrator privileges. Authorized admin only.</p>
+          <p>You are signed in, but your account does not have administrator privileges.</p>
         </div>
 
         <div id="admin-authorized" class="hidden">
           <div class="admin-panel-card">
             <h3>Add New Survey</h3>
-            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Publish a genuine survey with an active HTTPS destination link.</p>
+            <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Publish a genuine survey with an active HTTPS destination link.</p>
 
             <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
@@ -357,20 +344,20 @@
 
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
                 <div class="field">
-                  <label>Estimated Duration (mins) *</label>
+                  <label>Duration (mins) *</label>
                   <input type="number" id="admin-duration" placeholder="e.g. 5" min="1" required>
                 </div>
                 <div class="field">
                   <label>Status *</label>
                   <select id="admin-status" style="padding-left: 13px;" required>
                     <option value="published">Published</option>
-                    <option value="draft">Draft / Unpublished</option>
+                    <option value="draft">Draft</option>
                     <option value="closed">Closed</option>
                   </select>
                 </div>
                 <div class="field">
                   <label>Survey URL (HTTPS) *</label>
-                  <input type="url" id="admin-url" placeholder="https://example.com/survey" required>
+                  <input type="url" id="admin-url" placeholder="https://forms.gle/..." required>
                 </div>
               </div>
 
@@ -398,7 +385,7 @@
 
           <div class="admin-panel-card">
             <h3>Participation Review</h3>
-            <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Review participant engagement and submissions across active surveys.</p>
+            <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Review participant engagement and submissions.</p>
             <div id="admin-participations-wrap"><div class="spinner"></div></div>
           </div>
         </div>
@@ -465,7 +452,7 @@
 
       <div id="form-signin" class="auth-form-panel">
         <h2>Welcome Back</h2>
-        <p class="auth-description">Sign in to your account to participate in active surveys and track your submissions.</p>
+        <p class="auth-description">Sign in to participate in active surveys and track your submissions.</p>
 
         <form id="signin-form" onsubmit="submitSignIn(event)">
           <div class="field">
@@ -498,7 +485,7 @@
 
       <div id="form-signup" class="auth-form-panel hidden">
         <h2>Create Account</h2>
-        <p class="auth-description">Join SurveyKE to share your opinions and help shape products and services in Kenya.</p>
+        <p class="auth-description">Join SurveyKE to share your opinions and shape products and services in Kenya.</p>
 
         <form id="signup-form" onsubmit="submitSignUp(event)">
           <div class="field">
@@ -525,7 +512,7 @@
             </div>
           </div>
 
-          <p class="fine-print">By registering, you agree to SurveyKE’s terms of confidentiality and privacy guidelines.</p>
+          <p class="fine-print">By registering, you agree to SurveyKE's terms of confidentiality and privacy guidelines.</p>
 
           <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
         </form>
