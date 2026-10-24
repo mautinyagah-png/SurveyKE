@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#087f5b" />
   <meta name="description" content="SurveyKE — Share your opinions, help shape better services, and discover upcoming survey opportunities in Kenya." />
   <title>SurveyKE — Your Voice Matters</title>
-
   <script>
     (function () {
       try {
@@ -16,13 +15,11 @@
       } catch (e) {}
     })();
   </script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
   <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
     <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4c-8 0-14 3-14 10a6 6 0 0 0 6 6c7 0 8-8 8-16Z"/><path d="M4 21c2-5 6-9 12-12"/></symbol>
@@ -107,7 +104,6 @@
           </div>
         </div>
       </section>
-
       <section class="section">
         <div class="container">
           <div class="section-head-center">
@@ -123,7 +119,6 @@
           </div>
         </div>
       </section>
-
       <section class="section soft">
         <div class="container">
           <div class="section-head-center">
@@ -134,11 +129,10 @@
           <div class="steps-grid">
             <div class="step-card"><div class="step-num">1</div><h3>Browse &amp; Choose</h3><p>Pick from verified surveys on policy, technology, finance, transport, and more.</p></div>
             <div class="step-card"><div class="step-num">2</div><h3>Share Your View</h3><p>Answer honestly on trusted external platforms. Your identity stays private.</p></div>
-            <div class="step-card"><div class="step-num">3</div><h3>Impact Decisions</h3><p>Your aggregated insights reach the organizations building Kenya's future.</p></div>
+            <div class="step-card"><div class="step-num">3</div><h3>Earn &amp; Impact</h3><p>Get rewarded for your time while helping shape Kenya's future.</p></div>
           </div>
         </div>
       </section>
-
       <section class="section">
         <div class="container">
           <div class="cta-banner">
@@ -159,9 +153,10 @@
           <div>
             <span class="eyebrow">Directory</span>
             <h2>All Published Surveys</h2>
-            <p>Browse active opinion surveys currently open for participation in Kenya.</p>
+            <p>Browse active surveys. Your current plan determines which ones you can take.</p>
           </div>
         </div>
+        <div id="surveys-plan-banner"></div>
         <div class="filter-row">
           <div class="topic-chips" id="directory-topic-chips">
             <button class="topic-chip active" onclick="filterDirectoryTopic('All')">All</button>
@@ -210,7 +205,7 @@
         <div id="admin-authorized" class="hidden">
           <div class="admin-panel-card">
             <h3>Add New Survey</h3>
-            <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Publish a genuine survey with an active HTTPS destination link.</p>
+            <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Publish a survey with an HTTPS destination link.</p>
             <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="field">
@@ -241,13 +236,14 @@
                 </div>
                 <div class="field">
                   <label>Reward (KSh) *</label>
-                  <input type="number" id="admin-reward" placeholder="50" min="1" required>
+                  <input type="number" id="admin-reward" placeholder="20" min="1" required>
                 </div>
                 <div class="field">
-                  <label>Survey Tier *</label>
+                  <label>Tier *</label>
                   <select id="admin-tier" style="padding-left: 13px;" required>
-                    <option value="free">Free (everyone)</option>
+                    <option value="basic">Basic</option>
                     <option value="silver">Silver</option>
+                    <option value="gold">Gold</option>
                     <option value="platinum">Platinum</option>
                   </select>
                 </div>
@@ -362,38 +358,64 @@
 
   <!-- Plan Chooser Modal -->
   <div id="plan-overlay" class="modal-overlay" onclick="handlePlanOverlayClick(event)">
-    <div class="modal-box">
+    <div class="modal-box wide">
       <button class="modal-close" onclick="closePlanModal()"><svg><use href="#i-x"/></svg></button>
       <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Choose Your Plan</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Unlock premium surveys and withdraw at lower thresholds.</p>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Higher plans unlock more surveys and let you earn more each day.</p>
 
-      <div class="plan-card" data-plan="free" onclick="selectPlan('free')">
-        <div class="plan-name">Free</div>
-        <div class="plan-price"><strong>KSh 0</strong> / month</div>
+      <div class="plan-card" data-plan="basic" onclick="selectPlan('basic')">
+        <div class="plan-card-header">
+          <div class="plan-name">Basic</div>
+          <span class="tier-badge tier-basic"><svg><use href="#i-star"/></svg>Free</span>
+        </div>
+        <div class="plan-price"><span class="free-tag">Free forever</span></div>
         <ul class="plan-features">
-          <li>Access to free surveys</li>
-          <li>Min withdrawal: KSh 2,500</li>
-          <li>Standard rewards (KSh 50/survey)</li>
+          <li>Access to basic surveys only</li>
+          <li>Earn up to KSh 50 per day</li>
+          <li>Up to 3 surveys per day</li>
+          <li>Withdraw at KSh 2,500</li>
         </ul>
       </div>
 
       <div class="plan-card" data-plan="silver" onclick="selectPlan('silver')">
-        <div class="plan-name">Silver</div>
-        <div class="plan-price"><strong>KSh 500</strong> / month</div>
+        <div class="plan-card-header">
+          <div class="plan-name">Silver</div>
+          <span class="tier-badge tier-silver"><svg><use href="#i-star"/></svg>Silver</span>
+        </div>
+        <div class="plan-price"><strong>KSh 100</strong> one-time</div>
         <ul class="plan-features">
-          <li>Free + Silver surveys</li>
-          <li>Min withdrawal: KSh 1,500</li>
-          <li>Priority survey invites</li>
+          <li>Basic + Silver surveys</li>
+          <li>Earn up to KSh 100 per day</li>
+          <li>Up to 5 surveys per day</li>
+          <li>Withdraw at KSh 1,500</li>
+        </ul>
+      </div>
+
+      <div class="plan-card" data-plan="gold" onclick="selectPlan('gold')">
+        <div class="plan-card-header">
+          <div class="plan-name">Gold</div>
+          <span class="tier-badge tier-gold"><svg><use href="#i-star"/></svg>Gold</span>
+        </div>
+        <div class="plan-price"><strong>KSh 300</strong> one-time</div>
+        <ul class="plan-features">
+          <li>Basic + Silver + Gold surveys</li>
+          <li>Earn up to KSh 200 per day</li>
+          <li>Up to 8 surveys per day</li>
+          <li>Withdraw at KSh 1,000</li>
         </ul>
       </div>
 
       <div class="plan-card" data-plan="platinum" onclick="selectPlan('platinum')">
-        <div class="plan-name">Platinum</div>
-        <div class="plan-price"><strong>KSh 1,500</strong> / month</div>
+        <div class="plan-card-header">
+          <div class="plan-name">Platinum</div>
+          <span class="tier-badge tier-platinum"><svg><use href="#i-crown"/></svg>Platinum</span>
+        </div>
+        <div class="plan-price"><strong>KSh 500</strong> one-time</div>
         <ul class="plan-features">
           <li>All surveys unlocked</li>
-          <li>Min withdrawal: KSh 1,000</li>
-          <li>Highest rewards + priority payouts</li>
+          <li>Earn up to KSh 300 per day</li>
+          <li>Up to 10 surveys per day</li>
+          <li>Withdraw at KSh 500</li>
         </ul>
       </div>
 
@@ -414,7 +436,6 @@
         <strong>SurveyKE</strong>
       </div>
       <div id="auth-notice" class="notice"></div>
-
       <div id="form-signin" class="auth-form-panel">
         <h2>Welcome Back</h2>
         <p class="auth-description">Sign in to participate in active surveys and track your submissions.</p>
@@ -436,10 +457,9 @@
         </form>
         <div class="auth-switch">Don't have an account? <button class="text-button" onclick="switchAuthMode('signup')">Register now</button></div>
       </div>
-
       <div id="form-signup" class="auth-form-panel hidden">
         <h2>Create Account</h2>
-        <p class="auth-description">Join SurveyKE to share your opinions and shape products and services in Kenya.</p>
+        <p class="auth-description">Join SurveyKE — start with the free Basic plan and upgrade anytime.</p>
         <form id="signup-form" onsubmit="submitSignUp(event)">
           <div class="field">
             <label>Full Name</label>
@@ -459,7 +479,7 @@
               <input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6">
             </div>
           </div>
-          <p class="fine-print">By registering, you agree to SurveyKE's terms of confidentiality and privacy guidelines.</p>
+          <p class="fine-print">By registering, you agree to SurveyKE's terms. You'll start on the free Basic plan.</p>
           <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
         </form>
         <div class="auth-switch">Already have an account? <button class="text-button" onclick="switchAuthMode('signin')">Sign in</button></div>
