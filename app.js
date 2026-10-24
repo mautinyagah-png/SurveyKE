@@ -1,5 +1,5 @@
 // ================================================================
-// SurveyKE — Chrome-only (localStorage) app logic + theme toggle
+// SurveyKE — Chrome-only (localStorage), mobile-friendly app
 // ================================================================
 
 const STORE_USERS          = 'surveyke_users';
@@ -74,48 +74,32 @@ function seedSurveysIfEmpty() {
   if (Array.isArray(existing) && existing.length > 0) return;
 
   const now = Date.now();
-  const seeds = [
+  writeStore(STORE_SURVEYS, [
     {
-      id: uid('sur'),
-      title: 'Digital ID Public Feedback',
-      category: 'Public Policy',
+      id: uid('sur'), title: 'Digital ID Public Feedback', category: 'Public Policy',
       description: 'Share your views on the proposed national digital identity system and how it may impact everyday Kenyans.',
-      estimated_minutes: 5,
-      duration: '5 mins',
-      status: 'published',
-      survey_url: DEMO_URL,
+      estimated_minutes: 5, duration: '5 mins', status: 'published', survey_url: DEMO_URL,
       eligibility: 'Kenyan residents aged 18+.',
       instructions: 'Answer all questions honestly. Responses are anonymous.',
       created_at: now - 300000
     },
     {
-      id: uid('sur'),
-      title: 'Mobile Money Usage Study',
-      category: 'Finance',
+      id: uid('sur'), title: 'Mobile Money Usage Study', category: 'Finance',
       description: 'Help us understand how Kenyans use mobile money platforms for daily transactions, savings, and small business.',
-      estimated_minutes: 7,
-      duration: '7 mins',
-      status: 'published',
-      survey_url: DEMO_URL,
+      estimated_minutes: 7, duration: '7 mins', status: 'published', survey_url: DEMO_URL,
       eligibility: 'Anyone who has used mobile money in the last 30 days.',
       instructions: 'Respond based on your most recent month of activity.',
       created_at: now - 200000
     },
     {
-      id: uid('sur'),
-      title: 'Matatu Commuter Experience',
-      category: 'Transport',
+      id: uid('sur'), title: 'Matatu Commuter Experience', category: 'Transport',
       description: 'Rate your experience with matatus, fares, safety, and route coverage in Nairobi and other towns.',
-      estimated_minutes: 6,
-      duration: '6 mins',
-      status: 'published',
-      survey_url: DEMO_URL,
+      estimated_minutes: 6, duration: '6 mins', status: 'published', survey_url: DEMO_URL,
       eligibility: 'Regular commuters using public transport.',
       instructions: 'Focus on the last 7 days of your commute.',
       created_at: now - 100000
     }
-  ];
-  writeStore(STORE_SURVEYS, seeds);
+  ]);
 }
 
 function restoreSession() {
@@ -145,20 +129,31 @@ function navigate(viewName, param) {
   currentView = viewName;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  document.getElementById('view-home').classList.add('hidden');
-  document.getElementById('view-surveys').classList.add('hidden');
-  document.getElementById('view-detail').classList.add('hidden');
-  document.getElementById('view-admin').classList.add('hidden');
+  ['view-home','view-surveys','view-detail','view-wallet','view-profile','view-admin'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
 
   if (viewName === 'home') {
     document.getElementById('view-home').classList.remove('hidden');
+    updateBottomNav('home');
   } else if (viewName === 'surveys') {
     document.getElementById('view-surveys').classList.remove('hidden');
     renderDirectorySurveys();
+    updateBottomNav('surveys');
   } else if (viewName === 'detail' && param) {
     activeSurveyId = param;
     document.getElementById('view-detail').classList.remove('hidden');
     renderSurveyDetail(param);
+    updateBottomNav('surveys');
+  } else if (viewName === 'wallet') {
+    document.getElementById('view-wallet').classList.remove('hidden');
+    renderWallet();
+    updateBottomNav('wallet');
+  } else if (viewName === 'profile') {
+    document.getElementById('view-profile').classList.remove('hidden');
+    renderProfile();
+    updateBottomNav('profile');
   } else if (viewName === 'admin') {
     if (!isAdmin) {
       showToast('Administrator access required.');
@@ -167,7 +162,15 @@ function navigate(viewName, param) {
     }
     document.getElementById('view-admin').classList.remove('hidden');
     renderAdminDashboard();
+    updateBottomNav(null);
   }
+}
+
+function updateBottomNav(tab) {
+  document.querySelectorAll('.bottom-nav-item').forEach(function(item) {
+    if (item.dataset.tab === tab) item.classList.add('active');
+    else item.classList.remove('active');
+  });
 }
 
 // ---------- Surveys ----------
@@ -196,17 +199,15 @@ function fetchAndRenderSurveys() {
 
 function renderHomeSurveys() {
   const container = document.getElementById('home-surveys-grid');
-
   if (surveysCache.length === 0) {
     container.innerHTML = `
       <div class="state-box" style="grid-column: 1 / -1;">
-        <strong>No active surveys available right now</strong>
-        <p>Sign in as admin (<strong>${ADMIN_EMAIL}</strong>) to publish your first survey, or check back soon.</p>
+        <strong>No active surveys right now</strong>
+        <p>Check back soon — new surveys are added regularly.</p>
       </div>
     `;
     return;
   }
-
   container.innerHTML = surveysCache.slice(0, 3).map(function(s) {
     return `
       <div class="survey-card">
@@ -264,7 +265,7 @@ function filterDirectoryTopic(topic) {
   selectedDirectoryTopic = topic;
   const chips = document.querySelectorAll('#directory-topic-chips .topic-chip');
   chips.forEach(function(c) {
-    if (c.textContent.trim() === topic || (topic === 'All' && c.textContent.includes('Categories'))) {
+    if (c.textContent.trim() === topic || (topic === 'All' && c.textContent.includes('All'))) {
       c.classList.add('active');
     } else {
       c.classList.remove('active');
@@ -296,17 +297,11 @@ function renderSurveyDetail(id) {
   ` : '';
 
   const eligibilityHTML = survey.eligibility ? `
-    <div class="detail-section">
-      <h3>Eligibility</h3>
-      <p class="detail-text">${escapeHtml(survey.eligibility)}</p>
-    </div>
+    <div class="detail-section"><h3>Eligibility</h3><p class="detail-text">${escapeHtml(survey.eligibility)}</p></div>
   ` : '';
 
   const instructionsHTML = survey.instructions ? `
-    <div class="detail-section">
-      <h3>Instructions</h3>
-      <p class="detail-text">${escapeHtml(survey.instructions)}</p>
-    </div>
+    <div class="detail-section"><h3>Instructions</h3><p class="detail-text">${escapeHtml(survey.instructions)}</p></div>
   ` : '';
 
   container.innerHTML = `
@@ -316,24 +311,17 @@ function renderSurveyDetail(id) {
         <span class="status-chip">Active</span>
       </div>
       <h1>${escapeHtml(survey.title)}</h1>
-
-      <div class="meta-row" style="display: flex; gap: 8px; margin-bottom: 18px;">
+      <div style="display: flex; gap: 8px; margin-bottom: 18px;">
         <span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.estimated_minutes || survey.duration || '5')} mins</span>
       </div>
-
       <p class="detail-text">${escapeHtml(survey.description || '')}</p>
-
       ${eligibilityHTML}
       ${instructionsHTML}
-
       <div class="participate-box">
         <h3>Take the Survey</h3>
         <p>This survey is hosted on a trusted external platform. Click below to begin — your participation will be tracked.</p>
-
         ${demoNotice}
-
         <div id="participate-notice" class="notice"></div>
-
         <div class="btn-row">
           <button class="btn btn-primary" onclick="startExternalSurvey('${survey.id}')">
             Proceed to Survey <svg><use href="#i-external"/></svg>
@@ -346,49 +334,115 @@ function renderSurveyDetail(id) {
 
 async function startExternalSurvey(surveyId) {
   if (!currentUser) {
-    showToast('Please sign in to participate in surveys.');
+    showToast('Please sign in to participate.');
     openAuth('signin');
     return;
   }
-
   const allSurveys = readStore(STORE_SURVEYS, []);
   const survey = allSurveys.find(function(s) { return s.id === surveyId; });
   if (!survey || !survey.survey_url || !survey.survey_url.startsWith('https://')) {
     showToast('Invalid or unavailable survey.');
     return;
   }
-
   try {
     const parts = readStore(STORE_PARTICIPATIONS, []);
     const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
     const alreadyStarted = parts.some(function(p) {
-      return p.survey_id === surveyId &&
-             p.user_id === currentUser.id &&
-             p.status === 'started' &&
-             p.started_at > oneDayAgo;
+      return p.survey_id === surveyId && p.user_id === currentUser.id &&
+             p.status === 'started' && p.started_at > oneDayAgo;
     });
-
     if (!alreadyStarted) {
       parts.push({
-        id: uid('part'),
-        survey_id: surveyId,
-        user_id: currentUser.id,
-        status: 'started',
-        review_status: 'pending',
-        submitted_at: Date.now(),
-        started_at: Date.now()
+        id: uid('part'), survey_id: surveyId, user_id: currentUser.id,
+        status: 'started', review_status: 'pending',
+        submitted_at: Date.now(), started_at: Date.now()
       });
       writeStore(STORE_PARTICIPATIONS, parts);
     }
-
     showToast('Participation recorded. Redirecting...');
-    setTimeout(function() {
-      window.open(survey.survey_url, '_blank', 'noopener,noreferrer');
-    }, 700);
+    setTimeout(function() { window.open(survey.survey_url, '_blank', 'noopener,noreferrer'); }, 700);
   } catch (e) {
     console.error('Participation exception:', e);
     window.open(survey.survey_url, '_blank', 'noopener,noreferrer');
   }
+}
+
+// ---------- Wallet ----------
+function renderWallet() {
+  const container = document.getElementById('wallet-content');
+  let parts = [];
+  if (currentUser) {
+    parts = readStore(STORE_PARTICIPATIONS, []).filter(function(p) { return p.user_id === currentUser.id; });
+  }
+
+  container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon"><svg><use href="#i-wallet"/></svg></div>
+      <h2>Wallet coming soon</h2>
+      <p>Rewards for survey participation are on the way. Keep taking surveys to build your profile — earnings will appear here once the feature launches.</p>
+
+      <div class="wallet-stats">
+        <div class="wallet-stat">
+          <span class="wallet-stat-val">${parts.length}</span>
+          <span class="wallet-stat-label">Surveys taken</span>
+        </div>
+        <div class="wallet-stat">
+          <span class="wallet-stat-val">KSh 0</span>
+          <span class="wallet-stat-label">Total earned</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="navigate('surveys')">Browse Surveys</button>
+    </div>
+  `;
+}
+
+// ---------- Profile ----------
+function renderProfile() {
+  const container = document.getElementById('profile-content');
+
+  if (!currentUser) {
+    container.innerHTML = `
+      <div class="profile-card">
+        <div class="profile-avatar guest"><svg style="width: 34px; height: 34px;"><use href="#i-user"/></svg></div>
+        <h2>Welcome to SurveyKE</h2>
+        <p class="profile-description">Sign in or create an account to participate in surveys and track your responses.</p>
+        <div class="profile-actions">
+          <button class="btn btn-primary btn-block" onclick="openAuth('signin')">Sign In</button>
+          <button class="btn btn-outline btn-block" onclick="openAuth('signup')">Create Account</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const parts = readStore(STORE_PARTICIPATIONS, []).filter(function(p) { return p.user_id === currentUser.id; });
+  const approved = parts.filter(function(p) { return p.review_status === 'approved'; }).length;
+  const initial = (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase();
+
+  container.innerHTML = `
+    <div class="profile-card">
+      <div class="profile-avatar">${escapeHtml(initial)}</div>
+      <h2>${escapeHtml(currentUser.name || 'User')}</h2>
+      <p class="profile-email">${escapeHtml(currentUser.email)}</p>
+
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <span class="profile-stat-val">${parts.length}</span>
+          <span class="profile-stat-label">Surveys taken</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-val">${approved}</span>
+          <span class="profile-stat-label">Approved</span>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        ${isAdmin ? '<button class="btn btn-primary btn-block" onclick="navigate(\'admin\')">Admin Dashboard</button>' : ''}
+        <button class="btn btn-outline btn-block" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  `;
 }
 
 // ---------- Admin ----------
@@ -401,7 +455,6 @@ async function renderAdminDashboard() {
     authorizedEl.classList.add('hidden');
     return;
   }
-
   unauthorizedEl.classList.add('hidden');
   authorizedEl.classList.remove('hidden');
   await loadAdminSurveysTable();
@@ -422,15 +475,7 @@ async function loadAdminSurveysTable() {
   wrap.innerHTML = `
     <div style="overflow-x:auto;">
       <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Duration</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Title</th><th>Category</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
           ${all.map(function(s) {
             const toggleTo = s.status === 'published' ? 'closed' : 'published';
@@ -469,15 +514,7 @@ async function loadAdminParticipationsTable() {
   wrap.innerHTML = `
     <div style="overflow-x:auto;">
       <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Survey</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Review</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Survey</th><th>Status</th><th>Date</th><th>Review</th><th>Actions</th></tr></thead>
         <tbody>
           ${parts.map(function(p) {
             const survey = allSurveys.find(function(s) { return s.id === p.survey_id; });
@@ -520,7 +557,6 @@ async function reviewParticipation(participationId, decision) {
 
 async function handleCreateSurvey(e) {
   e.preventDefault();
-
   const noticeEl = document.getElementById('admin-create-notice');
   const submitBtn = document.getElementById('admin-submit-btn');
 
@@ -544,17 +580,10 @@ async function handleCreateSurvey(e) {
 
     const all = readStore(STORE_SURVEYS, []);
     all.push({
-      id: uid('sur'),
-      title: title,
-      category: category,
-      description: description,
-      estimated_minutes: estimated_minutes,
-      duration: estimated_minutes + ' mins',
-      status: status,
-      survey_url: survey_url,
-      eligibility: eligibility,
-      instructions: instructions,
-      created_at: Date.now()
+      id: uid('sur'), title: title, category: category, description: description,
+      estimated_minutes: estimated_minutes, duration: estimated_minutes + ' mins',
+      status: status, survey_url: survey_url, eligibility: eligibility,
+      instructions: instructions, created_at: Date.now()
     });
     writeStore(STORE_SURVEYS, all);
 
@@ -661,11 +690,9 @@ async function submitSignIn(e) {
 
   try {
     if (!email || !password) throw new Error('Please enter your email and password.');
-
     const users = readStore(STORE_USERS, []);
     const user = users.find(function(u) { return u.email.toLowerCase() === email; });
     if (!user) throw new Error('No account found. Please register first.');
-
     const passwordHash = await hashPassword(password);
     if (user.passwordHash !== passwordHash) throw new Error('Incorrect password.');
 
@@ -677,7 +704,8 @@ async function submitSignIn(e) {
     closeAuth();
     showToast('Welcome back, ' + (currentUser.name || currentUser.email) + '!');
     fetchAndRenderSurveys();
-    if (currentView === 'admin') navigate('home');
+    if (currentView === 'profile') renderProfile();
+    if (currentView === 'wallet') renderWallet();
   } catch (err) {
     showNotice(err.message, 'error');
   } finally {
@@ -706,13 +734,7 @@ async function submitSignUp(e) {
     }
 
     const passwordHash = await hashPassword(password);
-    const newUser = {
-      id: uid('user'),
-      name: name,
-      email: email,
-      passwordHash: passwordHash,
-      created_at: Date.now()
-    };
+    const newUser = { id: uid('user'), name: name, email: email, passwordHash: passwordHash, created_at: Date.now() };
     users.push(newUser);
     writeStore(STORE_USERS, users);
 
@@ -724,7 +746,8 @@ async function submitSignUp(e) {
     closeAuth();
     showToast('Account created. Karibu, ' + name + '!');
     fetchAndRenderSurveys();
-    if (currentView === 'admin') navigate('home');
+    if (currentView === 'profile') renderProfile();
+    if (currentView === 'wallet') renderWallet();
   } catch (err) {
     showNotice(err.message, 'error');
   } finally {
@@ -741,7 +764,9 @@ async function signOut() {
   currentUser = null;
   isAdmin = false;
   updateAuthUI();
-  navigate('home');
+  if (currentView === 'profile') renderProfile();
+  else if (currentView === 'wallet') renderWallet();
+  else navigate('home');
   showToast('Signed out.');
 }
 
@@ -772,11 +797,8 @@ function updateAuthUI() {
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 function showToast(message) {
