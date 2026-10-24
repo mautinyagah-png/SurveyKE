@@ -11,11 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- CSS file (same folder) -->
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Supabase UMD (must load before app.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -71,18 +67,14 @@
     </symbol>
   </svg>
 
-  <!-- Announcement Bar -->
   <div class="announcement">
     🇰🇪 <strong>SurveyKE is live!</strong> Shape future services, products, and policies across Kenya.
   </div>
 
-  <!-- Header -->
   <header>
     <div class="container nav">
       <a href="#" class="brand" onclick="navigate('home'); return false;">
-        <div class="brand-mark">
-          <svg><use href="#i-leaf"/></svg>
-        </div>
+        <div class="brand-mark"><svg><use href="#i-leaf"/></svg></div>
         <span>Survey<span>KE</span></span>
       </a>
 
@@ -107,17 +99,13 @@
     </div>
   </header>
 
-  <!-- Main Dynamic View Container -->
   <main id="app-main">
 
-    <!-- View: Home -->
     <div id="view-home">
       <section class="hero">
         <div class="container hero-grid">
           <div>
-            <div class="eyebrow">
-              <svg><use href="#i-shield"/></svg> Kenya’s Opinion Hub
-            </div>
+            <div class="eyebrow"><svg><use href="#i-shield"/></svg> Kenya’s Opinion Hub</div>
             <h1>Your Voice Shapes <span class="accent">Kenya's Future</span></h1>
             <p class="hero-copy">Participate in trusted public and private sector surveys, share your genuine perspectives, and help guide better services, products, and policies in Kenya.</p>
 
@@ -125,9 +113,7 @@
               <button class="btn btn-primary" onclick="navigate('surveys')">
                 Explore Active Surveys <svg><use href="#i-arrow"/></svg>
               </button>
-              <button class="btn btn-outline" onclick="openAuth('signup')">
-                Create Free Account
-              </button>
+              <button class="btn btn-outline" onclick="openAuth('signup')">Create Free Account</button>
             </div>
 
             <div class="trust-row">
@@ -154,7 +140,6 @@
                   <small>Select from verified public opinion polls, tech adoption studies, or consumer feedback.</small>
                 </div>
               </div>
-
               <div class="how-step">
                 <div class="how-num">2</div>
                 <div>
@@ -162,7 +147,6 @@
                   <small>Securely access external survey platforms with trusted authentication tracking.</small>
                 </div>
               </div>
-
               <div class="how-step">
                 <div class="how-num">3</div>
                 <div>
@@ -184,24 +168,15 @@
         <div class="container stats-grid">
           <div class="stat">
             <div class="stat-icon"><svg><use href="#i-users"/></svg></div>
-            <div>
-              <strong>Growing Network</strong>
-              <small>Contributors across Kenya</small>
-            </div>
+            <div><strong>Growing Network</strong><small>Contributors across Kenya</small></div>
           </div>
           <div class="stat">
             <div class="stat-icon"><svg><use href="#i-chart"/></svg></div>
-            <div>
-              <strong>Diverse Topics</strong>
-              <small>Tech, finance, transport &amp; lifestyle</small>
-            </div>
+            <div><strong>Diverse Topics</strong><small>Tech, finance, transport &amp; lifestyle</small></div>
           </div>
           <div class="stat">
             <div class="stat-icon"><svg><use href="#i-shield"/></svg></div>
-            <div>
-              <strong>Privacy First</strong>
-              <small>Data protected &amp; anonymized</small>
-            </div>
+            <div><strong>Privacy First</strong><small>Data protected &amp; anonymized</small></div>
           </div>
         </div>
       </div>
@@ -287,14 +262,11 @@
             </a>
           </div>
 
-          <div class="contact-note">
-            Office hours: Monday through Friday, 8:00 AM – 5:00 PM EAT.
-          </div>
+          <div class="contact-note">Office hours: Monday through Friday, 8:00 AM – 5:00 PM EAT.</div>
         </div>
       </section>
     </div>
 
-    <!-- View: Surveys List -->
     <div id="view-surveys" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
@@ -328,7 +300,6 @@
       </div>
     </div>
 
-    <!-- View: Survey Detail -->
     <div id="view-detail" class="hidden">
       <div class="container section">
         <div class="detail-wrap">
@@ -338,7 +309,6 @@
       </div>
     </div>
 
-    <!-- View: Admin Dashboard -->
     <div id="view-admin" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back to Home</a>
@@ -417,30 +387,25 @@
 
               <div id="admin-create-notice" class="notice"></div>
 
-              <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey to Database</button>
+              <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey</button>
             </form>
           </div>
 
           <div class="admin-panel-card">
             <h3>Manage Existing Surveys</h3>
-            <div id="admin-surveys-list-wrap">
-              <div class="spinner"></div>
-            </div>
+            <div id="admin-surveys-list-wrap"><div class="spinner"></div></div>
           </div>
 
           <div class="admin-panel-card">
             <h3>Participation Review</h3>
             <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Review participant engagement and submissions across active surveys.</p>
-            <div id="admin-participations-wrap">
-              <div class="spinner"></div>
-            </div>
+            <div id="admin-participations-wrap"><div class="spinner"></div></div>
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Footer -->
   <footer>
     <div class="container footer-compact">
       <div>
@@ -487,7 +452,6 @@
     </div>
   </footer>
 
-  <!-- Auth Modal -->
   <div id="auth-overlay" class="auth-overlay" onclick="handleOverlayClick(event)">
     <div class="auth-box">
       <button class="auth-close" onclick="closeAuth()"><svg><use href="#i-x"/></svg></button>
@@ -575,7 +539,6 @@
 
   <div id="toast" class="toast"></div>
 
-  <!-- App JavaScript (same folder) -->
   <script src="app.js"></script>
 </body>
 </html>
