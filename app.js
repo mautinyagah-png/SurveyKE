@@ -1,17 +1,14 @@
 // ================================================================
-// SurveyKE — Chrome-only (localStorage) app logic
-// No backend, no Supabase. Everything lives in the browser.
-// Clearing site data wipes users, surveys, participations, session.
+// SurveyKE — Chrome-only (localStorage) app logic + theme toggle
 // ================================================================
 
 const STORE_USERS          = 'surveyke_users';
 const STORE_SESSION        = 'surveyke_session';
 const STORE_SURVEYS        = 'surveyke_surveys';
 const STORE_PARTICIPATIONS = 'surveyke_participations';
+const STORE_THEME          = 'surveyke_theme';
 
 const ADMIN_EMAIL = 'mautinyagah@gmail.com';
-
-// Safe fallback URL used by the seed surveys — loads without error.
 const DEMO_URL = 'https://docs.google.com/forms/';
 
 let currentUser = null;
@@ -21,15 +18,21 @@ let selectedDirectoryTopic = 'All';
 let activeSurveyId = null;
 let currentView = 'home';
 
-// ---------- Storage helpers ----------
+// ---------- Theme ----------
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem(STORE_THEME, next); } catch (e) {}
+}
+
+// ---------- Storage ----------
 function readStore(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
     if (raw === null) return fallback;
     return JSON.parse(raw);
-  } catch (e) {
-    return fallback;
-  }
+  } catch (e) { return fallback; }
 }
 
 function writeStore(key, value) {
@@ -53,11 +56,9 @@ async function hashPassword(pw) {
   }
 }
 
-// ---------- Migrate any broken demo URLs already in localStorage ----------
 function migrateBrokenSeedUrls() {
   const all = readStore(STORE_SURVEYS, null);
   if (!Array.isArray(all)) return;
-
   let changed = false;
   all.forEach(function(s) {
     if (s.survey_url && s.survey_url.indexOf('forms.gle/example-survey') !== -1) {
@@ -65,11 +66,9 @@ function migrateBrokenSeedUrls() {
       changed = true;
     }
   });
-
   if (changed) writeStore(STORE_SURVEYS, all);
 }
 
-// ---------- Seed surveys on first load ----------
 function seedSurveysIfEmpty() {
   const existing = readStore(STORE_SURVEYS, null);
   if (Array.isArray(existing) && existing.length > 0) return;
@@ -78,22 +77,22 @@ function seedSurveysIfEmpty() {
   const seeds = [
     {
       id: uid('sur'),
-      title: 'Digital ID Public Feedback (Demo)',
+      title: 'Digital ID Public Feedback',
       category: 'Public Policy',
-      description: 'Share your views on the proposed national digital identity system and how it may impact everyday Kenyans. This is a demo entry — the admin should delete it and add a real survey link.',
+      description: 'Share your views on the proposed national digital identity system and how it may impact everyday Kenyans.',
       estimated_minutes: 5,
       duration: '5 mins',
       status: 'published',
       survey_url: DEMO_URL,
       eligibility: 'Kenyan residents aged 18+.',
-      instructions: 'Answer all questions honestly. Your responses are anonymous.',
+      instructions: 'Answer all questions honestly. Responses are anonymous.',
       created_at: now - 300000
     },
     {
       id: uid('sur'),
-      title: 'Mobile Money Usage Study (Demo)',
+      title: 'Mobile Money Usage Study',
       category: 'Finance',
-      description: 'Help us understand how Kenyans use mobile money platforms for daily transactions, savings and small business. This is a demo entry — the admin should delete it and add a real survey link.',
+      description: 'Help us understand how Kenyans use mobile money platforms for daily transactions, savings, and small business.',
       estimated_minutes: 7,
       duration: '7 mins',
       status: 'published',
@@ -104,9 +103,9 @@ function seedSurveysIfEmpty() {
     },
     {
       id: uid('sur'),
-      title: 'Matatu Commuter Experience (Demo)',
+      title: 'Matatu Commuter Experience',
       category: 'Transport',
-      description: 'Rate your experience with matatus, fares, safety and route coverage in Nairobi and other towns. This is a demo entry — the admin should delete it and add a real survey link.',
+      description: 'Rate your experience with matatus, fares, safety, and route coverage in Nairobi and other towns.',
       estimated_minutes: 6,
       duration: '6 mins',
       status: 'published',
@@ -116,11 +115,9 @@ function seedSurveysIfEmpty() {
       created_at: now - 100000
     }
   ];
-
   writeStore(STORE_SURVEYS, seeds);
 }
 
-// ---------- Session ----------
 function restoreSession() {
   const session = readStore(STORE_SESSION, null);
   if (session && session.userId) {
@@ -136,7 +133,6 @@ function restoreSession() {
   updateAuthUI();
 }
 
-// ---------- Boot ----------
 document.addEventListener('DOMContentLoaded', function() {
   migrateBrokenSeedUrls();
   seedSurveysIfEmpty();
@@ -188,7 +184,6 @@ function fetchAndRenderSurveys() {
     }).sort(function(a, b) {
       return (b.created_at || 0) - (a.created_at || 0);
     });
-
     renderHomeSurveys();
     renderDirectorySurveys();
   } catch (e) {
@@ -214,19 +209,15 @@ function renderHomeSurveys() {
 
   container.innerHTML = surveysCache.slice(0, 3).map(function(s) {
     return `
-      <div class="survey-card compact">
+      <div class="survey-card">
         <div class="card-top">
           <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
           <span class="status-chip">Active</span>
         </div>
-        <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
         <h3>${escapeHtml(s.title)}</h3>
         <p class="clamp">${escapeHtml(s.description || '')}</p>
-        <div class="meta-row">
-          <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
-        </div>
         <div class="card-bottom">
-          <span class="small-note">Verified Survey</span>
+          <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
           <button class="card-link" onclick="navigate('detail', '${s.id}')">Participate &rarr;</button>
         </div>
       </div>
@@ -253,19 +244,15 @@ function renderDirectorySurveys() {
 
   container.innerHTML = list.map(function(s) {
     return `
-      <div class="survey-card compact">
+      <div class="survey-card">
         <div class="card-top">
           <span class="cat-chip">${escapeHtml(s.category || 'General')}</span>
           <span class="status-chip">Active</span>
         </div>
-        <div class="mini-icon"><svg><use href="#i-book"/></svg></div>
         <h3>${escapeHtml(s.title)}</h3>
         <p class="clamp">${escapeHtml(s.description || '')}</p>
-        <div class="meta-row">
-          <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
-        </div>
         <div class="card-bottom">
-          <span class="small-note">Open opportunity</span>
+          <span class="meta-chip"><svg><use href="#i-clock"/></svg> ${escapeHtml(s.estimated_minutes || s.duration || '5')} mins</span>
           <button class="card-link" onclick="navigate('detail', '${s.id}')">View Details &rarr;</button>
         </div>
       </div>
@@ -302,37 +289,35 @@ function renderSurveyDetail(id) {
   }
 
   const isDemo = survey.survey_url === DEMO_URL;
-
   const demoNotice = isDemo ? `
     <div class="notice show info" style="margin-bottom: 12px;">
-      <strong>Demo survey:</strong> This survey uses a placeholder link. The admin should delete it and create a real survey with a working Google Forms URL.
+      <strong>Demo survey:</strong> This is a placeholder link. The admin should delete it and add a real Google Forms link.
     </div>
   ` : '';
 
   const eligibilityHTML = survey.eligibility ? `
     <div class="detail-section">
-      <h3>Eligibility Requirements</h3>
+      <h3>Eligibility</h3>
       <p class="detail-text">${escapeHtml(survey.eligibility)}</p>
     </div>
   ` : '';
 
   const instructionsHTML = survey.instructions ? `
     <div class="detail-section">
-      <h3>Participation Instructions</h3>
+      <h3>Instructions</h3>
       <p class="detail-text">${escapeHtml(survey.instructions)}</p>
     </div>
   ` : '';
 
   container.innerHTML = `
     <div class="detail-card">
-      <div class="card-top" style="margin-bottom:12px;">
+      <div class="card-top" style="margin-bottom:14px;">
         <span class="cat-chip">${escapeHtml(survey.category || 'General')}</span>
         <span class="status-chip">Active</span>
       </div>
-      <div class="mini-icon" style="margin-bottom: 14px;"><svg><use href="#i-book"/></svg></div>
       <h1>${escapeHtml(survey.title)}</h1>
 
-      <div class="meta-row" style="margin-bottom: 16px;">
+      <div class="meta-row" style="display: flex; gap: 8px; margin-bottom: 18px;">
         <span class="meta-chip"><svg><use href="#i-clock"/></svg> Est. ${escapeHtml(survey.estimated_minutes || survey.duration || '5')} mins</span>
       </div>
 
@@ -342,16 +327,16 @@ function renderSurveyDetail(id) {
       ${instructionsHTML}
 
       <div class="participate-box">
-        <h3>External Survey Participation</h3>
-        <p>This survey is hosted securely on an external research platform. Click below to begin your participation. We will record your session status upon entry.</p>
+        <h3>Take the Survey</h3>
+        <p>This survey is hosted on a trusted external platform. Click below to begin — your participation will be tracked.</p>
 
         ${demoNotice}
 
         <div id="participate-notice" class="notice"></div>
 
-        <div class="btn-row" style="margin-top: 14px;">
+        <div class="btn-row">
           <button class="btn btn-primary" onclick="startExternalSurvey('${survey.id}')">
-            Proceed to External Survey <svg><use href="#i-external"/></svg>
+            Proceed to Survey <svg><use href="#i-external"/></svg>
           </button>
         </div>
       </div>
@@ -396,7 +381,7 @@ async function startExternalSurvey(surveyId) {
       writeStore(STORE_PARTICIPATIONS, parts);
     }
 
-    showToast('Participation recorded. Redirecting to survey...');
+    showToast('Participation recorded. Redirecting...');
     setTimeout(function() {
       window.open(survey.survey_url, '_blank', 'noopener,noreferrer');
     }, 700);
@@ -430,7 +415,7 @@ async function loadAdminSurveysTable() {
   });
 
   if (all.length === 0) {
-    wrap.innerHTML = '<p style="font-size:12px; color:var(--muted);">No surveys found. Create one above, or click <strong>Reset All Data</strong> to reseed demos.</p>';
+    wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted);">No surveys found. Create one above.</p>';
     return;
   }
 
@@ -477,7 +462,7 @@ async function loadAdminParticipationsTable() {
   const allSurveys = readStore(STORE_SURVEYS, []);
 
   if (parts.length === 0) {
-    wrap.innerHTML = '<p style="font-size:12px; color:var(--muted);">No participation records found yet.</p>';
+    wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted);">No participation records found yet.</p>';
     return;
   }
 
@@ -487,9 +472,9 @@ async function loadAdminParticipationsTable() {
         <thead>
           <tr>
             <th>Survey</th>
-            <th>Participant Status</th>
-            <th>Submission Date</th>
-            <th>Review Status</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Review</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -519,9 +504,7 @@ async function loadAdminParticipationsTable() {
 
 async function reviewParticipation(participationId, decision) {
   try {
-    if (decision !== 'approved' && decision !== 'rejected') {
-      throw new Error('Invalid decision.');
-    }
+    if (decision !== 'approved' && decision !== 'rejected') throw new Error('Invalid decision.');
     const parts = readStore(STORE_PARTICIPATIONS, []);
     const idx = parts.findIndex(function(p) { return p.id === participationId; });
     if (idx === -1) throw new Error('Participation not found.');
@@ -554,18 +537,10 @@ async function handleCreateSurvey(e) {
   noticeEl.className = 'notice';
 
   try {
-    if (!title || !description) {
-      throw new Error('Title and description are required.');
-    }
-    if (!survey_url.startsWith('https://')) {
-      throw new Error('Survey URL must be a valid secure HTTPS destination.');
-    }
-    if (survey_url.indexOf('forms.gle/example') !== -1) {
-      throw new Error('That link is a demo placeholder. Please paste a real Google Forms URL.');
-    }
-    if (isNaN(estimated_minutes) || estimated_minutes <= 0) {
-      throw new Error('Estimated duration must be a positive number of minutes.');
-    }
+    if (!title || !description) throw new Error('Title and description are required.');
+    if (!survey_url.startsWith('https://')) throw new Error('Survey URL must be HTTPS.');
+    if (survey_url.indexOf('forms.gle/example') !== -1) throw new Error('That link is a demo placeholder. Paste a real Google Forms URL.');
+    if (isNaN(estimated_minutes) || estimated_minutes <= 0) throw new Error('Duration must be a positive number.');
 
     const all = readStore(STORE_SURVEYS, []);
     all.push({
@@ -584,15 +559,15 @@ async function handleCreateSurvey(e) {
     writeStore(STORE_SURVEYS, all);
 
     noticeEl.className = 'notice show success';
-    noticeEl.textContent = 'Survey successfully created and saved locally!';
-    showToast('Survey published successfully.');
+    noticeEl.textContent = 'Survey created successfully!';
+    showToast('Survey published.');
 
     e.target.reset();
     fetchAndRenderSurveys();
     await loadAdminSurveysTable();
   } catch (err) {
     noticeEl.className = 'notice show error';
-    noticeEl.textContent = 'Error creating survey: ' + err.message;
+    noticeEl.textContent = 'Error: ' + err.message;
   } finally {
     submitBtn.disabled = false;
   }
@@ -609,7 +584,7 @@ async function toggleSurveyStatus(surveyId, newStatus) {
     fetchAndRenderSurveys();
     await loadAdminSurveysTable();
   } catch (e) {
-    showToast('Failed to update status: ' + e.message);
+    showToast('Failed: ' + e.message);
   }
 }
 
@@ -617,9 +592,9 @@ async function deleteSurvey(surveyId) {
   if (!confirm('Delete this survey? This cannot be undone.')) return;
   try {
     let all = readStore(STORE_SURVEYS, []);
-    const lenBefore = all.length;
+    const before = all.length;
     all = all.filter(function(s) { return s.id !== surveyId; });
-    if (all.length === lenBefore) throw new Error('Survey not found.');
+    if (all.length === before) throw new Error('Survey not found.');
     writeStore(STORE_SURVEYS, all);
 
     let parts = readStore(STORE_PARTICIPATIONS, []);
@@ -635,16 +610,6 @@ async function deleteSurvey(surveyId) {
   }
 }
 
-function resetAllData() {
-  if (!confirm('This will delete ALL users, surveys, and participations from this browser. Continue?')) return;
-  localStorage.removeItem(STORE_USERS);
-  localStorage.removeItem(STORE_SESSION);
-  localStorage.removeItem(STORE_SURVEYS);
-  localStorage.removeItem(STORE_PARTICIPATIONS);
-  showToast('All data cleared. Reloading...');
-  setTimeout(function() { location.reload(); }, 700);
-}
-
 // ---------- Auth ----------
 function openAuth(mode) {
   document.getElementById('auth-overlay').classList.add('open');
@@ -657,9 +622,7 @@ function closeAuth() {
 }
 
 function handleOverlayClick(event) {
-  if (event.target === document.getElementById('auth-overlay')) {
-    closeAuth();
-  }
+  if (event.target === document.getElementById('auth-overlay')) closeAuth();
 }
 
 function switchAuthMode(mode) {
@@ -697,27 +660,16 @@ async function submitSignIn(e) {
   clearAuthNotices();
 
   try {
-    if (!email || !password) {
-      throw new Error('Please enter your email and password.');
-    }
+    if (!email || !password) throw new Error('Please enter your email and password.');
 
     const users = readStore(STORE_USERS, []);
     const user = users.find(function(u) { return u.email.toLowerCase() === email; });
-
-    if (!user) {
-      throw new Error('No account found with this email. Please register first.');
-    }
+    if (!user) throw new Error('No account found. Please register first.');
 
     const passwordHash = await hashPassword(password);
-    if (user.passwordHash !== passwordHash) {
-      throw new Error('Incorrect password. Please try again.');
-    }
+    if (user.passwordHash !== passwordHash) throw new Error('Incorrect password.');
 
-    currentUser = {
-      id: user.id,
-      email: user.email,
-      name: user.name || user.email.split('@')[0]
-    };
+    currentUser = { id: user.id, email: user.email, name: user.name || user.email.split('@')[0] };
     isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
     writeStore(STORE_SESSION, { userId: user.id });
 
@@ -744,19 +696,13 @@ async function submitSignUp(e) {
   clearAuthNotices();
 
   try {
-    if (!name || name.length < 2) {
-      throw new Error('Please enter your full name.');
-    }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      throw new Error('Please enter a valid email address.');
-    }
-    if (!password || password.length < 6) {
-      throw new Error('Password must be at least 6 characters.');
-    }
+    if (!name || name.length < 2) throw new Error('Please enter your full name.');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Please enter a valid email.');
+    if (!password || password.length < 6) throw new Error('Password must be at least 6 characters.');
 
     const users = readStore(STORE_USERS, []);
     if (users.some(function(u) { return u.email.toLowerCase() === email; })) {
-      throw new Error('An account with this email already exists. Please sign in instead.');
+      throw new Error('Account with this email already exists. Sign in instead.');
     }
 
     const passwordHash = await hashPassword(password);
@@ -787,7 +733,7 @@ async function submitSignUp(e) {
 }
 
 async function submitPasswordReset() {
-  showNotice('Local-only mode: password reset is not available because there is no email server. Please remember your password, or register a new account with a different email.', 'info');
+  showNotice('Local-only mode: password reset is not available. Please remember your password, or register with a different email.', 'info');
 }
 
 async function signOut() {
@@ -796,7 +742,7 @@ async function signOut() {
   isAdmin = false;
   updateAuthUI();
   navigate('home');
-  showToast('Signed out successfully.');
+  showToast('Signed out.');
 }
 
 function updateAuthUI() {
@@ -811,7 +757,6 @@ function updateAuthUI() {
     userActions.classList.remove('hidden');
     userActions.style.display = 'flex';
     greeting.textContent = 'Hi, ' + (currentUser.name || currentUser.email.split('@')[0]);
-
     if (isAdmin) adminLink.classList.remove('hidden');
     else adminLink.classList.add('hidden');
   } else {
@@ -838,7 +783,5 @@ function showToast(message) {
   const t = document.getElementById('toast');
   t.textContent = message;
   t.classList.add('show');
-  setTimeout(function() {
-    t.classList.remove('show');
-  }, 3500);
+  setTimeout(function() { t.classList.remove('show'); }, 3500);
 }
