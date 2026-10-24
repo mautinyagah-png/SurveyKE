@@ -4,27 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#087f5b" />
-  <meta name="description" content="SurveyKE — Share your opinions, help shape better services, and discover upcoming survey opportunities in Kenya." />
+  <meta name="description" content="SurveyKE — Share your opinions, help shape better services." />
   <title>SurveyKE — Your Voice Matters</title>
-
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzA4N2Y1YiIgcng9IjMyIi8+PHBhdGggZD0iTTE0MCA0NGMtNTYgMC05OCAyMS05OCA3MGE0MiA0MiAwIDAgMCA0MiA0MmM0OSAwIDU2LTU2IDU2LTExMloiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNMzIgMTYwYzE0LTM1IDQyLTYzIDg0LTg0IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+" />
-
-  <script>
-    (function () {
-      try {
-        var t = localStorage.getItem('surveyke_theme');
-        if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', t);
-      } catch (e) {}
-    })();
-  </script>
-
+  <script>(function(){try{var t=localStorage.getItem('surveyke_theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
-
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
 </head>
 <body class="booting">
@@ -62,13 +49,9 @@
     <symbol id="i-zap" viewBox="0 0 24 24"><path d="m13 2-3 8h7L8 22l3-9H4l9-11Z"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
-    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
-    <symbol id="i-fire" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
-    <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></symbol>
     <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
-    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
-    <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></symbol>
-    <symbol id="i-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+    <symbol id="i-coins" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></symbol>
   </svg>
 
   <div id="app-loading" class="app-loading">
@@ -88,9 +71,7 @@
     </div>
   </div>
 
-  <div class="announcement">
-    🇰🇪 <strong>SurveyKE is live!</strong> Shape future services, products, and policies across Kenya.
-  </div>
+  <div class="announcement">🇰🇪 <strong>SurveyKE is live!</strong> Shape future services, products, and policies across Kenya.</div>
 
   <header>
     <div class="container nav">
@@ -108,17 +89,9 @@
         <a id="nav-admin-link" href="#" class="hidden" onclick="navigate('admin'); return false;">Admin</a>
       </nav>
       <div class="nav-actions">
-        <button id="install-btn" class="header-bell hidden" onclick="installPWA()" aria-label="Install App" title="Install App">
-          <svg><use href="#i-download"/></svg>
-        </button>
-        <button class="header-bell" id="header-bell" onclick="navigate('notifications')" aria-label="Notifications">
-          <svg><use href="#i-bell"/></svg>
-          <span class="header-bell-badge hidden" id="header-bell-badge">0</span>
-        </button>
-        <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-          <svg class="icon-moon"><use href="#i-moon"/></svg>
-          <svg class="icon-sun"><use href="#i-sun"/></svg>
-        </button>
+        <button id="install-btn" class="header-bell hidden" onclick="installPWA()" aria-label="Install App" title="Install App"><svg><use href="#i-download"/></svg></button>
+        <button class="header-bell" id="header-bell" onclick="navigate('notifications')" aria-label="Notifications"><svg><use href="#i-bell"/></svg><span class="header-bell-badge hidden" id="header-bell-badge">0</span></button>
+        <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><svg class="icon-moon"><use href="#i-moon"/></svg><svg class="icon-sun"><use href="#i-sun"/></svg></button>
         <div id="auth-guest-actions">
           <button class="btn btn-outline" onclick="openAuth('signin')">Sign In</button>
           <button class="btn btn-primary" onclick="openAuth('signup')">Register</button>
@@ -137,63 +110,35 @@
         <div class="container hero-inner">
           <span class="hero-badge">🇰🇪 Kenya's Opinion Hub</span>
           <h1>Share your voice.<br><span class="accent">Shape Kenya's future.</span></h1>
-          <p class="hero-sub">Trusted surveys from public and private organizations. Every response helps build better services, products, and policies.</p>
+          <p class="hero-sub">Trusted surveys from public and private organizations.</p>
           <div class="hero-cta">
             <button class="btn btn-primary btn-lg" onclick="navigate('surveys')">Browse Surveys <svg><use href="#i-arrow"/></svg></button>
             <button class="btn btn-outline btn-lg" onclick="openAuth('signup')">Create Account</button>
           </div>
-          <div class="hero-trust">
-            <span>100% Confidential</span><span>Verified Insights</span><span>Free to Join</span>
-          </div>
+          <div class="hero-trust"><span>100% Confidential</span><span>Verified Insights</span><span>Free to Join</span></div>
         </div>
       </section>
-
+      <section class="section"><div class="container"><div id="survey-of-day-container"></div></div></section>
       <section class="section">
         <div class="container">
-          <div id="survey-of-day-container"></div>
+          <div class="section-head-center"><span class="eyebrow">Open Polls</span><h2>Featured Surveys</h2><p>Explore current surveys open to participants across Kenya.</p></div>
+          <div id="home-surveys-grid" class="survey-grid"><div class="skeleton-card" style="grid-column:1/-1;"><div class="skeleton" style="height:180px;"></div></div></div>
+          <div class="center-cta"><button class="btn btn-primary" onclick="navigate('surveys')">More Surveys <svg><use href="#i-arrow"/></svg></button></div>
         </div>
       </section>
-
-      <section class="section">
-        <div class="container">
-          <div class="section-head-center">
-            <span class="eyebrow">Open Polls</span>
-            <h2>Featured Surveys</h2>
-            <p>Explore current surveys open to participants across Kenya.</p>
-          </div>
-          <div id="home-surveys-grid" class="survey-grid">
-            <div class="skeleton-card" style="grid-column: 1 / -1;"><div class="skeleton" style="height: 180px;"></div></div>
-          </div>
-          <div class="center-cta">
-            <button class="btn btn-primary" onclick="navigate('surveys')">More Surveys <svg><use href="#i-arrow"/></svg></button>
-          </div>
-        </div>
-      </section>
-
       <section class="section soft">
         <div class="container">
-          <div class="section-head-center">
-            <span class="eyebrow">How It Works</span>
-            <h2>Three simple steps</h2>
-            <p>From browsing to impact — participating takes just a few minutes.</p>
-          </div>
+          <div class="section-head-center"><span class="eyebrow">How It Works</span><h2>Three simple steps</h2><p>From browsing to impact — takes just minutes.</p></div>
           <div class="steps-grid">
-            <div class="step-card"><div class="step-num">1</div><h3>Browse &amp; Choose</h3><p>Pick from verified surveys on policy, technology, finance, transport, and more.</p></div>
-            <div class="step-card"><div class="step-num">2</div><h3>Share Your View</h3><p>Answer honestly on trusted platforms. Your identity stays private.</p></div>
-            <div class="step-card"><div class="step-num">3</div><h3>Earn &amp; Impact</h3><p>Get rewarded for your time while helping shape Kenya's future.</p></div>
+            <div class="step-card"><div class="step-num">1</div><h3>Browse &amp; Choose</h3><p>Pick from verified surveys on policy, tech, finance and more.</p></div>
+            <div class="step-card"><div class="step-num">2</div><h3>Share Your View</h3><p>Answer honestly on trusted platforms.</p></div>
+            <div class="step-card"><div class="step-num">3</div><h3>Earn &amp; Impact</h3><p>Get rewarded while shaping Kenya's future.</p></div>
           </div>
         </div>
       </section>
-
       <section class="section">
         <div class="container">
-          <div class="cta-banner">
-            <div>
-              <h2>Every voice matters.</h2>
-              <p>Join thousands of Kenyans sharing their perspective to build a more responsive society.</p>
-            </div>
-            <button class="btn btn-light btn-lg" onclick="openAuth('signup')">Get Started</button>
-          </div>
+          <div class="cta-banner"><div><h2>Every voice matters.</h2><p>Join thousands of Kenyans sharing their perspective.</p></div><button class="btn btn-light btn-lg" onclick="openAuth('signup')">Get Started</button></div>
         </div>
       </section>
     </div>
@@ -201,60 +146,26 @@
     <div id="view-surveys" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back</a>
-        <div class="section-head-row">
-          <div>
-            <span class="eyebrow">Directory</span>
-            <h2>All Published Surveys</h2>
-            <p>Browse surveys by plan tier and category.</p>
-          </div>
-        </div>
-
+        <div class="section-head-row"><div><span class="eyebrow">Directory</span><h2>All Published Surveys</h2><p>Browse surveys by plan tier and category.</p></div></div>
         <div id="surveys-plan-banner"></div>
         <div id="surveys-tier-banners"></div>
-
-        <div class="search-wrap">
-          <div class="search-bar">
-            <svg><use href="#i-search"/></svg>
-            <input type="text" id="surveys-search" placeholder="Search surveys by title or keyword..." oninput="onSurveySearch(this.value)">
-            <button class="search-clear hidden" id="search-clear-btn" onclick="clearSurveySearch()"><svg><use href="#i-x"/></svg></button>
-          </div>
-        </div>
-
-        <div class="filter-row">
-          <div class="topic-chips" id="directory-topic-chips">
-            <button class="topic-chip active" onclick="filterDirectoryTopic('All')">All</button>
-            <button class="topic-chip" onclick="filterDirectoryTopic('Public Policy')">Public Policy</button>
-            <button class="topic-chip" onclick="filterDirectoryTopic('Technology')">Technology</button>
-            <button class="topic-chip" onclick="filterDirectoryTopic('Consumer Goods')">Consumer Goods</button>
-            <button class="topic-chip" onclick="filterDirectoryTopic('Finance')">Finance</button>
-            <button class="topic-chip" onclick="filterDirectoryTopic('Transport')">Transport</button>
-            <button class="topic-chip" onclick="filterDirectoryTopic('Health')">Health</button>
-            <button class="topic-chip" onclick="filterDirectoryTopic('Other')">Other</button>
-          </div>
-        </div>
-
-        <div id="directory-surveys-grid" class="survey-grid">
-          <div class="skeleton-card" style="grid-column: 1 / -1;"><div class="skeleton" style="height: 180px;"></div></div>
-        </div>
+        <div class="search-wrap"><div class="search-bar"><svg><use href="#i-search"/></svg><input type="text" id="surveys-search" placeholder="Search surveys..." oninput="onSurveySearch(this.value)"><button class="search-clear hidden" id="search-clear-btn" onclick="clearSurveySearch()"><svg><use href="#i-x"/></svg></button></div></div>
+        <div class="filter-row"><div class="topic-chips" id="directory-topic-chips">
+          <button class="topic-chip active" onclick="filterDirectoryTopic('All')">All</button>
+          <button class="topic-chip" onclick="filterDirectoryTopic('Public Policy')">Public Policy</button>
+          <button class="topic-chip" onclick="filterDirectoryTopic('Technology')">Technology</button>
+          <button class="topic-chip" onclick="filterDirectoryTopic('Consumer Goods')">Consumer Goods</button>
+          <button class="topic-chip" onclick="filterDirectoryTopic('Finance')">Finance</button>
+          <button class="topic-chip" onclick="filterDirectoryTopic('Transport')">Transport</button>
+          <button class="topic-chip" onclick="filterDirectoryTopic('Health')">Health</button>
+          <button class="topic-chip" onclick="filterDirectoryTopic('Other')">Other</button>
+        </div></div>
+        <div id="directory-surveys-grid" class="survey-grid"><div class="skeleton-card" style="grid-column:1/-1;"><div class="skeleton" style="height:180px;"></div></div></div>
       </div>
     </div>
 
-    <div id="view-detail" class="hidden">
-      <div class="container section">
-        <div class="detail-wrap">
-          <a href="#" class="back-link" onclick="navigate('surveys'); return false;"><svg><use href="#i-arrow"/></svg> Back to Surveys</a>
-          <div id="survey-detail-content"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="view-take-survey" class="hidden">
-      <div class="container section">
-        <a href="#" class="back-link" onclick="exitWizard(); return false;"><svg><use href="#i-arrow"/></svg> Save &amp; Exit</a>
-        <div id="take-survey-content"></div>
-      </div>
-    </div>
-
+    <div id="view-detail" class="hidden"><div class="container section"><div class="detail-wrap"><a href="#" class="back-link" onclick="navigate('surveys'); return false;"><svg><use href="#i-arrow"/></svg> Back to Surveys</a><div id="survey-detail-content"></div></div></div></div>
+    <div id="view-take-survey" class="hidden"><div class="container section"><a href="#" class="back-link" onclick="exitWizard(); return false;"><svg><use href="#i-arrow"/></svg> Save &amp; Exit</a><div id="take-survey-content"></div></div></div>
     <div id="view-wallet" class="hidden"><div class="container section"><div id="wallet-content"></div></div></div>
     <div id="view-history" class="hidden"><div class="container section"><div id="history-content"></div></div></div>
     <div id="view-notifications" class="hidden"><div class="container section"><div id="notifications-content"></div></div></div>
@@ -265,17 +176,8 @@
     <div id="view-admin" class="hidden">
       <div class="container section">
         <a href="#" class="back-link" onclick="navigate('home'); return false;"><svg><use href="#i-arrow"/></svg> Back</a>
-        <div class="section-head-row">
-          <div>
-            <span class="eyebrow">Admin Portal</span>
-            <h2>Survey Management</h2>
-            <p>Manage surveys, review participation, and monitor platform activity.</p>
-          </div>
-        </div>
-        <div id="admin-unauthorized" class="state-box hidden">
-          <strong>Access Restricted</strong>
-          <p>You are signed in, but your account does not have administrator privileges.</p>
-        </div>
+        <div class="section-head-row"><div><span class="eyebrow">Admin Portal</span><h2>Survey Management</h2><p>Manage surveys, review participation, monitor activity.</p></div></div>
+        <div id="admin-unauthorized" class="state-box hidden"><strong>Access Restricted</strong><p>You don't have admin privileges.</p></div>
         <div id="admin-authorized" class="hidden">
           <div class="admin-subtabs" id="admin-subtabs">
             <button class="admin-subtab active" data-section="add" onclick="switchAdminSection('add')"><svg><use href="#i-plus"/></svg><span>Add Survey</span></button>
@@ -288,72 +190,54 @@
           <div id="admin-section-add" class="admin-section">
             <div class="admin-panel-card">
               <h3>Add New Survey</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create an external or internal survey.</p>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create external or internal survey.</p>
               <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
-                <div class="field">
-                  <label>Survey Type *</label>
-                  <div class="admin-type-toggle">
-                    <button type="button" class="admin-type-btn active" data-type="external" onclick="setAdminSurveyType('external')">🔗 External Link</button>
-                    <button type="button" class="admin-type-btn" data-type="internal" onclick="setAdminSurveyType('internal')">📝 Internal Survey</button>
-                  </div>
+                <div class="field"><label>Survey Type *</label><div class="admin-type-toggle"><button type="button" class="admin-type-btn active" data-type="external" onclick="setAdminSurveyType('external')">🔗 External</button><button type="button" class="admin-type-btn" data-type="internal" onclick="setAdminSurveyType('internal')">📝 Internal</button></div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                  <div class="field"><label>Title *</label><input type="text" id="admin-title" placeholder="e.g. National Digital ID" required></div>
+                  <div class="field"><label>Category *</label><select id="admin-category" style="padding-left:13px;" required><option value="Public Policy">Public Policy</option><option value="Technology">Technology</option><option value="Finance">Finance</option><option value="Consumer Goods">Consumer Goods</option><option value="Transport">Transport</option><option value="Health">Health</option><option value="Other">Other</option></select></div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                  <div class="field"><label>Survey Title *</label><input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required></div>
-                  <div class="field"><label>Category *</label>
-                    <select id="admin-category" style="padding-left: 13px;" required>
-                      <option value="Public Policy">Public Policy</option><option value="Technology">Technology</option><option value="Finance">Finance</option><option value="Consumer Goods">Consumer Goods</option><option value="Transport">Transport</option><option value="Health">Health</option><option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="field"><label>Description *</label><textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea></div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px;">
-                  <div class="field"><label>Duration (mins) *</label><input type="number" id="admin-duration" placeholder="5" min="1" required></div>
-                  <div class="field"><label>Reward (KSh) *</label><input type="number" id="admin-reward" placeholder="20" min="1" required></div>
-                  <div class="field"><label>Tier *</label>
-                    <select id="admin-tier" style="padding-left: 13px;" required><option value="basic">Basic</option><option value="silver">Silver</option><option value="gold">Gold</option><option value="platinum">Platinum</option></select>
-                  </div>
-                  <div class="field"><label>Status *</label>
-                    <select id="admin-status" style="padding-left: 13px;" required><option value="published">Published</option><option value="draft">Draft</option><option value="closed">Closed</option></select>
-                  </div>
+                <div class="field"><label>Description *</label><textarea id="admin-description" required></textarea></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;">
+                  <div class="field"><label>Duration (mins) *</label><input type="number" id="admin-duration" min="1" required></div>
+                  <div class="field"><label>Reward (KSh) *</label><input type="number" id="admin-reward" min="1" required></div>
+                  <div class="field"><label>Tier *</label><select id="admin-tier" style="padding-left:13px;" required><option value="basic">Basic</option><option value="silver">Silver</option><option value="gold">Gold</option><option value="platinum">Platinum</option></select></div>
+                  <div class="field"><label>Status *</label><select id="admin-status" style="padding-left:13px;" required><option value="published">Published</option><option value="draft">Draft</option><option value="closed">Closed</option></select></div>
                 </div>
                 <div id="admin-external-fields"><div class="field"><label>Survey URL (HTTPS) *</label><input type="url" id="admin-url" placeholder="https://forms.gle/..." required></div></div>
-                <div id="admin-internal-fields" class="hidden">
-                  <div class="field">
-                    <label>Questions *</label>
-                    <div id="admin-questions-list"></div>
-                    <button type="button" class="qb-add-question" onclick="addAdminQuestion()">+ Add Question</button>
-                  </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                  <div class="field"><label>Eligibility (Optional)</label><textarea id="admin-eligibility" placeholder="Who can participate..." style="min-height: 60px;"></textarea></div>
-                  <div class="field"><label>Instructions (Optional)</label><textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea></div>
+                <div id="admin-internal-fields" class="hidden"><div class="field"><label>Questions *</label><div id="admin-questions-list"></div><button type="button" class="qb-add-question" onclick="addAdminQuestion()">+ Add Question</button></div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                  <div class="field"><label>Eligibility</label><textarea id="admin-eligibility" style="min-height:60px;"></textarea></div>
+                  <div class="field"><label>Instructions</label><textarea id="admin-instructions" style="min-height:60px;"></textarea></div>
                 </div>
                 <div id="admin-create-notice" class="notice"></div>
-                <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey</button>
+                <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top:10px;">Publish Survey</button>
               </form>
             </div>
           </div>
 
           <div id="admin-section-manage" class="admin-section hidden">
             <div class="admin-panel-card">
-              <h3>Manage Existing Surveys</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Close, publish, or delete surveys. <button class="admin-act-btn admin-act-view" onclick="exportCSV()" style="float:right;">📥 Export CSV</button></p>
-              <div id="admin-surveys-list-wrap"><div class="skeleton" style="height: 200px; margin-top: 12px;"></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                <div><h3 style="margin:0;">Manage Surveys</h3><p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Close, publish, or delete</p></div>
+                <button class="admin-act-btn admin-act-view" onclick="exportCSV()">📥 Export CSV</button>
+              </div>
+              <div id="admin-surveys-list-wrap"><div class="skeleton" style="height:200px;"></div></div>
             </div>
           </div>
 
           <div id="admin-section-review" class="admin-section hidden">
             <div class="admin-panel-card">
               <h3>Participation Review</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Review submissions by user. Click a user to see full profile.</p>
-              <div id="admin-participations-wrap"><div class="skeleton" style="height: 200px; margin-top: 12px;"></div></div>
+              <p style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Click user name to view full profile</p>
+              <div id="admin-participations-wrap"><div class="skeleton" style="height:200px;"></div></div>
             </div>
           </div>
 
           <div id="admin-section-withdrawals" class="admin-section hidden">
             <div class="admin-panel-card">
               <h3>Withdrawal Requests</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Approve and process user withdrawals.</p>
+              <p style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Approve M-Pesa and USDT BEP20 payouts</p>
               <div id="admin-withdrawals-wrap"></div>
             </div>
           </div>
@@ -361,9 +245,9 @@
           <div id="admin-section-promos" class="admin-section hidden">
             <div class="admin-panel-card">
               <h3>Promo Codes</h3>
-              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Create bonus codes users can redeem.</p>
+              <p style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Create bonus codes for users</p>
               <div class="promo-create-row">
-                <input type="text" id="promo-code-input" placeholder="CODE" maxlength="15" style="text-transform: uppercase;">
+                <input type="text" id="promo-code-input" placeholder="CODE" maxlength="15" style="text-transform:uppercase;">
                 <input type="number" id="promo-amount-input" placeholder="KSh" min="1" max="1000">
                 <input type="number" id="promo-maxuses-input" placeholder="Max uses" min="1" value="100">
                 <button class="btn btn-primary btn-sm" onclick="createPromo()">Create</button>
@@ -379,11 +263,8 @@
   <footer id="footer">
     <div class="container footer-compact">
       <div>
-        <a href="#" class="brand" onclick="navigate('home'); return false;">
-          <div class="brand-mark"><svg><use href="#i-leaf"/></svg></div>
-          <span>Survey<span>KE</span></span>
-        </a>
-        <p class="footer-about">Connecting Kenyan citizens with researchers, policymakers, and brands through secure, transparent opinion polling.</p>
+        <a href="#" class="brand" onclick="navigate('home'); return false;"><div class="brand-mark"><svg><use href="#i-leaf"/></svg></div><span>Survey<span>KE</span></span></a>
+        <p class="footer-about">Connecting Kenyan citizens with researchers, policymakers, and brands.</p>
       </div>
       <div>
         <div class="footer-title">Reach us</div>
@@ -399,7 +280,7 @@
         <div class="footer-title">Quick Links</div>
         <div class="footer-links">
           <button onclick="navigate('home')">Home</button>
-          <button onclick="navigate('surveys')">All Surveys</button>
+          <button onclick="navigate('surveys')">Surveys</button>
           <button onclick="navigate('wallet')">Wallet</button>
           <button onclick="navigate('history')">History</button>
           <button onclick="navigate('notifications')">Notifications</button>
@@ -411,7 +292,7 @@
       </div>
     </div>
     <div class="container footer-bottom">
-      <div>&copy; 2026 SurveyKE. All rights reserved. Built for Kenya.</div>
+      <div>&copy; 2026 SurveyKE. All rights reserved.</div>
       <div>Made with ❤️ for Kenya</div>
     </div>
   </footer>
@@ -424,18 +305,47 @@
     <button class="bottom-nav-item" data-tab="profile" onclick="navigate('profile')"><svg><use href="#i-user"/></svg><span>Profile</span></button>
   </nav>
 
-  <!-- Withdrawal Modal -->
+  <!-- ============ WITHDRAWAL MODAL (M-Pesa / USDT BEP20) ============ -->
   <div id="withdrawal-overlay" class="modal-overlay" onclick="handleWithdrawalOverlayClick(event)">
     <div class="modal-box">
       <button class="modal-close" onclick="closeWithdrawalModal()"><svg><use href="#i-x"/></svg></button>
       <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Request Withdrawal</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Money will be sent to your M-Pesa number within 24-48 hours.</p>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Choose your payout method. Requests process within 24-48 hours.</p>
+
       <div class="field">
-        <label>M-Pesa Number *</label>
-        <div class="input-wrap"><svg><use href="#i-mail"/></svg>
-          <input type="tel" id="withdraw-phone" placeholder="e.g. 0712345678" maxlength="13" required>
+        <label>Withdrawal Method *</label>
+        <div class="method-toggle">
+          <button type="button" class="method-btn active" data-method="mpesa" onclick="selectWithdrawMethod('mpesa')">
+            <span class="method-icon">📱</span>
+            <span class="method-info"><strong>M-Pesa</strong><small>Kenya mobile money</small></span>
+          </button>
+          <button type="button" class="method-btn" data-method="crypto" onclick="selectWithdrawMethod('crypto')">
+            <span class="method-icon">₮</span>
+            <span class="method-info"><strong>USDT BEP20</strong><small>Binance Smart Chain</small></span>
+          </button>
         </div>
       </div>
+
+      <div id="withdraw-mpesa-fields">
+        <div class="field">
+          <label>M-Pesa Number *</label>
+          <div class="input-wrap"><svg><use href="#i-phone"/></svg>
+            <input type="tel" id="withdraw-phone" placeholder="e.g. 0712345678" maxlength="13">
+          </div>
+          <small class="field-hint">Format: 07XX XXX XXX or 01XX XXX XXX</small>
+        </div>
+      </div>
+
+      <div id="withdraw-crypto-fields" class="hidden">
+        <div class="field">
+          <label>USDT BEP20 Address *</label>
+          <div class="input-wrap"><svg><use href="#i-coins"/></svg>
+            <input type="text" id="withdraw-usdt" placeholder="0x..." maxlength="42" autocomplete="off">
+          </div>
+          <small class="field-hint">Binance Smart Chain (BEP20) address only. Must start with 0x + 40 hex chars. <strong>Double-check before submitting.</strong></small>
+        </div>
+      </div>
+
       <div class="field">
         <label>Amount (KSh) *</label>
         <div class="input-wrap"><svg><use href="#i-wallet"/></svg>
@@ -443,6 +353,7 @@
         </div>
         <small class="field-hint" id="withdraw-hint"></small>
       </div>
+
       <div id="withdraw-notice" class="notice"></div>
       <div class="modal-actions">
         <button class="btn btn-outline" onclick="closeWithdrawalModal()">Cancel</button>
@@ -451,127 +362,64 @@
     </div>
   </div>
 
-  <!-- Admin User Detail Modal -->
   <div id="admin-user-overlay" class="modal-overlay" onclick="handleAdminUserOverlayClick(event)">
-    <div class="modal-box wide">
-      <button class="modal-close" onclick="closeAdminUserModal()"><svg><use href="#i-x"/></svg></button>
-      <div id="admin-user-content"></div>
-    </div>
+    <div class="modal-box wide"><button class="modal-close" onclick="closeAdminUserModal()"><svg><use href="#i-x"/></svg></button><div id="admin-user-content"></div></div>
   </div>
 
-  <!-- Change Password Modal -->
   <div id="password-overlay" class="modal-overlay" onclick="handlePasswordOverlayClick(event)">
     <div class="modal-box">
       <button class="modal-close" onclick="closePasswordModal()"><svg><use href="#i-x"/></svg></button>
       <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Change Password</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Enter your current password and a new one.</p>
-      <div class="field">
-        <label>Current Password</label>
-        <div class="input-wrap"><svg><use href="#i-lock"/></svg>
-          <input type="password" id="old-password" placeholder="••••••••" required>
-        </div>
-      </div>
-      <div class="field">
-        <label>New Password</label>
-        <div class="input-wrap"><svg><use href="#i-lock"/></svg>
-          <input type="password" id="new-password" placeholder="At least 6 characters" minlength="6" required>
-        </div>
-      </div>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Enter current and new password.</p>
+      <div class="field"><label>Current Password</label><div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="old-password" required></div></div>
+      <div class="field"><label>New Password</label><div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="new-password" minlength="6" required></div></div>
       <div id="password-notice" class="notice"></div>
-      <div class="modal-actions">
-        <button class="btn btn-outline" onclick="closePasswordModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
-      </div>
+      <div class="modal-actions"><button class="btn btn-outline" onclick="closePasswordModal()">Cancel</button><button class="btn btn-primary" onclick="changePassword()">Update</button></div>
     </div>
   </div>
 
-  <!-- Edit Profile Modal -->
   <div id="edit-profile-overlay" class="modal-overlay" onclick="handleEditProfileOverlayClick(event)">
     <div class="modal-box">
       <button class="modal-close" onclick="closeEditProfile()"><svg><use href="#i-x"/></svg></button>
       <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Edit Profile</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-bottom: 24px;">Change your display name and avatar.</p>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 24px;">Change name and avatar.</p>
       <div class="edit-avatar-preview-wrap"><div class="profile-avatar-container" id="edit-avatar-preview"></div></div>
-      <div class="field" style="margin-bottom: 20px;">
-        <label>Display Name</label>
-        <input type="text" id="edit-name-input" placeholder="Your name" maxlength="30" style="padding-left: 13px;">
-      </div>
+      <div class="field" style="margin-bottom: 20px;"><label>Display Name</label><input type="text" id="edit-name-input" maxlength="30" style="padding-left:13px;"></div>
       <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--ink);">Choose an avatar</label>
       <div class="avatar-grid" id="avatar-grid"></div>
-      <label class="avatar-upload-btn">
-        <svg><use href="#i-camera"/></svg>
-        <span>Upload your own photo</span>
-        <input type="file" accept="image/*" onchange="handleAvatarFileChange(event)" style="display: none;">
-      </label>
+      <label class="avatar-upload-btn"><svg><use href="#i-camera"/></svg><span>Upload your own photo</span><input type="file" accept="image/*" onchange="handleAvatarFileChange(event)" style="display: none;"></label>
       <div id="edit-profile-notice" class="notice"></div>
-      <div class="modal-actions">
-        <button class="btn btn-outline" onclick="closeEditProfile()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveProfileEdits()">Save Changes</button>
-      </div>
+      <div class="modal-actions"><button class="btn btn-outline" onclick="closeEditProfile()">Cancel</button><button class="btn btn-primary" onclick="saveProfileEdits()">Save</button></div>
     </div>
   </div>
 
-  <!-- Plan Modal -->
   <div id="plan-overlay" class="modal-overlay" onclick="handlePlanOverlayClick(event)">
     <div class="modal-box wide">
       <button class="modal-close" onclick="closePlanModal()"><svg><use href="#i-x"/></svg></button>
       <h2 style="margin-bottom: 6px; font-size: 22px; letter-spacing: -.6px;">Choose Your Plan</h2>
-      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Higher plans unlock more surveys and let you earn more each day.</p>
-      <div class="plan-card" data-plan="basic" onclick="selectPlan('basic')">
-        <div class="plan-card-header"><div class="plan-name">Basic</div><span class="tier-badge tier-basic"><svg><use href="#i-star"/></svg>Free</span></div>
-        <div class="plan-price"><span class="free-tag">Free forever</span></div>
-        <ul class="plan-features"><li>Access to basic surveys only</li><li>Earn up to KSh 50 per day</li><li>Up to 3 surveys per day</li><li>Withdraw at KSh 2,500</li></ul>
-      </div>
-      <div class="plan-card" data-plan="silver" onclick="selectPlan('silver')">
-        <div class="plan-card-header"><div class="plan-name">Silver</div><span class="tier-badge tier-silver"><svg><use href="#i-star"/></svg>Silver</span></div>
-        <div class="plan-price"><strong>KSh 100</strong> one-time</div>
-        <ul class="plan-features"><li>Basic + Silver surveys</li><li>Earn up to KSh 100 per day</li><li>Up to 5 surveys per day</li><li>Withdraw at KSh 1,500</li></ul>
-      </div>
-      <div class="plan-card" data-plan="gold" onclick="selectPlan('gold')">
-        <div class="plan-card-header"><div class="plan-name">Gold</div><span class="tier-badge tier-gold"><svg><use href="#i-star"/></svg>Gold</span></div>
-        <div class="plan-price"><strong>KSh 300</strong> one-time</div>
-        <ul class="plan-features"><li>Basic + Silver + Gold surveys</li><li>Earn up to KSh 200 per day</li><li>Up to 8 surveys per day</li><li>Withdraw at KSh 1,000</li></ul>
-      </div>
-      <div class="plan-card" data-plan="platinum" onclick="selectPlan('platinum')">
-        <div class="plan-card-header"><div class="plan-name">Platinum</div><span class="tier-badge tier-platinum"><svg><use href="#i-crown"/></svg>Platinum</span></div>
-        <div class="plan-price"><strong>KSh 500</strong> one-time</div>
-        <ul class="plan-features"><li>All surveys unlocked</li><li>Earn up to KSh 300 per day</li><li>Up to 10 surveys per day</li><li>Withdraw at KSh 500</li></ul>
-      </div>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Higher plans unlock more surveys.</p>
+      <div class="plan-card" data-plan="basic" onclick="selectPlan('basic')"><div class="plan-card-header"><div class="plan-name">Basic</div><span class="tier-badge tier-basic"><svg><use href="#i-star"/></svg>Free</span></div><div class="plan-price"><span class="free-tag">Free forever</span></div><ul class="plan-features"><li>Basic surveys only</li><li>KSh 50/day</li><li>3 surveys/day</li><li>Withdraw at KSh 2,500</li></ul></div>
+      <div class="plan-card" data-plan="silver" onclick="selectPlan('silver')"><div class="plan-card-header"><div class="plan-name">Silver</div><span class="tier-badge tier-silver"><svg><use href="#i-star"/></svg>Silver</span></div><div class="plan-price"><strong>KSh 100</strong></div><ul class="plan-features"><li>+ Silver surveys</li><li>KSh 100/day</li><li>5 surveys/day</li><li>Withdraw at KSh 1,500</li></ul></div>
+      <div class="plan-card" data-plan="gold" onclick="selectPlan('gold')"><div class="plan-card-header"><div class="plan-name">Gold</div><span class="tier-badge tier-gold"><svg><use href="#i-star"/></svg>Gold</span></div><div class="plan-price"><strong>KSh 300</strong></div><ul class="plan-features"><li>+ Gold surveys</li><li>KSh 200/day</li><li>8 surveys/day</li><li>Withdraw at KSh 1,000</li></ul></div>
+      <div class="plan-card" data-plan="platinum" onclick="selectPlan('platinum')"><div class="plan-card-header"><div class="plan-name">Platinum</div><span class="tier-badge tier-platinum"><svg><use href="#i-crown"/></svg>Platinum</span></div><div class="plan-price"><strong>KSh 500</strong></div><ul class="plan-features"><li>All surveys</li><li>KSh 300/day</li><li>10 surveys/day</li><li>Withdraw at KSh 500</li></ul></div>
       <div id="plan-notice" class="notice"></div>
-      <div class="modal-actions">
-        <button class="btn btn-outline" onclick="closePlanModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmPlanChange()">Confirm</button>
-      </div>
+      <div class="modal-actions"><button class="btn btn-outline" onclick="closePlanModal()">Cancel</button><button class="btn btn-primary" onclick="confirmPlanChange()">Confirm</button></div>
     </div>
   </div>
 
-  <div id="response-viewer-overlay" class="modal-overlay" onclick="handleResponseViewerOverlayClick(event)">
-    <div class="modal-box response-viewer-card">
-      <button class="modal-close" onclick="closeResponseViewer()"><svg><use href="#i-x"/></svg></button>
-      <div id="response-viewer-content"></div>
-    </div>
-  </div>
+  <div id="response-viewer-overlay" class="modal-overlay" onclick="handleResponseViewerOverlayClick(event)"><div class="modal-box response-viewer-card"><button class="modal-close" onclick="closeResponseViewer()"><svg><use href="#i-x"/></svg></button><div id="response-viewer-content"></div></div></div>
 
   <div id="auth-overlay" class="auth-overlay" onclick="handleOverlayClick(event)">
     <div class="auth-box">
       <button class="auth-close" onclick="closeAuth()"><svg><use href="#i-x"/></svg></button>
-      <div class="auth-brand">
-        <div class="brand-mark"><svg><use href="#i-leaf"/></svg></div>
-        <strong>SurveyKE</strong>
-      </div>
+      <div class="auth-brand"><div class="brand-mark"><svg><use href="#i-leaf"/></svg></div><strong>SurveyKE</strong></div>
       <div id="auth-notice" class="notice"></div>
       <div id="form-signin" class="auth-form-panel">
         <h2>Welcome Back</h2>
         <p class="auth-description">Sign in to continue.</p>
         <form id="signin-form" onsubmit="submitSignIn(event)">
-          <div class="field">
-            <label>Email or Username</label>
-            <div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="text" id="signin-email" placeholder="email or username" required></div>
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signin-password" placeholder="••••••••" required></div>
-          </div>
+          <div class="field"><label>Email or Username</label><div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="text" id="signin-email" placeholder="email or username" required></div></div>
+          <div class="field"><label>Password</label><div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signin-password" placeholder="••••••••" required></div></div>
           <div class="auth-options"><button type="button" class="text-button" onclick="submitPasswordReset()">Forgot password?</button></div>
           <button type="submit" id="signin-submit-btn" class="btn btn-primary btn-block">Sign In</button>
         </form>
@@ -579,28 +427,14 @@
       </div>
       <div id="form-signup" class="auth-form-panel hidden">
         <h2>Create Account</h2>
-        <p class="auth-description">Join SurveyKE — start free, upgrade anytime.</p>
+        <p class="auth-description">Join SurveyKE — start free.</p>
         <form id="signup-form" onsubmit="submitSignUp(event)">
-          <div class="field"><label>Official Name *</label>
-            <div class="input-wrap"><svg><use href="#i-user"/></svg><input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required></div>
-          </div>
-          <div class="field"><label>Username (Nickname) *</label>
-            <div class="input-wrap"><svg><use href="#i-user"/></svg><input type="text" id="signup-username" placeholder="e.g. amina_w" minlength="3" maxlength="20" required></div>
-            <small class="field-hint">3-20 chars · lowercase, numbers, underscore</small>
-          </div>
-          <div class="field"><label>Email Address *</label>
-            <div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required></div>
-          </div>
-          <div class="field"><label>Password *</label>
-            <div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signup-password" placeholder="At least 6 characters" required minlength="6"></div>
-          </div>
-          <div class="field"><label>Referral Code (Optional)</label>
-            <div class="input-wrap"><svg><use href="#i-gift"/></svg><input type="text" id="signup-referral" placeholder="e.g. SK123ABC"></div>
-          </div>
-          <label class="rules-checkbox">
-            <input type="checkbox" id="signup-rules" required>
-            <span>I agree to the <a href="#" onclick="event.preventDefault(); closeAuth(); navigate('static','terms');">Terms</a> and <a href="#" onclick="event.preventDefault(); closeAuth(); navigate('static','privacy');">Privacy Policy</a>.</span>
-          </label>
+          <div class="field"><label>Official Name *</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input type="text" id="signup-name" placeholder="e.g. Amina Wanjiku" required></div></div>
+          <div class="field"><label>Username *</label><div class="input-wrap"><svg><use href="#i-user"/></svg><input type="text" id="signup-username" placeholder="e.g. amina_w" minlength="3" maxlength="20" required></div><small class="field-hint">3-20 chars · lowercase, numbers, underscore</small></div>
+          <div class="field"><label>Email *</label><div class="input-wrap"><svg><use href="#i-mail"/></svg><input type="email" id="signup-email" placeholder="e.g. amina@example.co.ke" required></div></div>
+          <div class="field"><label>Password *</label><div class="input-wrap"><svg><use href="#i-lock"/></svg><input type="password" id="signup-password" minlength="6" required></div></div>
+          <div class="field"><label>Referral Code (Optional)</label><div class="input-wrap"><svg><use href="#i-gift"/></svg><input type="text" id="signup-referral" placeholder="e.g. SK123ABC"></div></div>
+          <label class="rules-checkbox"><input type="checkbox" id="signup-rules" required><span>I agree to the <a href="#" onclick="event.preventDefault(); closeAuth(); navigate('static','terms');">Terms</a> and <a href="#" onclick="event.preventDefault(); closeAuth(); navigate('static','privacy');">Privacy Policy</a>.</span></label>
           <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Create Free Account</button>
         </form>
         <div class="auth-switch">Already have an account? <button class="text-button" onclick="switchAuthMode('signin')">Sign in</button></div>
