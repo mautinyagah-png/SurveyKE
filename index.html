@@ -50,6 +50,8 @@
     <symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
     <symbol id="i-crown" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></symbol>
   </svg>
 
   <div class="announcement">
@@ -186,7 +188,7 @@
 
     <div id="view-take-survey" class="hidden">
       <div class="container section">
-        <a href="#" class="back-link" onclick="navigate('surveys'); return false;"><svg><use href="#i-arrow"/></svg> Back to Surveys</a>
+        <a href="#" class="back-link" onclick="exitWizard(); return false;"><svg><use href="#i-arrow"/></svg> Save &amp; Exit</a>
         <div id="take-survey-content"></div>
       </div>
     </div>
@@ -202,7 +204,7 @@
           <div>
             <span class="eyebrow">Admin Portal</span>
             <h2>Survey Management</h2>
-            <p>Authorized administrator interface for managing live surveys and tracking participation.</p>
+            <p>Manage surveys, review participation, and monitor platform activity.</p>
           </div>
         </div>
         <div id="admin-unauthorized" class="state-box hidden">
@@ -210,111 +212,136 @@
           <p>You are signed in, but your account does not have administrator privileges.</p>
         </div>
         <div id="admin-authorized" class="hidden">
-          <div class="admin-panel-card">
-            <h3>Add New Survey</h3>
-            <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create an external link survey or build an in-app survey with your own questions.</p>
 
-            <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
-              <div class="field">
-                <label>Survey Type *</label>
-                <div class="admin-type-toggle">
-                  <button type="button" class="admin-type-btn active" data-type="external" onclick="setAdminSurveyType('external')">🔗 External Link</button>
-                  <button type="button" class="admin-type-btn" data-type="internal" onclick="setAdminSurveyType('internal')">📝 Internal Survey</button>
-                </div>
-              </div>
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                <div class="field">
-                  <label>Survey Title *</label>
-                  <input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required>
-                </div>
-                <div class="field">
-                  <label>Category *</label>
-                  <select id="admin-category" style="padding-left: 13px;" required>
-                    <option value="Public Policy">Public Policy</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Consumer Goods">Consumer Goods</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Health">Health</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="field">
-                <label>Description *</label>
-                <textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea>
-              </div>
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px;">
-                <div class="field">
-                  <label>Duration (mins) *</label>
-                  <input type="number" id="admin-duration" placeholder="5" min="1" required>
-                </div>
-                <div class="field">
-                  <label>Reward (KSh) *</label>
-                  <input type="number" id="admin-reward" placeholder="20" min="1" required>
-                </div>
-                <div class="field">
-                  <label>Tier *</label>
-                  <select id="admin-tier" style="padding-left: 13px;" required>
-                    <option value="basic">Basic</option>
-                    <option value="silver">Silver</option>
-                    <option value="gold">Gold</option>
-                    <option value="platinum">Platinum</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Status *</label>
-                  <select id="admin-status" style="padding-left: 13px;" required>
-                    <option value="published">Published</option>
-                    <option value="draft">Draft</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </div>
-              </div>
-
-              <div id="admin-external-fields">
-                <div class="field">
-                  <label>Survey URL (HTTPS) *</label>
-                  <input type="url" id="admin-url" placeholder="https://forms.gle/..." required>
-                </div>
-              </div>
-
-              <div id="admin-internal-fields" class="hidden">
-                <div class="field">
-                  <label>Questions *</label>
-                  <div id="admin-questions-list"></div>
-                  <button type="button" class="qb-add-question" onclick="addAdminQuestion()">+ Add Question</button>
-                </div>
-              </div>
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                <div class="field">
-                  <label>Eligibility (Optional)</label>
-                  <textarea id="admin-eligibility" placeholder="Who can participate..." style="min-height: 60px;"></textarea>
-                </div>
-                <div class="field">
-                  <label>Instructions (Optional)</label>
-                  <textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea>
-                </div>
-              </div>
-
-              <div id="admin-create-notice" class="notice"></div>
-              <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey</button>
-            </form>
+          <div class="admin-subtabs" id="admin-subtabs">
+            <button class="admin-subtab active" data-section="add" onclick="switchAdminSection('add')">
+              <svg><use href="#i-plus"/></svg>
+              <span>Add Survey</span>
+            </button>
+            <button class="admin-subtab" data-section="manage" onclick="switchAdminSection('manage')">
+              <svg><use href="#i-list"/></svg>
+              <span>Manage Surveys</span>
+            </button>
+            <button class="admin-subtab" data-section="review" onclick="switchAdminSection('review')">
+              <svg><use href="#i-check-circle"/></svg>
+              <span>Participation Review</span>
+            </button>
           </div>
 
-          <div class="admin-panel-card">
-            <h3>Manage Existing Surveys</h3>
-            <div id="admin-surveys-list-wrap"><div class="spinner"></div></div>
+          <div id="admin-section-add" class="admin-section">
+            <div class="admin-panel-card">
+              <h3>Add New Survey</h3>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 18px;">Create an external link survey or build an in-app survey with your own questions.</p>
+
+              <form id="admin-survey-form" onsubmit="handleCreateSurvey(event)">
+                <div class="field">
+                  <label>Survey Type *</label>
+                  <div class="admin-type-toggle">
+                    <button type="button" class="admin-type-btn active" data-type="external" onclick="setAdminSurveyType('external')">🔗 External Link</button>
+                    <button type="button" class="admin-type-btn" data-type="internal" onclick="setAdminSurveyType('internal')">📝 Internal Survey</button>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                  <div class="field">
+                    <label>Survey Title *</label>
+                    <input type="text" id="admin-title" placeholder="e.g., National Digital ID Feedback" required>
+                  </div>
+                  <div class="field">
+                    <label>Category *</label>
+                    <select id="admin-category" style="padding-left: 13px;" required>
+                      <option value="Public Policy">Public Policy</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Consumer Goods">Consumer Goods</option>
+                      <option value="Transport">Transport</option>
+                      <option value="Health">Health</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>Description *</label>
+                  <textarea id="admin-description" placeholder="Describe the purpose of this survey..." required></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px;">
+                  <div class="field">
+                    <label>Duration (mins) *</label>
+                    <input type="number" id="admin-duration" placeholder="5" min="1" required>
+                  </div>
+                  <div class="field">
+                    <label>Reward (KSh) *</label>
+                    <input type="number" id="admin-reward" placeholder="20" min="1" required>
+                  </div>
+                  <div class="field">
+                    <label>Tier *</label>
+                    <select id="admin-tier" style="padding-left: 13px;" required>
+                      <option value="basic">Basic</option>
+                      <option value="silver">Silver</option>
+                      <option value="gold">Gold</option>
+                      <option value="platinum">Platinum</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Status *</label>
+                    <select id="admin-status" style="padding-left: 13px;" required>
+                      <option value="published">Published</option>
+                      <option value="draft">Draft</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="admin-external-fields">
+                  <div class="field">
+                    <label>Survey URL (HTTPS) *</label>
+                    <input type="url" id="admin-url" placeholder="https://forms.gle/..." required>
+                  </div>
+                </div>
+
+                <div id="admin-internal-fields" class="hidden">
+                  <div class="field">
+                    <label>Questions *</label>
+                    <div id="admin-questions-list"></div>
+                    <button type="button" class="qb-add-question" onclick="addAdminQuestion()">+ Add Question</button>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                  <div class="field">
+                    <label>Eligibility (Optional)</label>
+                    <textarea id="admin-eligibility" placeholder="Who can participate..." style="min-height: 60px;"></textarea>
+                  </div>
+                  <div class="field">
+                    <label>Instructions (Optional)</label>
+                    <textarea id="admin-instructions" placeholder="How participants should proceed..." style="min-height: 60px;"></textarea>
+                  </div>
+                </div>
+
+                <div id="admin-create-notice" class="notice"></div>
+                <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="margin-top: 10px;">Publish Survey</button>
+              </form>
+            </div>
           </div>
 
-          <div class="admin-panel-card">
-            <h3>Participation Review</h3>
-            <div id="admin-participations-wrap"><div class="spinner"></div></div>
+          <div id="admin-section-manage" class="admin-section hidden">
+            <div class="admin-panel-card">
+              <h3>Manage Existing Surveys</h3>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Close, publish, or delete surveys. Deleted surveys also delete their participations.</p>
+              <div id="admin-surveys-list-wrap"><div class="spinner"></div></div>
+            </div>
           </div>
+
+          <div id="admin-section-review" class="admin-section hidden">
+            <div class="admin-panel-card">
+              <h3>Participation Review</h3>
+              <p style="font-size: 12.5px; color: var(--muted); margin: 6px 0 16px;">Review submissions by user, approve or reject. Once finalized, actions are locked.</p>
+              <div id="admin-participations-wrap"><div class="spinner"></div></div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -395,10 +422,7 @@
       <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">Higher plans unlock more surveys and let you earn more each day.</p>
 
       <div class="plan-card" data-plan="basic" onclick="selectPlan('basic')">
-        <div class="plan-card-header">
-          <div class="plan-name">Basic</div>
-          <span class="tier-badge tier-basic"><svg><use href="#i-star"/></svg>Free</span>
-        </div>
+        <div class="plan-card-header"><div class="plan-name">Basic</div><span class="tier-badge tier-basic"><svg><use href="#i-star"/></svg>Free</span></div>
         <div class="plan-price"><span class="free-tag">Free forever</span></div>
         <ul class="plan-features">
           <li>Access to basic surveys only</li>
@@ -409,10 +433,7 @@
       </div>
 
       <div class="plan-card" data-plan="silver" onclick="selectPlan('silver')">
-        <div class="plan-card-header">
-          <div class="plan-name">Silver</div>
-          <span class="tier-badge tier-silver"><svg><use href="#i-star"/></svg>Silver</span>
-        </div>
+        <div class="plan-card-header"><div class="plan-name">Silver</div><span class="tier-badge tier-silver"><svg><use href="#i-star"/></svg>Silver</span></div>
         <div class="plan-price"><strong>KSh 100</strong> one-time</div>
         <ul class="plan-features">
           <li>Basic + Silver surveys</li>
@@ -423,10 +444,7 @@
       </div>
 
       <div class="plan-card" data-plan="gold" onclick="selectPlan('gold')">
-        <div class="plan-card-header">
-          <div class="plan-name">Gold</div>
-          <span class="tier-badge tier-gold"><svg><use href="#i-star"/></svg>Gold</span>
-        </div>
+        <div class="plan-card-header"><div class="plan-name">Gold</div><span class="tier-badge tier-gold"><svg><use href="#i-star"/></svg>Gold</span></div>
         <div class="plan-price"><strong>KSh 300</strong> one-time</div>
         <ul class="plan-features">
           <li>Basic + Silver + Gold surveys</li>
@@ -437,10 +455,7 @@
       </div>
 
       <div class="plan-card" data-plan="platinum" onclick="selectPlan('platinum')">
-        <div class="plan-card-header">
-          <div class="plan-name">Platinum</div>
-          <span class="tier-badge tier-platinum"><svg><use href="#i-crown"/></svg>Platinum</span>
-        </div>
+        <div class="plan-card-header"><div class="plan-name">Platinum</div><span class="tier-badge tier-platinum"><svg><use href="#i-crown"/></svg>Platinum</span></div>
         <div class="plan-price"><strong>KSh 500</strong> one-time</div>
         <ul class="plan-features">
           <li>All surveys unlocked</li>
